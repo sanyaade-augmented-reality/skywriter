@@ -54,7 +54,7 @@ public class ARBlipView extends GLSurfaceView {
 	//our world, to which we add stuff
 	private World world = null;	
 	//renderer
-	 MyRenderer renderer = null;
+	MyRenderer renderer = null;
 	 
 	private FrameBuffer fb = null;
 	
@@ -65,25 +65,25 @@ public class ARBlipView extends GLSurfaceView {
 	//generic font
 	private GLFont glFont;
 	Paint paint = new Paint();
-	//Worldset up flag
+	//World setup flag
 	boolean worldReadyToGo = false;
 	
 	//purely for testing
 	//timer
-	  private TimerTask mTimerTask = null;
-	  private Timer mTimer = null;
-	  Object3D rotateingcube;
-	  int pos=0;
-		 boolean paused = false;
-		 int move = 0;
-		 float turn = 0;
-		 float touchTurn = 0;
-		 float touchTurnUp = 0;
-		private Matrix CameraMatrix;
-		private boolean updateCamRotation;
-		float newCameraX =0;
-		float newCameraY =0;
-		float newCameraZ =0;
+	private TimerTask mTimerTask = null;
+	private Timer mTimer = null;
+	Object3D rotateingcube;
+	int pos=0;
+	boolean paused = false;
+	int move = 0;
+	float turn = 0;
+	float touchTurn = 0;
+	float touchTurnUp = 0;
+	private Matrix CameraMatrix;
+	private boolean updateCamRotation;
+	float newCameraX =0;
+	float newCameraY =0;
+	float newCameraZ =0;
 		
 	
 	public ARBlipView(Context context) {		
@@ -181,8 +181,8 @@ public class ARBlipView extends GLSurfaceView {
 		newCameraY =y;		
 		newCameraZ =z;
 	}
-	/** Sets the camera orentation **/
-	public void setCameraOrentation(SimpleVector xyzAngles)	
+	/** Sets the camera orientation **/
+	public void setCameraOrientation(SimpleVector xyzAngles)	
 	{
 		
 		//we just set the numbers for display for now
@@ -239,8 +239,8 @@ public class ARBlipView extends GLSurfaceView {
 	    return s;
 	}
 	
-	/** Sets the camera orentation **/
-	public void setCameraOrentation(Matrix ma)	
+	/** Sets the camera orientation **/
+	public void setCameraOrientation(Matrix ma)	
 	{
 		if (ma!=null){
 			
@@ -258,8 +258,8 @@ public class ARBlipView extends GLSurfaceView {
 		 
 		
 	}
-	/** Sets the camera orentation **/
-	public void setCameraOrentation(SimpleVector dir,SimpleVector up)	
+	/** Sets the camera orientation **/
+	public void setCameraOrientation(SimpleVector dir,SimpleVector up)	
 	{
 		world.getCamera().setOrientation(dir, up);
 		
