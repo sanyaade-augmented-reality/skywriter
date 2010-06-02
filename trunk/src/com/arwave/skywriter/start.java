@@ -51,8 +51,9 @@ import com.threed.jpct.SimpleVector;
  * @author EgonOlsen
  *
  */
-public class start extends TabActivity implements SensorEventListener,LocationListener, WaveletOperationListener{
-	private ClientBackend backend = null;
+public class start extends TabActivity implements SensorEventListener,LocationListener {
+	
+	private AbstractCommunicationManager acm;
 	private ARBlipView arView;
 	CameraView cameraView;
 	private SensorManager sensorMgr;
@@ -94,6 +95,8 @@ private long lastOrientsTime;
 		float I[] = new float[9];
 		private boolean isReady;
 	 
+		TabHost tabHost;
+		
 	  
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +112,7 @@ private long lastOrientsTime;
 		// final LinearLayout LoginPage2 = (LinearLayout)loginpage.findViewById(R.id.MainLoginPage);
 		 
 		//SET UP TABS
-		 TabHost tabHost = getTabHost();  // The activity TabHost
+		 tabHost = getTabHost();  // The activity TabHost
 		    TabHost.TabSpec spec;  // Resusable TabSpec for each tab
 		    
 		   
@@ -159,7 +162,9 @@ private long lastOrientsTime;
 			LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 500.0f, this);
 		
-			
+			//initialize the communication manager
+			//TODO: other choices will be available in the future
+			acm = new FedOneCommunicationManager( this );
 		//prompt for a login 
 			Button button = (Button)findViewById(R.id.LoginButton);
 		    button.setOnClickListener(new OnClickListener(){
@@ -168,32 +173,25 @@ private long lastOrientsTime;
 					EditText username = (EditText)findViewById(R.id.EditText02);
 			        EditText serverAddress = (EditText)findViewById(R.id.EditText03);
 			        //EditText serverPort = (EditText)findViewById(R.id.serverPortEdit);
-					loginUser(username.getText().toString(), new String(""), serverAddress.getText().toString() );
+					acm.login(serverAddress.getText().toString(), 9876, username.getText().toString(), new String("") );
+					tabHost.setCurrentTab(1);
 				}
 		    	
 		    });
 		//if the user doesn't login we only display the already cached data?
 		
 	}
+	/**
 	public void loginUser(String name, String password, String server){
 		
 		//login
 		//ARBlipInterface.login(name,password,server)
-		TextView out = (TextView)findViewById(R.id.messages);
-		try {
-			//FIXME: port shouldn't be hardcoded
-            backend = new ClientBackend(name, server, 9876);
-          } catch (IOException e) {
-            out.setText("Error: failed to connect to " + server + " with user " + name);
-            return;
-          }
-          backend.addWaveletOperationListener(this);
-          out.setText("Connected");
+		
 		//assign listeners
 		
 		
 	}
-	
+	*/
 	
 	@Override
 	protected void onPause() {
@@ -761,5 +759,14 @@ private long lastOrientsTime;
 		
 	} 
 
+	public void addMessage( String message ) {
+		TextView out = (TextView)findViewById(R.id.messages);
+		out.setText(message);
+	}
+	
+	public void addWaveList( String list ) {
+		//TextView out = (TextView)findViewById(R.id.waves);
+		//out.setText(list);
+	}
 	
 }
