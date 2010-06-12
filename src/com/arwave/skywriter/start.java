@@ -15,6 +15,7 @@ import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
+import android.app.ListActivity;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.res.Resources;
@@ -32,13 +33,19 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
@@ -67,6 +74,8 @@ public class start extends TabActivity implements SensorEventListener,LocationLi
 	
 	private boolean OriginalLocationSet = false;
 
+	private String[] wavesList;
+	private ListView waveListView;
 	  
 	  
 	  //Camera Orientation Related
@@ -169,17 +178,25 @@ private long lastOrientsTime;
 			Button button = (Button)findViewById(R.id.LoginButton);
 		    button.setOnClickListener(new OnClickListener(){
 				public void onClick(View v) {
+					tabHost.setCurrentTab(1);
 					// try to log the user in
 					EditText username = (EditText)findViewById(R.id.EditText02);
 			        EditText serverAddress = (EditText)findViewById(R.id.EditText03);
 			        //EditText serverPort = (EditText)findViewById(R.id.serverPortEdit);
 					acm.login(serverAddress.getText().toString(), 9876, username.getText().toString(), new String("") );
-					tabHost.setCurrentTab(1);
 				}
 		    	
 		    });
 		//if the user doesn't login we only display the already cached data?
 		
+		    //setup the page with the wave list
+		    FrameLayout wavesListPage = (FrameLayout)findViewById(R.id.WavePage);
+
+			waveListView = new ListView(this);
+
+			wavesListPage.addView(waveListView);
+
+			//waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , wavesList));
 	}
 	/**
 	public void loginUser(String name, String password, String server){
@@ -764,9 +781,24 @@ private long lastOrientsTime;
 		out.setText(message);
 	}
 	
-	public void addWaveList( String list ) {
+	public void showWaveList(String[] list) {
 		//TextView out = (TextView)findViewById(R.id.waves);
 		//out.setText(list);
+
+		waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , list)); 
+		
+		/*
+		waveListView.setOnItemClickListener(new OnItemClickListener() {
+		    public void onItemClick(AdapterView<?> parent, View view,
+		        int position, long id) {
+		      // When clicked, show a toast with the TextView text
+		      acm.openWavelet( ((TextView)view).getText().toString() );
+		    }
+		  });
+		*/
 	}
 	
+	public void setWaveList(String[] list) {
+		this.wavesList = list;
+	}
 }
