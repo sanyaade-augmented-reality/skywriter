@@ -6,8 +6,8 @@
 <string name="password">Password :</string>
 <string name="username">Username :</string>
 <string name="Server">Server :</string>
-<string name="defaultServer">orient-lodge.com</string>
-<string name="defaultUsername">davide@orient-lodge.com</string>
+<string name="defaultServer">192.168.1.103</string>
+<string name="defaultUsername">davide@arwave.org</string>
 <string name="defaultPassword">aaaa</string>
 <string name="messages">What happens goes here</string>
 </resources>

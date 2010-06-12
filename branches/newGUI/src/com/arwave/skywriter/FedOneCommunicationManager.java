@@ -4,13 +4,17 @@
 package com.arwave.skywriter;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientBackend;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientUtils;
+import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientWaveView;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.IndexEntry;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.WaveletOperationListener;
+import org.waveprotocol.wave.model.document.operation.BufferedDocOp;
+import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
@@ -95,7 +99,6 @@ public class FedOneCommunicationManager implements
 	 */
 	public void login(String serverAddress, int serverPort, String username,
 			          String password) {
-		
 		try {
             backend = new ClientBackend(username, serverAddress, serverPort);
         } catch (IOException e) {
@@ -120,8 +123,21 @@ public class FedOneCommunicationManager implements
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#openWavelet(java.lang.String)
 	 */
 	public void openWavelet(String waveletID) {
-		// TODO Auto-generated method stub
-
+		mainWindow.addMessage("Trying to open wavelet with id " + waveletID);
+		//we need to split
+		
+		ClientWaveView wave = backend.getWave( WaveId.deserialise(waveletID) );
+		Iterable<? extends WaveletData> wavelets = wave.getWavelets();
+		for( WaveletData wavelet: wavelets )
+		{
+			Collection<BufferedDocOp>  blips = wavelet.getDocuments().values();
+			for( BufferedDocOp bdo: blips)
+			{
+				mainWindow.addMessage( bdo.getCharactersString(0) );
+			}
+			
+		}
+		//mainWindow.addMessage(wave.toString());
 	}
 
 	/* (non-Javadoc)
@@ -137,7 +153,7 @@ public class FedOneCommunicationManager implements
 	 */
 	public void noOp(String arg0, WaveletData arg1) {
 		// TODO default method stub
-		mainWindow.addMessage("noOp");
+		//mainWindow.addMessage("noOp");
 	}
 
 	/* (non-Javadoc)
@@ -145,7 +161,7 @@ public class FedOneCommunicationManager implements
 	 */
 	public void onCommitNotice(WaveletData arg0, HashedVersion arg1) {
 		// TODO default method stub
-		mainWindow.addMessage("onCommitNotice");
+		//mainWindow.addMessage("onCommitNotice");
 	}
 
 	/* (non-Javadoc)
@@ -153,13 +169,25 @@ public class FedOneCommunicationManager implements
 	 */
 	public void onDeltaSequenceEnd(WaveletData arg0) {
 		List<IndexEntry> indexEntries = ClientUtils.getIndexEntries(backend.getIndexWave());
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Wave List (" + indexEntries.size() + "):\n");
+        String[] list = new String[ indexEntries.size() ];
+        int i = 0;
         for (IndexEntry entry: indexEntries) {
-      	  sb.append(entry.getWaveId()).append("\n");
+      	  list[i++] = entry.getWaveId().serialise();
+      	  //.toString();
+
         }
-        Log.d("Message", sb.toString());
-        mainWindow.addMessage( sb.toString() );
+        
+        /*
+        mainWindow.setWaveList(list);
+        mainWindow.runOnUiThread(new Runnable() {
+
+            public void run() {
+            	mainWindow.showWaveList();
+            }
+          });
+		*/
+        mainWindow.showWaveList(list);
+        
 	}
 
 	/* (non-Javadoc)
@@ -167,7 +195,7 @@ public class FedOneCommunicationManager implements
 	 */
 	public void onDeltaSequenceStart(WaveletData arg0) {
 		// TODO default method stub
-		mainWindow.addMessage("onDeltaSequenceStart");
+		//mainWindow.addMessage("onDeltaSequenceStart");
 	}
 
 	/* (non-Javadoc)
@@ -176,7 +204,7 @@ public class FedOneCommunicationManager implements
 	public void participantAdded(String arg0, WaveletData arg1,
 			ParticipantId arg2) {
 		// TODO default method stub
-		mainWindow.addMessage("participantAdded");
+		//mainWindow.addMessage("participantAdded");
 	}
 
 	/* (non-Javadoc)
@@ -185,7 +213,7 @@ public class FedOneCommunicationManager implements
 	public void participantRemoved(String arg0, WaveletData arg1,
 			ParticipantId arg2) {
 		// TODO default method stub
-		mainWindow.addMessage("participantRemoved");
+		//mainWindow.addMessage("participantRemoved");
 	}
 
 	/* (non-Javadoc)
@@ -194,7 +222,7 @@ public class FedOneCommunicationManager implements
 	public void waveletDocumentUpdated(String arg0, WaveletData arg1,
 			WaveletDocumentOperation arg2) {
 		// TODO default method stub
-		mainWindow.addMessage("waveletDocumentUpdated");
+		//mainWindow.addMessage("waveletDocumentUpdated");
 	}
 
 }
