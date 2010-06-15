@@ -2,20 +2,17 @@ package com.arwave.skywriter;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-import org.waveprotocol.wave.examples.fedone.waveclient.common.WaveletOperationListener;
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
-import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientBackend;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
-import android.app.ListActivity;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.res.Resources;
@@ -33,20 +30,13 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.TabHost;
-import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
-
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
 
@@ -75,7 +65,7 @@ public class start extends TabActivity implements SensorEventListener,LocationLi
 	private boolean OriginalLocationSet = false;
 
 	private String[] wavesList;
-	private ListView waveListView;
+	private WaveListView waveListViewBox;
 	  
 	  
 	  //Camera Orientation Related
@@ -105,8 +95,11 @@ private long lastOrientsTime;
 		private boolean isReady;
 	 
 		TabHost tabHost;
+		//--
+		private ArrayAdapter<String> usersWaveListAdapter;			
+		private List<String> usersWavesList;
 		
-	  
+		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -192,9 +185,16 @@ private long lastOrientsTime;
 		    //setup the page with the wave list
 		    FrameLayout wavesListPage = (FrameLayout)findViewById(R.id.WavePage);
 
-			waveListView = new ListView(this);
+			waveListViewBox = new WaveListView(this);
 
-			wavesListPage.addView(waveListView);
+			wavesListPage.addView(waveListViewBox);
+			//add default contents and set adapter
+			usersWavesList = new ArrayList<String>();		
+	      // usersWavesList.add("wave list not updated");
+	        usersWaveListAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , usersWavesList);			 
+		    waveListViewBox.setAdapter(usersWaveListAdapter);
+		   
+		    
 
 			//waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , wavesList));
 	}
@@ -669,7 +669,8 @@ private long lastOrientsTime;
 		Timer blah = new Timer();
 				
 		TimerTask meep = new TimerTask() {
-			   public void run() {
+			   @Override
+			public void run() {
 			       
 				  
 				 
@@ -777,15 +778,31 @@ private long lastOrientsTime;
 	} 
 
 	public void addMessage( String message ) {
-		TextView out = (TextView)findViewById(R.id.messages);
-		out.setText(message);
+	//	TextView out = (TextView)findViewById(R.id.messages);
+	//	out.setText(message);
+		Log.i("state",message);
+		usersWaveListAdapter.add("test");
 	}
 	
 	public void showWaveList(String[] list) {
-		//TextView out = (TextView)findViewById(R.id.waves);
-		//out.setText(list);
-
-		waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , list)); 
+		
+		
+		//clear the list
+		usersWavesList.clear();
+		
+		//add the data to the list
+		Log.i("state","getting wave list");
+		for (int i=0;   i<list.length;   i++){
+		Log.i("wavelist",list[i]);
+		usersWavesList.add(i+"_"+list[i]);		
+		}
+		
+		//request the update to the list
+		Log.i("wavelist","posting invalidate");
+		waveListViewBox.setDataUpdated();
+		waveListViewBox.postInvalidate();
+		
+		//waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , list)); 
 		
 		/*
 		waveListView.setOnItemClickListener(new OnItemClickListener() {
@@ -799,6 +816,11 @@ private long lastOrientsTime;
 	}
 	
 	public void setWaveList(String[] list) {
-		this.wavesList = list;
+
+		Log.i("state","getting wave list");
+		for (int i=0;   i<list.length;   i++){
+		Log.i("wavelist",list[i]);
+		}
+	//	this.wavesList = list;
 	}
 }

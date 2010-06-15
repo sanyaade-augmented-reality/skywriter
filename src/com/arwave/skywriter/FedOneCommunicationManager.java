@@ -134,6 +134,7 @@ public class FedOneCommunicationManager implements
 			for( BufferedDocOp bdo: blips)
 			{
 				mainWindow.addMessage( bdo.getCharactersString(0) );
+				
 			}
 			
 		}
