@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@android:id/tabhost" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:padding="5dp">
+		<TabWidget android:id="@android:id/tabs"
+			android:layout_width="fill_parent" android:layout_height="wrap_content" />
+		<FrameLayout android:id="@android:id/tabcontent"
+			android:layout_width="fill_parent" android:layout_height="fill_parent"
+			android:padding="5dp">
+			<FrameLayout android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:id="@+id/ARViewPage"></FrameLayout>
+			<FrameLayout android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:id="@+id/WavePage">
+<TextView android:text="@+id/TextView01" android:id="@+id/list_item" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+</FrameLayout>
+			
+			
+			
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+android:orientation="vertical" 
+android:id="@+id/MainLoginPage" 
+android:layout_height="wrap_content" 
+android:layout_width="wrap_content" 
+android:layout_gravity="center_vertical|center_horizontal">
+
+	<LinearLayout android:id="@+id/LinearLayout02" 
+	android:layout_width="wrap_content" 
+	android:layout_height="wrap_content" 
+	android:layout_gravity="center_horizontal">
+		<TextView android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:id="@+id/UsernameBox" 
+		android:text="@string/username" />
+		<EditText android:text="@string/defaultUsername" 
+		android:id="@+id/EditText02" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+	</LinearLayout>
+
+	<LinearLayout android:id="@+id/LinearLayout03" 
+	android:layout_width="wrap_content" 
+	android:layout_height="wrap_content" 
+	android:layout_gravity="center_horizontal">
+		<TextView android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:id="@+id/PasswordBox" 
+		android:text="@string/password" />
+		<EditText android:text="@string/defaultPassword" 
+		android:id="@+id/EditText01" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+	</LinearLayout>
+
+	<LinearLayout android:id="@+id/LinearLayout03" 
+	android:layout_height="wrap_content" 
+	android:layout_gravity="left" 
+	android:layout_width="fill_parent">
+		<TextView android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:id="@+id/ServerBox" 
+		android:text="@string/Server" />
+		<EditText android:text="@string/defaultServer" 
+		android:id="@+id/EditText03" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:layout_gravity="right" />
+	</LinearLayout>
+
+	<Button android:layout_width="wrap_content" 
+	android:layout_height="wrap_content" 
+	android:layout_gravity="center_horizontal" 
+	android:id="@+id/LoginButton" 
+	android:text="@string/login" />
+
+	<TextView android:id="@+id/messages"
+	android:text="@string/messages"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal" />
+        
+</LinearLayout>
+
+
+		</FrameLayout>
+	</LinearLayout>
+
+
+
+
+
+</TabHost>
