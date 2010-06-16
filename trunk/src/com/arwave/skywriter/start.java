@@ -3,6 +3,7 @@ package com.arwave.skywriter;
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,6 +35,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -96,8 +98,11 @@ private long lastOrientsTime;
 		private boolean isReady;
 	 
 		TabHost tabHost;
-		
-	  
+
+		private ArrayAdapter<String> usersWaveListAdapter;			
+		private List<String> usersWavesList;
+		private WaveListView waveListViewBox;
+		 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -179,7 +184,19 @@ private long lastOrientsTime;
 		    	
 		    });
 		//if the user doesn't login we only display the already cached data?
-		
+		    
+		    //setup the page with the wave list
+		    FrameLayout wavesListPage = (FrameLayout)findViewById(R.id.WavePage);
+
+			waveListViewBox = new WaveListView(this);
+
+			wavesListPage.addView(waveListViewBox);
+			//add default contents and set adapter
+			usersWavesList = new ArrayList<String>();		
+	      // usersWavesList.add("wave list not updated");
+	        usersWaveListAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , usersWavesList);			 
+		    waveListViewBox.setAdapter(usersWaveListAdapter);
+		   
 	}
 	/**
 	public void loginUser(String name, String password, String server){
@@ -760,13 +777,50 @@ private long lastOrientsTime;
 	} 
 
 	public void addMessage( String message ) {
-		TextView out = (TextView)findViewById(R.id.messages);
-		out.setText(message);
-	}
-	
-	public void addWaveList( String list ) {
-		//TextView out = (TextView)findViewById(R.id.waves);
-		//out.setText(list);
-	}
+		//	TextView out = (TextView)findViewById(R.id.messages);
+		//	out.setText(message);
+			Log.i("state",message);
+			usersWaveListAdapter.add("test");
+		}
+		
+		public void showWaveList(String[] list) {
+			
+			
+			//clear the list
+			usersWavesList.clear();
+			
+			//add the data to the list
+			Log.i("state","getting wave list");
+			for (int i=0;   i<list.length;   i++){
+			Log.i("wavelist",list[i]);
+			usersWavesList.add(i+"_"+list[i]);		
+			}
+			
+			//request the update to the list
+			Log.i("wavelist","posting invalidate");
+			waveListViewBox.setDataUpdated();
+			waveListViewBox.postInvalidate();
+			
+			//waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , list)); 
+			
+			/*
+			waveListView.setOnItemClickListener(new OnItemClickListener() {
+			    public void onItemClick(AdapterView<?> parent, View view,
+			        int position, long id) {
+			      // When clicked, show a toast with the TextView text
+			      acm.openWavelet( ((TextView)view).getText().toString() );
+			    }
+			  });
+			*/
+		}
+		
+		public void setWaveList(String[] list) {
+
+			Log.i("state","getting wave list");
+			for (int i=0;   i<list.length;   i++){
+			Log.i("wavelist",list[i]);
+			}
+		//	this.wavesList = list;
+		}
 	
 }
