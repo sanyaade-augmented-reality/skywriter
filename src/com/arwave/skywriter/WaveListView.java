@@ -13,8 +13,7 @@ public class WaveListView extends ListView {
 	public WaveListView(Context context) {
 		super(context);		 
 	}
-	
-	
+		
 	/** refreshs the view next time onDraw is called **/
 	public void setDataUpdated()
 	{
@@ -34,7 +33,6 @@ public class WaveListView extends ListView {
 		((ArrayAdapter<String>)super.getAdapter()).notifyDataSetChanged();
 		DataUpdated = false;
 		}
-		
 		super.onDraw(canvas);	
 		
 	}
