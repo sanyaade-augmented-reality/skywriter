@@ -18,6 +18,12 @@
             </intent-filter>
         </activity>
 
+		<activity android:name=".ARBlipAddingView">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.OPENABLE" />
+			</intent-filter>
+		</activity>
 </application>
 
 

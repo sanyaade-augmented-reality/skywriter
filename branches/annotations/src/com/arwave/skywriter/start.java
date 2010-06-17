@@ -18,6 +18,7 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 
 import android.app.TabActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -28,11 +29,15 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
@@ -41,6 +46,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
@@ -55,6 +61,8 @@ import com.threed.jpct.SimpleVector;
  */
 public class start extends TabActivity implements SensorEventListener,LocationListener {
 	
+	private static final int OPEN_WAVE_ID = 0;
+	private static final int ADD_ARBLIP_ID = 1;
 	private AbstractCommunicationManager acm;
 	private ARBlipView arView;
 	CameraView cameraView;
@@ -196,7 +204,9 @@ private long lastOrientsTime;
 	      // usersWavesList.add("wave list not updated");
 	        usersWaveListAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , usersWavesList);			 
 		    waveListViewBox.setAdapter(usersWaveListAdapter);
-		   
+		    
+		    //add a context menu to the list of waves
+		    registerForContextMenu(waveListViewBox);
 	}
 	/**
 	public void loginUser(String name, String password, String server){
@@ -800,18 +810,6 @@ private long lastOrientsTime;
 			Log.i("wavelist","posting invalidate");
 			waveListViewBox.setDataUpdated();
 			waveListViewBox.postInvalidate();
-			
-			//waveListView.setAdapter(new ArrayAdapter<String>(this,R.layout.list_item , list)); 
-			
-			/*
-			waveListView.setOnItemClickListener(new OnItemClickListener() {
-			    public void onItemClick(AdapterView<?> parent, View view,
-			        int position, long id) {
-			      // When clicked, show a toast with the TextView text
-			      acm.openWavelet( ((TextView)view).getText().toString() );
-			    }
-			  });
-			*/
 		}
 		
 		public void setWaveList(String[] list) {
@@ -820,7 +818,32 @@ private long lastOrientsTime;
 			for (int i=0;   i<list.length;   i++){
 			Log.i("wavelist",list[i]);
 			}
-		//	this.wavesList = list;
 		}
 	
+		public void onCreateContextMenu(ContextMenu menu, View v,
+		        ContextMenuInfo menuInfo) {
+		    super.onCreateContextMenu(menu, v, menuInfo);
+		    menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
+		    menu.add(0, ADD_ARBLIP_ID, 0, R.string.addARblipText);
+		}
+		
+		public boolean onContextItemSelected(MenuItem item) {
+		    switch(item.getItemId()) {
+		    case OPEN_WAVE_ID:
+		    	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		    	
+		    	return true;
+		    	
+		    case ADD_ARBLIP_ID:
+		    	//TextView out = (TextView)findViewById(R.id.messages);
+				//out.setText("Starting new activity");
+		    	Intent i = new Intent(this, ARBlipAddingView.class);
+		    	//i.putExtra("WaveID", item.)
+		    	startActivity(i);
+		    	//return true;
+		    }
+		    return super.onContextItemSelected(item);
+		}
 }
+
+
