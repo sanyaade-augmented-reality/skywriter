@@ -40,13 +40,17 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
@@ -63,7 +67,7 @@ public class start extends TabActivity implements SensorEventListener,LocationLi
 	
 	private static final int OPEN_WAVE_ID = 0;
 	private static final int ADD_ARBLIP_ID = 1;
-	private AbstractCommunicationManager acm;
+	private static AbstractCommunicationManager acm;
 	private ARBlipView arView;
 	CameraView cameraView;
 	private SensorManager sensorMgr;
@@ -198,13 +202,26 @@ private long lastOrientsTime;
 
 			waveListViewBox = new WaveListView(this);
 
+			//wavesListPage.removeAllViews();
 			wavesListPage.addView(waveListViewBox);
+			
 			//add default contents and set adapter
 			usersWavesList = new ArrayList<String>();		
 	      // usersWavesList.add("wave list not updated");
 	        usersWaveListAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , usersWavesList);			 
 		    waveListViewBox.setAdapter(usersWaveListAdapter);
 		    
+		  /*/add a listener for user selection
+			waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
+			    public void onItemClick(AdapterView<?> parent, View view,
+			        int position, long id) {
+			    		// When clicked, show a toast with the TextView text
+			    		//acm.openWavelet( ((TextView)view).getText().toString() );
+			    		Toast.makeText(getApplicationContext(), acm.getBlips( ((TextView)view).getText().toString() ),
+			    	          Toast.LENGTH_LONG).show();
+			    	}
+			});   
+			*/
 		    //add a context menu to the list of waves
 		    registerForContextMenu(waveListViewBox);
 	}
@@ -794,16 +811,15 @@ private long lastOrientsTime;
 		}
 		
 		public void showWaveList(String[] list) {
-			
-			
 			//clear the list
 			usersWavesList.clear();
 			
 			//add the data to the list
 			Log.i("state","getting wave list");
 			for (int i=0;   i<list.length;   i++){
-			Log.i("wavelist",list[i]);
-			usersWavesList.add(i+"_"+list[i]);		
+				Log.i("wavelist",list[i]);
+				//usersWavesList.add(i+"_"+list[i]);	
+				usersWavesList.add(list[i]);
 			}
 			
 			//request the update to the list
@@ -828,19 +844,29 @@ private long lastOrientsTime;
 		}
 		
 		public boolean onContextItemSelected(MenuItem item) {
+			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		    switch(item.getItemId()) {
 		    case OPEN_WAVE_ID:
-		    	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		    	
+		    	Toast.makeText(getApplicationContext(),
+		    			acm.getBlips( ((TextView)info.targetView).getText().toString() ),
+		    			Toast.LENGTH_LONG).show();
 		    	return true;
 		    	
 		    case ADD_ARBLIP_ID:
-		    	//TextView out = (TextView)findViewById(R.id.messages);
-				//out.setText("Starting new activity");
+		    	
 		    	Intent i = new Intent(this, ARBlipAddingView.class);
-		    	//i.putExtra("WaveID", item.)
+		    	i.putExtra("WaveID", ((TextView)info.targetView).getText().toString()); //FIXME: WaveID shouldn't be hardcoded
 		    	startActivity(i);
-		    	//return true;
+		    	
+		    	//FrameLayout wavesListPage = (FrameLayout)findViewById(R.id.WavePage);
+		    	//wavesListPage.removeAllViews();
+		    	//View v = new View(this);
+		    	//ArrayList<View> bho = new ArrayList<View>();
+		    	//bho.add( findViewById(R.layout.add_arblip));
+		    	//v.addFocusables(bho, 1);
+		    	//wavesListPage.addView(v);
+		    	//setContentView(findViewById(R.id.add_arblip_layout));
+		    	return true;
 		    }
 		    return super.onContextItemSelected(item);
 		}
