@@ -13,4 +13,5 @@ public interface AbstractCommunicationManager {
 	public void addParticipant( String participant );
 	public void ARBlipUpdated();
 	public void ARBlipInserted();
+	public String getBlips(String waveID);
 }
