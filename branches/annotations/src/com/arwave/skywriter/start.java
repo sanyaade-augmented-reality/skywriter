@@ -147,8 +147,12 @@ private long lastOrientsTime;
 
 		    spec = tabHost.newTabSpec("WorldTab").setIndicator("World",res.getDrawable(R.drawable.eye))
 		                  .setContent(R.id.ARViewPage);
-		          
+		          		    
+		    tabHost.addTab(spec);
 		    
+		    spec = tabHost.newTabSpec("AddBlipTab").setIndicator("AddBlip",res.getDrawable(R.drawable.eye))
+            .setContent(R.id.add_arblip_layout);
+    		    
 		    tabHost.addTab(spec);
 
 		    
@@ -222,6 +226,28 @@ private long lastOrientsTime;
 			    	}
 			});   
 			*/
+		    
+		    
+		    
+		    
+		    //-----------------------------------------------------------
+		    //for adding blips			
+			Button cancelButton = (Button)findViewById(R.id.cancelButton);
+			
+			cancelButton.setOnClickListener(new OnClickListener(){
+				public void onClick(View v) {
+					//					
+				}
+			});			
+			
+			Button addConfirmBlipButton  = (Button)findViewById(R.id.cancelButton);
+			addConfirmBlipButton.setOnClickListener(new OnClickListener(){
+				public void onClick(View v) {
+					//					
+				}
+			});			
+		    
+		    
 		    //add a context menu to the list of waves
 		    registerForContextMenu(waveListViewBox);
 	}
@@ -870,6 +896,9 @@ private long lastOrientsTime;
 		    }
 		    return super.onContextItemSelected(item);
 		}
+		
+		
+		
 }
 
 
