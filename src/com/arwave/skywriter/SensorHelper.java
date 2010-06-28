@@ -2,7 +2,6 @@ package com.arwave.skywriter;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.util.Log;
 
 import com.threed.jpct.SimpleVector;
 
