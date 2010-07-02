@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, start!</string>
+    <string name="app_name">SkyWriter</string>
+<string name="login">Login</string>
+<string name="password">Password :</string>
+<string name="username">Username :</string>
+<string name="Server">Server :</string>
+<string name="defaultServer">192.168.0.3</string>
+<string name="defaultUsername">davidee@arwave.org</string>
+<string name="defaultPassword">aaaa</string>
+<string name="messages">What happens goes here</string>
+<string name="latitudeText">Latitude: </string>
+<string name="latitudeValue">0.0</string>
+<string name="longitudeText">Longitude: </string>
+<string name="longitudeValue">0.0</string>
+<string name="altitudeText">Altitude: </string>
+<string name="altitudeValue">0.0</string>
+<string name="arblipContentText">Enter content here</string>
+<string name="arblipContentValue">Nice piece of AR text =)</string>
+<string name="addARblipText">Add ARBlip</string>
+<string name="openWaveText">Open</string>
+<string name="cancelButton">Cancel</string>
+<string name="addButton">Add ARBlip</string>
+</resources>
