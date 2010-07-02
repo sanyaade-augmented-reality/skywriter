@@ -4,8 +4,11 @@
 package com.arwave.skywriter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.waveprotocol.wave.examples.fedone.common.DocumentConstants;
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
@@ -15,14 +18,17 @@ import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientWaveView;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.IndexEntry;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.WaveletOperationListener;
 import org.waveprotocol.wave.model.document.operation.AnnotationBoundaryMap;
-import org.waveprotocol.wave.model.document.operation.Attributes;
 import org.waveprotocol.wave.model.document.operation.BufferedDocOp;
+import org.waveprotocol.wave.model.document.operation.Attributes;
 import org.waveprotocol.wave.model.document.operation.DocInitializationCursor;
+import org.waveprotocol.wave.model.document.operation.impl.DocOpBuilder;
 import org.waveprotocol.wave.model.document.operation.impl.InitializationCursorAdapter;
 import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
+
+import android.util.Log;
 
 /**
  * @author Davide
@@ -35,13 +41,35 @@ public class FedOneCommunicationManager implements
 	private ClientBackend backend = null;
 	start mainWindow;
 	private String blips;
+	private static FedOneCommunicationManager Singleton;
 	
+	private FedOneCommunicationManager() {
+	}
 	
-	FedOneCommunicationManager( start s ) {
+	private FedOneCommunicationManager( start s ) {
 		mainWindow = s;
 	}
 	
+	public static synchronized FedOneCommunicationManager getFedOneCommunicationManager(start s) {
+		if( Singleton == null ) {
+			Singleton = new FedOneCommunicationManager(s);
+		}
+		return Singleton;
+	}
 	
+	public static synchronized FedOneCommunicationManager getFedOneCommunicationManager() {
+		if( Singleton == null ) {
+			//will this work?
+			Singleton = new FedOneCommunicationManager();
+		}
+		return Singleton;
+	}
+	
+	public Object clone() throws CloneNotSupportedException
+	{
+		throw new CloneNotSupportedException(); 
+	}
+
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#ARBlipInserted()
 	 */
@@ -61,9 +89,15 @@ public class FedOneCommunicationManager implements
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#addARBlip(java.lang.String)
 	 */
-	public void addARBlip(String text) {
-		// TODO Auto-generated method stub
-
+	public void addARBlip(String waveID, String text) {
+		// 
+		backend.sendAndAwaitWaveletDelta( backend.getWave( WaveId.deserialise(waveID) ).getWavelets().iterator().next().getWaveletName(),
+				ClientUtils.createAppendBlipDelta( 
+							ClientUtils.getConversationRoot(backend.getWave( WaveId.deserialise(waveID) )).getDocuments().get("conversation"),
+							backend.getUserId(), 
+							backend.getIdGenerator().newDocumentId(), 
+							text),
+				(long)30, TimeUnit.SECONDS);
 	}
 
 	/* (non-Javadoc)
@@ -119,33 +153,35 @@ public class FedOneCommunicationManager implements
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#logout()
 	 */
 	public void logout() {
-		// TODO Auto-generated method stub
-
+		// is this enough?
+		backend.shutdown();
 	}
 
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#openWavelet(java.lang.String)
 	 */
-	public void openWavelet(String waveletID) {
-		mainWindow.addMessage("Trying to open wavelet with id " + waveletID);
+	public ArrayList<ARBlip> openWavelet(String waveletID) {
+		//mainWindow.addMessage("Trying to open wavelet with id " + waveletID);
 		//we need to split
 		
 		ClientWaveView wave = backend.getWave( WaveId.deserialise(waveletID) );
 		Map<String, BufferedDocOp> documentMap = ClientUtils.getConversationRoot(wave).getDocuments();
 	    BufferedDocOp manifest = documentMap.get("conversation"); //it's a BufferedDocOpImpl actually
 	    
-	    renderManifest(documentMap, manifest);
+	    ArrayList<ARBlip> arblips = renderManifest(documentMap, manifest);
+	    return arblips;
 	}
 
-	private void renderManifest(final Map<String, BufferedDocOp> documentMap,
+	private ArrayList<ARBlip> renderManifest(final Map<String, BufferedDocOp> documentMap,
 			BufferedDocOp manifest) {
-		final StringBuilder blipsText = new StringBuilder();
-		
+		//final StringBuilder blipsText = new StringBuilder();
+		final ArrayList<ARBlip> arblips = new ArrayList<ARBlip>();
 		manifest.apply( new InitializationCursorAdapter(
 		        new DocInitializationCursor() {
 
 					public void annotationBoundary(AnnotationBoundaryMap arg0) {
 						// TODO maybe this allows us to use annotations?
+						//blipsText.append( arg0.toString() );
 						
 					}
 
@@ -166,20 +202,19 @@ public class FedOneCommunicationManager implements
 							//let's see if it has content too
 							if( attr.containsKey(DocumentConstants.BLIP_ID)) {
 								BufferedDocOp document = documentMap.get(attr.get(DocumentConstants.BLIP_ID));
-								renderDocument(document, blipsText);
-								
+								arblips.add( renderDocument(document) );
 							}
 						}
 					}
 		        	
 		        })
 				);
-		
+		return arblips;
 	}
 
 
-	protected void renderDocument(BufferedDocOp document, final StringBuilder blipsText) {
-		//final StringBuilder blipText = new StringBuilder();
+	protected ARBlip renderDocument(BufferedDocOp document) {
+		final StringBuilder blipText = new StringBuilder();
 		
 		document.apply(new InitializationCursorAdapter(
 		        new DocInitializationCursor() {
@@ -190,13 +225,13 @@ public class FedOneCommunicationManager implements
 					}
 
 					public void characters(String arg0) {
-						blipsText.append(arg0);
+						blipText.append(arg0);
 						
 					}
 
 					public void elementEnd() {
 						// TODO Auto-generated method stub
-						blipsText.append("\n");
+						//ARBlip.fromString( blipText.toString() );
 						
 					}
 
@@ -210,7 +245,8 @@ public class FedOneCommunicationManager implements
 		);
 		
 		//mainWindow.addMessage(blipsText.toString());
-		blips = blipsText.toString();
+		//blips = blipsText.toString();
+		return ARBlip.fromString( blipText.toString() );
 	}
 	
 	/* (non-Javadoc)
@@ -289,5 +325,16 @@ public class FedOneCommunicationManager implements
 	public String getBlips(String waveletID) {
 		this.openWavelet(waveletID);
 		return blips;
+	}
+	
+	public ArrayList<ARBlip> getARBlips( String waveletID ) {
+		ArrayList<ARBlip> arblips;
+		arblips = this.openWavelet(waveletID);
+		//mainWindow.addMessage( String.valueOf( arblips.size() ));
+		return arblips;
+	}
+	
+	public String getUsername() {
+		return backend.getUserId().toString();
 	}
 }
