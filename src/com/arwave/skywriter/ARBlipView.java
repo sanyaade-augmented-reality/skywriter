@@ -1,13 +1,9 @@
 package com.arwave.skywriter;
 
 import glfont.GLFont;
-import glfont.TexturePack;
-import glfont.TexturePack.Entry;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -23,9 +19,9 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.graphics.Paint.FontMetricsInt;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
-import android.text.format.Time;
 import android.util.FloatMath;
 import android.util.Log;
 
@@ -53,6 +49,10 @@ public class ARBlipView extends GLSurfaceView {
 	
 	//our world, to which we add stuff
 	private World world = null;	
+	//ground plane
+
+	private Object3D groundPlane = null;
+	
 	//renderer
 	MyRenderer renderer = null;
 	 
@@ -67,6 +67,9 @@ public class ARBlipView extends GLSurfaceView {
 	Paint paint = new Paint();
 	//World setup flag
 	boolean worldReadyToGo = false;
+	
+	//show debug info flag 
+	public boolean showDebugInfo = false;
 	
 	//purely for testing
 	//timer
@@ -85,6 +88,7 @@ public class ARBlipView extends GLSurfaceView {
 	float newCameraY =0;
 	float newCameraZ =0;
 		
+	int TestVar = 0;
 	
 	public ARBlipView(Context context) {		
 		super(context);
@@ -242,14 +246,23 @@ public class ARBlipView extends GLSurfaceView {
 	/** Sets the camera orientation **/
 	public void setCameraOrientation(Matrix ma)	
 	{
+		
+		
+		
+		
+		
 		if (ma!=null){
-			
+		//	Log.i("--", "setting camera1");
 			CameraMatrix = ma;
+			TestVar = (int) (Math.random()*10);
+			updateCamRotation=true;
 			if (worldReadyToGo){
-				Log.i("--", "setting camera2");
-			world.getCamera().setBack(CameraMatrix);
+				//Log.i("--", "setting camera2");
+			//world.getCamera().setBack(CameraMatrix);
 			}
+			
 		}
+		
 		
 		
 		//SimpleVector newDirection = deriveAngles(ma);
@@ -316,9 +329,9 @@ public class ARBlipView extends GLSurfaceView {
 			double worldY = ARBlipUtilitys.getRelativeYLocation(newblip, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
 			double worldZ = ARBlipUtilitys.getRelativeZLocation(newblip, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
 			
-			float x = (float)worldX;
+			float x = (float)-worldX;
 			float y = (float)-worldY;
-			float z = (float)-worldZ;
+			float z = (float)worldZ;
 			
 			newmarker.translate(x,y,z);
 			
@@ -436,12 +449,46 @@ public class ARBlipView extends GLSurfaceView {
 		
 	}
 	
+	/** Map mode **/
+	/** This will add a google map image as the ground plan and set camera overhead **/
+	public void setMapMode(boolean MapModeSet, Bitmap Map)
+	{
 
+		if (MapModeSet){
+		//set map mode on
+		
+		TextureManager tm = TextureManager.getInstance();
+	
+
+		Texture testtext = new Texture(Map, true); //the true specifys the texture has its own alpha. If not, black is assumed to be alpha!
+		
+		if (tm.containsTexture("MapTexture"))
+		{
+			tm.removeTexture("MapTexture");
+			tm.unloadTexture(fb, tm.getTexture("MapTexture"));				
+			tm.addTexture("MapTexture", testtext);
+		} else {
+			tm.addTexture("MapTexture", testtext);
+		}
+		
+		//set to ground plane
+		groundPlane.setTexture("MapTexture");
+		
+		//set camera overhead
+		Camera cam = world.getCamera();
+		cam.setPosition(0, -250, 0); //we might want to animate this at some point
+		cam.lookAt(groundPlane.getTransformedCenter());
+		
+		} else {			
+		groundPlane.setTexture("grassy");
+		}
+		
+		
+	}
 	
 	
 	class MyRenderer implements GLSurfaceView.Renderer {
 
-		private Object3D plane = null;
 		private Object3D tree2 = null;
 		private Object3D tree1 = null;
 		private Object3D grass = null;
@@ -534,13 +581,13 @@ public class ARBlipView extends GLSurfaceView {
 
 			if (!deSer) {
 				// Use the normal loaders...
-				plane = Primitives.getPlane(20, 30);
+				groundPlane = Primitives.getPlane(1, 378);
 				grass = Loader.load3DS(res.openRawResource(R.raw.grass), 5)[0];
 				rock = Loader.load3DS(res.openRawResource(R.raw.rock), 15f)[0];
 				tree1 = Loader.load3DS(res.openRawResource(R.raw.tree2), 5)[0];
 				tree2 = Loader.load3DS(res.openRawResource(R.raw.tree3), 5)[0];
 
-				plane.setTexture("grassy");
+				groundPlane.setTexture("grassy");
 				rock.setTexture("rock");
 				grass.setTexture("grass2");
 				tree1.setTexture("leaves");
@@ -551,8 +598,8 @@ public class ARBlipView extends GLSurfaceView {
 			//	plane.getMesh().removeVertexController();
 			} else {
 				// Load the serialized version instead...
-				plane = Primitives.getPlane(20, 30);
-				plane.setTexture("grassy");
+				groundPlane = Primitives.getPlane(1, 378);
+				groundPlane.setTexture("grassy");
 				//plane = Loader.loadSerializedObject(res.openRawResource(R.raw.serplane));
 				rock = Loader.loadSerializedObject(res.openRawResource(R.raw.serrock));
 				tree1 = Loader.loadSerializedObject(res.openRawResource(R.raw.sertree1));
@@ -568,9 +615,10 @@ public class ARBlipView extends GLSurfaceView {
 			tree1.rotateZ((float) Math.PI);
 			tree2.translate(220, -190, 120);
 			tree2.rotateZ((float) Math.PI);
-			plane.rotateX((float) Math.PI / 2f);
-
-			plane.setName("plane");
+			groundPlane.rotateX((float) Math.PI / 2f);
+			groundPlane.rotateY((float) -Math.PI / 2f);
+			
+			groundPlane.setName("plane");
 			tree1.setName("tree1");
 			tree2.setName("tree2");
 			grass.setName("grass");
@@ -580,7 +628,7 @@ public class ARBlipView extends GLSurfaceView {
 		    rock.scale(0.3f);
 				
 			
-			world.addObject(plane);
+			world.addObject(groundPlane);
 			world.addObject(tree1);
 			world.addObject(tree2);
 			world.addObject(grass);
@@ -606,13 +654,13 @@ public class ARBlipView extends GLSurfaceView {
 			Camera cam = world.getCamera();
 			//cam.moveCamera(Camera.CAMERA_MOVEOUT, 250);
 			cam.moveCamera(Camera.CAMERA_MOVEUP, 100);
-			cam.lookAt(plane.getTransformedCenter());
+			cam.lookAt(groundPlane.getTransformedCenter());
 
 			cam.setFOV(1.5f);
 			sun.setIntensity(250, 250, 250);
 
 			SimpleVector sv = new SimpleVector();
-			sv.set(plane.getTransformedCenter());
+			sv.set(groundPlane.getTransformedCenter());
 			sv.y -= 300;
 			sv.x -= 100;
 			sv.z += 200;
@@ -668,19 +716,32 @@ public class ARBlipView extends GLSurfaceView {
 						
 						
 						blitNumber(lfps, 5, 5);
-						/*
+						
+						if (updateCamRotation){
+						Log.d("newx","x="+CameraMatrix.getXAxis().x);
+						updateCamRotation=false;	
+						
+						//first we bleet a random number to help diagnoise
+						if (showDebugInfo){
+						blitNumber(TestVar, 200, 25);
+						
 						blitNumber(Math.round(CameraMatrix.getXAxis().x*1000), 5, 25);
 						blitNumber(Math.round(CameraMatrix.getXAxis().y*1000), 55, 25);
 						blitNumber(Math.round(CameraMatrix.getXAxis().z*1000), 105, 25);
 						blitNumber(Math.round(CameraMatrix.getYAxis().x*1000), 5, 45);
 						blitNumber(Math.round(CameraMatrix.getYAxis().y*1000), 55, 45);
 						blitNumber(Math.round(CameraMatrix.getYAxis().z*1000), 105, 45);
-						*/
+						blitNumber(Math.round(CameraMatrix.getZAxis().x*1000), 5, 65);
+						blitNumber(Math.round(CameraMatrix.getZAxis().y*1000), 55, 65);
+						blitNumber(Math.round(CameraMatrix.getZAxis().z*1000), 105, 65);
+						}
+						}
+						
 						
 						fb.display();
 						
 						
-						sun.rotate(new SimpleVector(0, 0.05f, 0), plane.getTransformedCenter());
+						sun.rotate(new SimpleVector(0, 0.05f, 0), groundPlane.getTransformedCenter());
 
 						if (System.currentTimeMillis() - time >= 1000) {
 							lfps = (fps + lfps) >> 1;
@@ -709,6 +770,9 @@ public class ARBlipView extends GLSurfaceView {
 			
 		}
 
+		
+		
+		
 		
 		//Seems to be for making the hilly groundplane...probably not needed by us, but 
 		//usefull as a referance for vectex manipulation.
