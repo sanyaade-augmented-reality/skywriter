@@ -101,6 +101,7 @@ public class start extends MapActivity implements SensorEventListener,
 	// Camera Orientation Related
 	static SensorHelper sensorfunctions = new SensorHelper();
 	SimpleVector currentCameraVector = new SimpleVector(0, 0, 0);
+	SimpleVector cameraVectorTemp = new SimpleVector(0, 0, 0);
 	float[] ori = new float[3];
 	float accels[] = new float[3];
 	float mags[] = new float[3];
@@ -128,6 +129,16 @@ public class start extends MapActivity implements SensorEventListener,
 	private ArrayAdapter<String> usersWaveListAdapter;
 	private List<String> usersWavesList;
 	private WaveListView waveListViewBox;
+	
+	
+    private float mAzimuth;
+    private float[] mGravs = new float[3];
+    private float[] mGeoMags = new float[3];
+    private float[] mOrientation = new float[3];
+    private float[] mRotationM = new float[9];               
+    // Use [16]  to co-operate with android.opengl.Matrix
+    private float[] mRemapedRotationM = new float[9];
+    private boolean mFailed;
 
 	
 	@Override
@@ -276,30 +287,12 @@ public class start extends MapActivity implements SensorEventListener,
 		paused = false;
 		super.onResume();
 		arView.onResume();
+		
+        sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorMgr.registerListener(this, sensorMgr.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_FASTEST);
+        sensorMgr.registerListener(this, sensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+		
 
-		sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-		sensors = sensorMgr.getSensorList(Sensor.TYPE_ACCELEROMETER);
-		if (sensors.size() > 0) {
-			sensorGrav = sensors.get(0);
-		}
-
-		sensors = sensorMgr.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
-		if (sensors.size() > 0) {
-			sensorMag = sensors.get(0);
-		}
-
-		sensors = sensorMgr.getSensorList(Sensor.TYPE_ORIENTATION);
-		if (sensors.size() > 0) {
-			sensorOri = sensors.get(0);
-		}
-
-		Log.i("skywritter", "listerners set");
-
-		sensorMgr.registerListener(this, sensorGrav, SENSOR_DELAY_FASTEST);
-		sensorMgr.registerListener(this, sensorMag, SENSOR_DELAY_FASTEST);
-
-		sensorMgr.registerListener(this, sensorOri, SENSOR_DELAY_FASTEST);
 
 	}
 
@@ -538,142 +531,51 @@ public class start extends MapActivity implements SensorEventListener,
 		sensorfunctions.changeAccuracy(sensor, accuracy);
 
 	}
+	
 
-	public void onSensorChanged(SensorEvent s_ev) {
 
-		Sensor sensor = s_ev.sensor;
-
-		int type = sensor.getType();
-
-		switch (type) {
-		case Sensor.TYPE_MAGNETIC_FIELD:
-			mags = s_ev.values;
-			// isReady = true;
+	public void onSensorChanged(SensorEvent s_ev) 
+		{
+		
+        switch (s_ev.sensor.getType()) {
+        case Sensor.TYPE_ACCELEROMETER:
+			System.arraycopy(s_ev.values, 0, mGravs, 0, 3);
 			break;
-		case Sensor.TYPE_ACCELEROMETER:
-			accels = s_ev.values;
-			isReady = true;
-			break;
-		case Sensor.TYPE_ORIENTATION:
-			orients = s_ev.values;
-			// Exp.mText04.setText("" + (int) orients[0]);
-			// Exp.mText05.setText("" + (int) orients[1]);
-			// / Exp.mText06.setText("" + (int) orients[2]);
-			break;
-		}
+        case Sensor.TYPE_MAGNETIC_FIELD:
+        	System.arraycopy(s_ev.values, 0, mGeoMags, 0, 3);
+        	break;
+        default:
+        	return;
+        }
+        
+ 
+        
+        if (SensorManager.getRotationMatrix(mRotationM, null, mGravs, mGeoMags)){
+//              Rotate to the camera's line of view (Y axis along the camera's axis)
+                SensorManager.remapCoordinateSystem(mRotationM, SensorManager.AXIS_X, SensorManager.AXIS_Z, mRemapedRotationM);
+                SensorManager.getOrientation(mRemapedRotationM, mOrientation);
+                
+                SimpleVector cameraVector = new SimpleVector();
+                cameraVector.x = mOrientation[1];
+                cameraVector.y = mOrientation[2];
+                cameraVector.z = mOrientation[0];
+                
+                arView.setCameraOrientation(cameraVector);
+        }
+       
+		
 
-		if (mags != null && accels != null && isReady) {
-			isReady = false;
-			// Log.i("--", "setting camera0");
-
-			SensorManager.getRotationMatrix(Rt, I, accels, mags);
-
-			// SensorManager.remapCoordinateSystem(Rt, SensorManager.AXIS_X,
-			// SensorManager.AXIS_Z, outR);
-			// SensorManager.getOrientation(outR, values);
-
-			// Rt=outR;
-
-			tempR.setRow(0, Rt[0], Rt[1], Rt[2], 0);
-			tempR.setRow(1, Rt[3], Rt[4], Rt[5], 0);
-			tempR.setRow(2, Rt[6], Rt[7], Rt[8], 0);
-			tempR.setRow(3, 0, 0, 0, 1);
-			// Log.i("--", "setting camera1"+Rt[0]);
-			// tempR.rotateX((float)Math.PI);
-
-			// Log.i("--", "setting camera0");
-
-			arView.setCameraOrientation(tempR);
-
-			// arView.setCameraOrentation(tempR);
-
-			// int[] v = new int[3];
-
-			// v[0] = filter[0].average(values[0] * 100);
-			// v[1] = filter[1].average(values[1] * 100);
-			// v[2] = filter[2].average(values[2] * 100);
-
-			// currentCameraVector.set(v[0], v[1],v[2]);
-
-			// arView.setCameraOrentation(values[0], values[1],values[2]);
-
-			// Exp.mText01.setText("" + v[0]);
-			// Exp.mText02.setText("" + v[1]);
-			// Exp.mText03.setText("" + v[2]);
-		}
-
-		/*
-		 * try {
-		 * 
-		 * //get the sensor data, and process it into camera vector //We handel
-		 * this in the external SensorHelper. //currentCameraVector =
-		 * sensorfunctions.getVectorFromEvt(evt);
-		 * 
-		 * if (evt.sensor.getType() == Sensor.TYPE_ACCELEROMETER) { grav[0] =
-		 * evt.values[0]; grav[1] = evt.values[1]; grav[2] = evt.values[2];
-		 * 
-		 * arView.postInvalidate(); } else if (evt.sensor.getType() ==
-		 * Sensor.TYPE_MAGNETIC_FIELD) { mag[0] = evt.values[0]; mag[1] =
-		 * evt.values[1]; mag[2] = evt.values[2];
-		 * 
-		 * arView.postInvalidate(); isA = true; }
-		 * 
-		 * 
-		 * // make sure there are values from magnetic field, //accelerometer,
-		 * and only calc after an accerlometer reading. // if (mag != null &&
-		 * grav != null && isA) { boolean b =
-		 * SensorManager.getRotationMatrix(RTmp, I,grav, mag); // remap to
-		 * "camera" mode - right side up, screen facing me
-		 * SensorManager.remapCoordinateSystem(RTmp,SensorManager.AXIS_X,
-		 * SensorManager.AXIS_Z, Rt); SensorManager.getOrientation(Rt, values);
-		 * int[] v = new int[3]; v[0] = (int) (values[0] * 57.2957795); //
-		 * radians todegrees v[1] = (int) (values[1] * 57.2957795); v[2] = (int)
-		 * (values[2] * 57.2957795); isA = false;
-		 * 
-		 * // update display Log.i("--", "" + v[0]); Log.i("--", "" + v[1]);
-		 * Log.i("--", "" + v[2]); currentCameraVector.set(v[0], v[1],v[2]);
-		 * 
-		 * arView.setCameraOrentation(currentCameraVector);
-		 * 
-		 * // Log.i("--", Rt[0] +" "+ Rt[1] +" "+ Rt[2]); // Log.i("--", Rt[3]
-		 * +" "+ Rt[4] +" "+ Rt[5]); // Log.i("--", Rt[6] +" "+ Rt[7] +" "+
-		 * Rt[8]);
-		 * 
-		 * }
-		 * 
-		 * /* SensorManager.getRotationMatrix(RTmp, I, grav, mag);
-		 * //SensorManager.remapCoordinateSystem(RTmp, SensorManager.AXIS_X,
-		 * SensorManager.AXIS_MINUS_Z, Rt);
-		 * 
-		 * Rt=RTmp;
-		 * 
-		 * tempR.setRow(0, Rt[0], Rt[1], Rt[2],0); tempR.setRow(1, Rt[3], Rt[4],
-		 * Rt[5],0); tempR.setRow(2, Rt[6], Rt[7], Rt[8],0); tempR.setRow(3, 0,
-		 * 0, 0,1);
-		 * 
-		 * 
-		 * 
-		 * 
-		 * 
-		 * 
-		 * //arView.setCameraOrentation(tempR);
-		 * 
-		 * 
-		 * //set the camera vector to match the one returned by the sensors if
-		 * it changed (365 used to indicate no relevant updates) // if
-		 * (currentCameraVector.x<365){ //
-		 * arView.setCameraOrentation(currentCameraVector); // }
-		 * 
-		 * //arView.setCameraOrentation(currentCameraVector, new
-		 * SimpleVector(0,0,90)); //nb; I'm not sure the up vector is correct
-		 * yet
-		 * 
-		 * 
-		 * } catch (Exception ex) { Log.e("Sensor", "ProcessingError", ex); }
-		 */
 
 	}
 
+
+		
+	
+
+	
+	
+	
+	
 	/* Creates the menu items */
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(0, MENU_TOGGLE_MAP, 0, "Toggle Map");
@@ -754,17 +656,17 @@ public class start extends MapActivity implements SensorEventListener,
 					double blipDataX[] = { 51.559150,51.559194,51.558873,51.558353,51.557553 };
 					double blipDataY[] = { 5.077904,5.079755,5.077851,5.077733,5.077663 };
 
-					for (int i = 0; i <= blipDataX.length;) {
+					for (int i = 0; i <= blipDataX.length;) { 
 
-						// we can now load up some sample blips
-						ARBlip testblip1 = new ARBlip();
-						testblip1.x = blipDataX[i]; // 51.558348 //51.558325
-						testblip1.y = blipDataY[i];
-						testblip1.z = 0;
-						testblip1.BlipID = "NewTestBlip" + i;
-						testblip1.ObjectData = "" + i;
-						arView.addBlip(testblip1);
-						i++;
+//						// we can now load up some sample blips
+//						ARBlip testblip1 = new ARBlip();
+//						testblip1.x = blipDataX[i]; // 51.558348 //51.558325
+//						testblip1.y = blipDataY[i];
+//						testblip1.z = 0;
+//						testblip1.BlipID = "NewTestBlip" + i;
+//						testblip1.ObjectData = "" + i;
+//						arView.addBlip(testblip1);
+//						i++;
 					}
 
 				} else {

@@ -188,7 +188,28 @@ public class ARBlipView extends GLSurfaceView {
 	/** Sets the camera orientation **/
 	public void setCameraOrientation(SimpleVector xyzAngles)	
 	{
+		if (worldReadyToGo){
+			Camera worldcam = world.getCamera();
+			
+			worldcam.getBack().setIdentity(); 
+			
+			float Z = xyzAngles.z;	
+			float Y = xyzAngles.y;			
+			float X = xyzAngles.x;
+			
+			worldcam.rotateCameraAxis(new SimpleVector(0,1,0), -Z);
+			worldcam.rotateCameraAxis(new SimpleVector(1,0,0), X);
+			worldcam.rotateCameraAxis(new SimpleVector(0,0,1), -Y);
+			
+	
+			
+			}
 		
+		
+		
+		
+		
+		/*
 		//we just set the numbers for display for now
 		
 		float X = (float) Math.toRadians(xyzAngles.x);
@@ -200,7 +221,7 @@ public class ARBlipView extends GLSurfaceView {
 		float Z = (float) Math.toRadians(xyzAngles.z);
 		newCameraZ =xyzAngles.z;
 		
-		/*
+		
 		if (worldReadyToGo && world.getCamera() !=null){
 		//Camera worldcam = world.getCamera();
 		
@@ -258,7 +279,7 @@ public class ARBlipView extends GLSurfaceView {
 			updateCamRotation=true;
 			if (worldReadyToGo){
 				//Log.i("--", "setting camera2");
-			//world.getCamera().setBack(CameraMatrix);
+			world.getCamera().setBack(CameraMatrix);
 			}
 			
 		}
@@ -271,13 +292,13 @@ public class ARBlipView extends GLSurfaceView {
 		 
 		
 	}
-	/** Sets the camera orientation **/
-	public void setCameraOrientation(SimpleVector dir,SimpleVector up)	
-	{
-		world.getCamera().setOrientation(dir, up);
-		
-		
-	}
+//	/** Sets the camera orientation **/
+//	public void setCameraOrientation(SimpleVector dir,SimpleVector up)	
+//	{
+//		world.getCamera().setOrientation(dir, up);
+//		
+//		
+//	}
 	
 	/** adds a new ARBlip to the scene **/
 	/** at the moment, this is cube marker only **/
@@ -654,7 +675,7 @@ public class ARBlipView extends GLSurfaceView {
 			Camera cam = world.getCamera();
 			//cam.moveCamera(Camera.CAMERA_MOVEOUT, 250);
 			cam.moveCamera(Camera.CAMERA_MOVEUP, 100);
-			cam.lookAt(groundPlane.getTransformedCenter());
+//			cam.lookAt(groundPlane.getTransformedCenter());
 
 			cam.setFOV(1.5f);
 			sun.setIntensity(250, 250, 250);
