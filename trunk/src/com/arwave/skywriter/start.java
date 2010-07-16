@@ -488,7 +488,7 @@ public class start extends MapActivity implements SensorEventListener,
 				}
 
 				camera = android.hardware.Camera.open();
-				camera.setDisplayOrientation(90);
+//				camera.setDisplayOrientation(90);
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
 				try {
