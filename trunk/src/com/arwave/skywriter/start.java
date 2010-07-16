@@ -30,6 +30,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.GpsStatus.Listener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -139,6 +140,8 @@ public class start extends MapActivity implements SensorEventListener,
     // Use [16]  to co-operate with android.opengl.Matrix
     private float[] mRemapedRotationM = new float[9];
     private boolean mFailed;
+    
+    LocationManager lm;
 
 	
 	@Override
@@ -206,7 +209,7 @@ public class start extends MapActivity implements SensorEventListener,
 			//        	
 			//listen for gps
 			Log.d("setting", "location checker");
-			LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+			lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 500.0f, this);
 		
 			//initialize the communication manager
@@ -279,6 +282,10 @@ public class start extends MapActivity implements SensorEventListener,
 			sensorMgr.unregisterListener(this, sensorMag);
 			sensorMgr = null;
 		}
+	
+
+		
+		
 
 	}
 
@@ -301,6 +308,11 @@ public class start extends MapActivity implements SensorEventListener,
 		arView.renderer.stop();
 		arView.worldReadyToGo = false;
 		super.onStop();
+		if (sensorMgr != null) {
+			sensorMgr.unregisterListener(this, sensorGrav);
+			sensorMgr.unregisterListener(this, sensorMag);
+			sensorMgr = null;
+		}
 	}
 
 	
@@ -476,6 +488,7 @@ public class start extends MapActivity implements SensorEventListener,
 				}
 
 				camera = android.hardware.Camera.open();
+				camera.setDisplayOrientation(90);
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
 				try {
@@ -556,9 +569,11 @@ public class start extends MapActivity implements SensorEventListener,
                 SensorManager.getOrientation(mRemapedRotationM, mOrientation);
                 
                 SimpleVector cameraVector = new SimpleVector();
-                cameraVector.x = mOrientation[1];
-                cameraVector.y = mOrientation[2];
-                cameraVector.z = mOrientation[0];
+                cameraVector.x = smoothX(mOrientation[1]);
+                cameraVector.y = smoothY(mOrientation[2]);
+                cameraVector.z = smoothZ(mOrientation[0]);
+
+                
                 
                 arView.setCameraOrientation(cameraVector);
         }
@@ -572,7 +587,83 @@ public class start extends MapActivity implements SensorEventListener,
 		
 	
 
+
+	int xNum = 0;
+	int yNum = 0;
+	int zNum = 0;
 	
+	float xArray[] = new float[10];
+	float yArray[] = new float[10];
+	float zArray[] = new float[10];
+	
+	
+	private float smoothZ(float f) {
+		
+		zArray[zNum] = f;
+
+		float x = 0;
+		float y = 0;
+
+		float zAvg;
+		for(int i = 0; i < zArray.length; i++){
+			x += Math.cos(zArray[i]);
+			y += Math.sin(zArray[i]);
+		}
+		zAvg = (float) Math.atan2(x, y);		
+		
+		zNum++;
+		if (zNum == zArray.length) zNum = 0;
+		
+		
+		return -zAvg;
+	}
+	
+	
+	private float smoothY(float f) {
+		yArray[yNum] = f;
+
+		float x = 0;
+		float y = 0;
+
+		float yAvg;
+		for(int i = 0; i < yArray.length; i++){
+			x += Math.cos(yArray[i]);
+			y += Math.sin(yArray[i]);
+		}
+		yAvg = (float) Math.atan2(x, y);		
+		
+		yNum++;
+		if (yNum == yArray.length) yNum = 0;
+		
+		yAvg = (float) (yAvg - Math.toRadians(90));
+		
+		return -yAvg;
+	}
+	
+	
+	private float smoothX(float f) {
+		
+		xArray[xNum] = f;
+
+		float x = 0;
+		float y = 0;
+
+		float xAvg;
+		for(int i = 0; i < xArray.length; i++){
+			x += Math.cos(xArray[i]);
+			y += Math.sin(xArray[i]);
+		}
+		xAvg = (float) Math.atan2(x, y);		
+		
+		xNum++;
+		if (xNum == xArray.length) xNum = 0;
+		
+		
+		
+		xAvg = (float) (xAvg - Math.toRadians(90));
+		
+		return -xAvg;
+	}
 	
 	
 	
@@ -656,17 +747,17 @@ public class start extends MapActivity implements SensorEventListener,
 					double blipDataX[] = { 51.559150,51.559194,51.558873,51.558353,51.557553 };
 					double blipDataY[] = { 5.077904,5.079755,5.077851,5.077733,5.077663 };
 
-					for (int i = 0; i <= blipDataX.length;) { 
+					for (int i = 0; i < blipDataX.length;) { 
 
 //						// we can now load up some sample blips
-//						ARBlip testblip1 = new ARBlip();
-//						testblip1.x = blipDataX[i]; // 51.558348 //51.558325
-//						testblip1.y = blipDataY[i];
-//						testblip1.z = 0;
-//						testblip1.BlipID = "NewTestBlip" + i;
-//						testblip1.ObjectData = "" + i;
-//						arView.addBlip(testblip1);
-//						i++;
+						ARBlip testblip1 = new ARBlip();
+						testblip1.x = blipDataX[i]; // 51.558348 //51.558325
+						testblip1.y = blipDataY[i];
+						testblip1.z = 0;
+						testblip1.BlipID = "NewTestBlip" + i;
+						testblip1.ObjectData = "" + i;
+						arView.addBlip(testblip1);
+						i++;
 					}
 
 				} else {
