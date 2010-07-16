@@ -2,6 +2,11 @@ package com.arwave.skywriter;
 
 import glfont.GLFont;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Timer;
@@ -13,13 +18,13 @@ import javax.microedition.khronos.opengles.GL10;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.graphics.Paint.FontMetricsInt;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.util.FloatMath;
@@ -46,6 +51,8 @@ public class ARBlipView extends GLSurfaceView {
 
 	//The Real Location of the device when this surface was loaded
 	public Location startingLocation;
+	//the current real location of the camera
+	public Location currentRealLocation;
 	
 	//our world, to which we add stuff
 	private World world = null;	
@@ -89,6 +96,8 @@ public class ARBlipView extends GLSurfaceView {
 	float newCameraZ =0;
 		
 	int TestVar = 0;
+	boolean MapModeSet = true;
+	
 	
 	public ARBlipView(Context context) {		
 		super(context);
@@ -188,6 +197,8 @@ public class ARBlipView extends GLSurfaceView {
 	/** Sets the camera orientation **/
 	public void setCameraOrientation(SimpleVector xyzAngles)	
 	{
+		
+		
 		if (worldReadyToGo){
 			Camera worldcam = world.getCamera();
 			
@@ -204,11 +215,6 @@ public class ARBlipView extends GLSurfaceView {
 	
 			
 			}
-		
-		
-		
-		
-		
 		/*
 		//we just set the numbers for display for now
 		
@@ -279,7 +285,7 @@ public class ARBlipView extends GLSurfaceView {
 			updateCamRotation=true;
 			if (worldReadyToGo){
 				//Log.i("--", "setting camera2");
-			world.getCamera().setBack(CameraMatrix);
+			//world.getCamera().setBack(CameraMatrix);
 			}
 			
 		}
@@ -292,18 +298,99 @@ public class ARBlipView extends GLSurfaceView {
 		 
 		
 	}
-//	/** Sets the camera orientation **/
-//	public void setCameraOrientation(SimpleVector dir,SimpleVector up)	
-//	{
-//		world.getCamera().setOrientation(dir, up);
-//		
-//		
-//	}
+	/** Sets the camera orientation **/
+	public void setCameraOrientation(SimpleVector dir,SimpleVector up)	
+	{
+		world.getCamera().setOrientation(dir, up);
+		
+		
+	}
+	
+	/** a map tile is just flat object with a map on it **/
+	/** in future, when the protocol is more worked out, this method could probably just use a standard arblip for a textured plan */
+	/** for now, these are positioned on the ground...maybe the sky would be nicer **/
+	
+	public void  addMapTile(LocatedMapBundle loc)
+	{
+		Object3D MapTile = Primitives.getPlane(1, 378);	
+		
+		//we should exit if map exists already!
+		//--world.getObjectByName("MapTile_"+loc.lat+"_"+loc.lon);		
+		//--
+		
+		MapTile.setName("MapTile_"+loc.lat+"_"+loc.lon);
+		
+		Log.i("dis", "MapTile_"+loc.lat+"_"+loc.lon);
+		
+	    TextureManager tm = TextureManager.getInstance();
+		Texture maptiletexture = new Texture(loc.centerMap, true); //the true specifys the texture has its own alpha. If not, black is assumed to be alpha!
+		tm.addTexture("MapTile_"+loc.lat+"_"+loc.lon, maptiletexture);
+		MapTile.setTexture("MapTile_"+loc.lat+"_"+loc.lon);
+		MapTile.setAdditionalColor(RGBColor.WHITE);
+		
+		//position
+		double worldX = ARBlipUtilitys.getRelativeXLocation(loc.lat, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		double worldY = ARBlipUtilitys.getRelativeYLocation(0, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		double worldZ = ARBlipUtilitys.getRelativeZLocation(loc.lon, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		
+		float x = (float)-worldX;
+		float y = (float)-worldY;
+		float z = (float)worldZ;
+		
+		MapTile.translate(x,y,z);
+		//add to world
+		Log.i("dis", "adding map tile at "+x+" "+y+" "+z);
+		
+		MapTile.rotateX((float) Math.PI / 2f);
+		MapTile.rotateY((float) -Math.PI / 2f);
+		
+		world.addObject(MapTile);
+				
+		world.buildAllObjects();
+		
+		
+	}
+	
+	public void updateLocation(Location current)
+	{
+		double worldX = ARBlipUtilitys.getRelativeXLocation(current.getLatitude(), startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		double worldY = ARBlipUtilitys.getRelativeYLocation(0, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		double worldZ = ARBlipUtilitys.getRelativeZLocation(current.getLongitude() , startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		
+		float x = (float)-worldX;
+		float y = (float)-worldY;
+		float z = (float)worldZ;
+		//update camera location
+		Camera cam = world.getCamera();
+		cam.setPosition(x, -250, z); //we might want to animate this at some point
+		
+		//if map showing, then update it (or try to)
+		if (MapModeSet){
+			
+			try {
+				LocatedMapBundle currentmap = StaticMapFetcher.getMap(current);
+				this.addMapTile(currentmap);	
+								
+			} catch (MalformedURLException e) {
+						
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				Log.e("mapE","io exception");
+			}
+			
+		}
+		
+	}
 	
 	/** adds a new ARBlip to the scene **/
-	/** at the moment, this is cube marker only **/
-	public void addBlip (ARBlip newblip)
+	/** at the moment, this is cube marker only 
+	 * @throws IOException **/
+	
+	public void addBlip (ARBlip newblip) throws IOException
 	{
+		
+	
+		
 		//check blip isnt already in scene
 		if (this.isBlipInScene(newblip)==true)
 		{
@@ -312,36 +399,56 @@ public class ARBlipView extends GLSurfaceView {
 			updateBlip(newblip);
 			
 		} else {
-
+			//new object dummy
+			Object3D newmarker = Object3D.createDummyObj();
+			Object3D newplane = Object3D.createDummyObj();
+			
 			//in future, this should be a seperate function supporting many blip types
-			//
-			
-			//if not,create a new arblip placemark			
-			Object3D newmarker = Primitives.getPyramide(2, 8);	
-			
-			newmarker.setName(newblip.BlipID);
-			//newmarker.setTexture("rock");
-			newmarker.setAdditionalColor(RGBColor.BLACK);
-			
-			//billboard bit at top
-			//Object3D newplane = Primitives.getPlane(1, 60);
-			Object3D newplane = new Rectangle(1,8,3);
-			
-			newplane.setAdditionalColor(RGBColor.WHITE);
-			newplane.setBillboarding(true);
-			
-			
-			//set texture
-			String text = newblip.ObjectData;
+			//if blip type is specified
+			// load 3d object from url
+			if (newblip.MIMEtype.equalsIgnoreCase("application/x-3ds")){
+				
+				//load 3d model
+				URL downloadfrom = new URL(newblip.ObjectData);
+				URLConnection conn = downloadfrom.openConnection();
+                conn.connect();
+                BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
+                Object3D[] newobjects = Loader.load3DS(bis, 1);
+                newmarker = Object3D.mergeAll(newobjects);
+                Log.i("newmaker","created 3ds");
+                
+			} else {
+				//if no recognised type, then we assume its a billboard with text
+				//if not,create a new arblip placemark			
+				newmarker = Primitives.getPyramide(2, 8);	
+				
+				newmarker.setName(newblip.BlipID);
+				//newmarker.setTexture("rock");
+				newmarker.setAdditionalColor(RGBColor.BLACK);
+				
+				//billboard bit at top
+				//Object3D newplane = Primitives.getPlane(1, 60);
+				newplane = new Rectangle(1,8,3);
+				
+				newplane.setAdditionalColor(RGBColor.WHITE);
+				newplane.setBillboarding(true);
+				
+				
+				//set texture
+				String text = newblip.ObjectData;
+							
+				updatedTexture(newblip.BlipID,text);
+				newplane.setOrigin(new SimpleVector(0,-15,0));
+				newplane.setTexture(newblip.BlipID);
+				
+				//newplane.setBillboarding(true); 
+				//link objects together
+				newplane.addParent(newmarker);
 						
-			updatedTexture(newblip.BlipID,text);
-			newplane.setOrigin(new SimpleVector(0,-15,0));
-			newplane.setTexture(newblip.BlipID);
+				//merge the plane and 
+				//newmarker = newplane.mergeObjects(newplane, newmarker);
+			}
 			
-			//newplane.setBillboarding(true); 
-			//link objects together
-			newplane.addParent(newmarker);
-						
 			
 			//work out the co-ordinates to place it at
 			//we are going to have to work out the best way to convey real world log/lat
@@ -359,7 +466,8 @@ public class ARBlipView extends GLSurfaceView {
 			//need a way to generate a texture from text?
 			//String text = blip.ObjectData
 
-			//add to the world.
+			
+            
 			world.addObject(newmarker);
 			world.addObject(newplane);
 			
@@ -472,16 +580,34 @@ public class ARBlipView extends GLSurfaceView {
 	
 	/** Map mode **/
 	/** This will add a google map image as the ground plan and set camera overhead **/
-	public void setMapMode(boolean MapModeSet, Bitmap Map)
+	public void setMapMode(boolean setMapMode, LocatedMapBundle MapBundle)
 	{
+		MapModeSet = setMapMode;
 
 		if (MapModeSet){
+												
+			this.addMapTile(MapBundle);
+			//set camera overhead
+			Camera cam = world.getCamera();
+			cam.setPosition(cam.getPosition().x, -250, cam.getPosition().z); //we might want to animate this at some point
+			cam.lookAt(groundPlane.getTransformedCenter());
+			groundPlane.setVisibility(false);
+		}else {		
+			groundPlane.setVisibility(true);
+		groundPlane.setTexture("grassy");
+		}
+		
+		
+		
+		/*
+		if (MapModeSet){
 		//set map mode on
+			
 		
 		TextureManager tm = TextureManager.getInstance();
 	
 
-		Texture testtext = new Texture(Map, true); //the true specifys the texture has its own alpha. If not, black is assumed to be alpha!
+		Texture testtext = new Texture(Map.map, true); //the true specifys the texture has its own alpha. If not, black is assumed to be alpha!
 		
 		if (tm.containsTexture("MapTexture"))
 		{
@@ -495,15 +621,19 @@ public class ARBlipView extends GLSurfaceView {
 		//set to ground plane
 		groundPlane.setTexture("MapTexture");
 		
+		//set new position
+		groundPlane.setTranslationMatrix(new Matrix());
+		groundPlane.translate(new SimpleVector(Map.xDis, 0, Map.yDis));
+		
 		//set camera overhead
 		Camera cam = world.getCamera();
-		cam.setPosition(0, -250, 0); //we might want to animate this at some point
+		cam.setPosition(Math.round(Map.xDis), -250, Math.round(Map.yDis)); //we might want to animate this at some point
 		cam.lookAt(groundPlane.getTransformedCenter());
 		
 		} else {			
 		groundPlane.setTexture("grassy");
 		}
-		
+		*/
 		
 	}
 	
@@ -605,8 +735,8 @@ public class ARBlipView extends GLSurfaceView {
 				groundPlane = Primitives.getPlane(1, 378);
 				grass = Loader.load3DS(res.openRawResource(R.raw.grass), 5)[0];
 				rock = Loader.load3DS(res.openRawResource(R.raw.rock), 15f)[0];
-				tree1 = Loader.load3DS(res.openRawResource(R.raw.tree2), 5)[0];
-				tree2 = Loader.load3DS(res.openRawResource(R.raw.tree3), 5)[0];
+				tree1 = Loader.load3DS(res.openRawResource(R.raw.tree2), 2)[0];
+				tree2 = Loader.load3DS(res.openRawResource(R.raw.tree3), 6)[0];
 
 				groundPlane.setTexture("grassy");
 				rock.setTexture("rock");
@@ -632,22 +762,24 @@ public class ARBlipView extends GLSurfaceView {
 			grass.rotateZ((float) Math.PI);
 			rock.translate(0, 0, 0);
 			rock.rotateX(-(float) Math.PI / 2);
-			tree1.translate(-200, -184, -200);
+			tree1.translate(-189, -34, 0);
 			tree1.rotateZ((float) Math.PI);
-			tree2.translate(220, -190, 120);
+			tree2.translate(0, -34, 189);
 			tree2.rotateZ((float) Math.PI);
 			groundPlane.rotateX((float) Math.PI / 2f);
 			groundPlane.rotateY((float) -Math.PI / 2f);
 			
 			groundPlane.setName("plane");
 			tree1.setName("tree1");
-			tree2.setName("tree2");
+			//tree2.setName("tree2");
 			grass.setName("grass");
 			rock.setName("rock");
 
-			//we scale the plane to fill the landscape
 		    rock.scale(0.3f);
 				
+		    //note the rock is at 0,0,0 to mark the center point.
+		    //the tree is at -200,-180,0 
+		    //tree2 is at 0,-190,200)
 			
 			world.addObject(groundPlane);
 			world.addObject(tree1);
@@ -675,7 +807,7 @@ public class ARBlipView extends GLSurfaceView {
 			Camera cam = world.getCamera();
 			//cam.moveCamera(Camera.CAMERA_MOVEOUT, 250);
 			cam.moveCamera(Camera.CAMERA_MOVEUP, 100);
-//			cam.lookAt(groundPlane.getTransformedCenter());
+			cam.lookAt(groundPlane.getTransformedCenter());
 
 			cam.setFOV(1.5f);
 			sun.setIntensity(250, 250, 250);
@@ -737,6 +869,12 @@ public class ARBlipView extends GLSurfaceView {
 						
 						
 						blitNumber(lfps, 5, 5);
+						if (currentRealLocation!=null){
+						blitNumber(Math.round(Math.round(currentRealLocation.getLatitude()*1E6)), 15, 25);
+						blitNumber(Math.round(Math.round(currentRealLocation.getLongitude()*1E6)), 15, 45);
+						blitNumber(TestVar, 200, 25);
+						}
+						
 						
 						if (updateCamRotation){
 						Log.d("newx","x="+CameraMatrix.getXAxis().x);
@@ -744,6 +882,9 @@ public class ARBlipView extends GLSurfaceView {
 						
 						//first we bleet a random number to help diagnoise
 						if (showDebugInfo){
+							
+							Log.i("debug", "__debug messages");
+							
 						blitNumber(TestVar, 200, 25);
 						
 						blitNumber(Math.round(CameraMatrix.getXAxis().x*1000), 5, 25);

@@ -73,7 +73,7 @@
 					android:layout_gravity="center_horizontal" />
 
 			</LinearLayout>
-<!-- 
+
 			<LinearLayout 
 			      android:orientation="vertical"
    			      android:layout_width="fill_parent"
@@ -121,7 +121,6 @@
 						android:id="@+id/addButton" android:text="@string/addButton" />
 				</LinearLayout>
 			</LinearLayout>
-			-->
 			
 			
 			
