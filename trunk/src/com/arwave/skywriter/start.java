@@ -809,7 +809,7 @@ public class start extends MapActivity implements SensorEventListener,
 					double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
 					double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
 
-					for (int i = 0; i <= blipDataX.length;) {
+					for (int i = 0; i < blipDataX.length;) {
 
 						// we can now load up some sample blips
 						ARBlip testblip1 = new ARBlip();
