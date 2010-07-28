@@ -365,20 +365,20 @@ public class ARBlipView extends GLSurfaceView {
 		cam.setPosition(x, -250, z); //we might want to animate this at some point
 		
 		//if map showing, then update it (or try to)
-		if (MapModeSet){
-			
-			try {
-				LocatedMapBundle currentmap = StaticMapFetcher.getMap(current);
-				this.addMapTile(currentmap);	
-								
-			} catch (MalformedURLException e) {
-						
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Log.e("mapE","io exception");
-			}
-			
-		}
+//		if (MapModeSet){
+//			
+//			try {
+//				LocatedMapBundle currentmap = StaticMapFetcher.getMap(current);
+//				this.addMapTile(currentmap);	
+//								
+//			} catch (MalformedURLException e) {
+//						
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				Log.e("mapE","io exception");
+//			}
+//			
+//		}
 		
 	}
 	

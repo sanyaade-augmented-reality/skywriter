@@ -135,6 +135,10 @@ public class start extends MapActivity implements SensorEventListener,
 	private WaveListView waveListViewBox;
 	
 	
+	private LocationManager lm;
+	private LocationListener locListener;
+
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -208,9 +212,19 @@ public class start extends MapActivity implements SensorEventListener,
 		//        	
 		// listen for gps
 		Log.d("setting", "location checker");
-		LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 500.0f,
-				this);
+		
+		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		
+		Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		useLocation(loc);
+		
+		locListener = new LocListener();				
+		
+		
+//		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 500.0f, locListener);
+		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
+		
+	
 		
 		
 		
@@ -293,6 +307,38 @@ public class start extends MapActivity implements SensorEventListener,
 	 * }
 	 */
 
+	
+	private class LocListener implements LocationListener{
+        
+		
+            public void onLocationChanged(Location location)
+                {;
+                
+//                		Log.d("provider", "Provider is on");
+                        if (location != null)
+                        {                       	
+                               useLocation(location);
+                        } 
+                }
+
+			
+                public void  onProviderDisabled(String provider)
+                {
+                }
+
+                public void  onProviderEnabled(String provider)
+                {
+                }
+
+                public void  onStatusChanged(String provider, 
+int status, Bundle extras)
+                {
+                }	
+		
+	};
+	
+	
+	
 	@Override
 	protected void onPause() {
 		paused = true;
@@ -305,6 +351,12 @@ public class start extends MapActivity implements SensorEventListener,
 			sensorMgr.unregisterListener(this, sensorMag);
 			sensorMgr = null;
 		}
+		
+		lm.removeUpdates(locListener);
+		
+		
+		
+		
 
 	}
 
@@ -337,14 +389,19 @@ public class start extends MapActivity implements SensorEventListener,
 		sensorMgr.registerListener(this, sensorMag, SENSOR_DELAY_FASTEST);
 
 		sensorMgr.registerListener(this, sensorOri, SENSOR_DELAY_FASTEST);
+		
+		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
 
 	}
 
 	@Override
 	protected void onStop() {
+		super.onStop();
+		
 		arView.renderer.stop();
 		arView.worldReadyToGo = false;
-		super.onStop();
+		lm.removeUpdates(locListener);
+		
 	}
 
 	@Override
@@ -521,6 +578,7 @@ public class start extends MapActivity implements SensorEventListener,
 				}
 
 				camera = android.hardware.Camera.open();
+				camera.setDisplayOrientation(90);
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
 				try {
@@ -784,88 +842,78 @@ public class start extends MapActivity implements SensorEventListener,
 		return false;
 	}
 
-	public void onLocationChanged(Location location) {
-		
-		
-		
-		//fake location_______________________________________________________________
-		//location.setLatitude(51.559230);
-		//location.setLongitude(5.07974);
-		
-		// only run if world is set
-		Log.d("loading", "gps updated");
 
-		Timer blah = new Timer();
-
-		TimerTask meep = new TimerTask() {
-			public void run() {
-
-				// load the sample blips after the world is set up
-				if ((arView.worldReadyToGo) && (OriginalLocationSet)) {
-
-					this.cancel();
-					Log.d("loading", "loading blips");
-
-					double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
-					double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
-
-					for (int i = 0; i < blipDataX.length;) {
-
-						// we can now load up some sample blips
-						ARBlip testblip1 = new ARBlip();
-						testblip1.x = blipDataX[i]; // 51.558348 //51.558325
-						testblip1.y = blipDataY[i];
-						testblip1.z = 0;
-						testblip1.BlipID = "NewTestBlip" + i;
-						testblip1.ObjectData = "" + i;
-						try {
-							arView.addBlip(testblip1);
-						} catch (IOException e) {							
-							// addBlip can cause an error if it has a malformed url, or other problem loading a remote 3d file
-							e.printStackTrace();
+		public void useLocation(Location location) {
+			
+			
+			
+			//fake location_______________________________________________________________
+			//location.setLatitude(51.559230);
+			//location.setLongitude(5.07974);
+			
+			// only run if world is set
+			Log.d("loading", "gps updated");
+	
+			Timer blah = new Timer();
+	
+			TimerTask meep = new TimerTask() {
+				public void run() {
+	
+					// load the sample blips after the world is set up
+					if ((arView.worldReadyToGo) && (OriginalLocationSet)) {
+	
+						this.cancel();
+						Log.d("loading", "loading blips");
+	
+						double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
+						double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
+	
+						for (int i = 0; i < blipDataX.length;) {
+	
+							// we can now load up some sample blips
+							ARBlip testblip1 = new ARBlip();
+							testblip1.x = blipDataX[i]; // 51.558348 //51.558325
+							testblip1.y = blipDataY[i];
+							testblip1.z = 0;
+							testblip1.BlipID = "NewTestBlip" + i;
+							testblip1.ObjectData = "" + i;
+							try {
+								arView.addBlip(testblip1);
+							} catch (IOException e) {							
+								// addBlip can cause an error if it has a malformed url, or other problem loading a remote 3d file
+								e.printStackTrace();
+							}
+							i++;
 						}
-						i++;
+	
+					} else {
+						Log.d("load", "not ready for blips");
 					}
-
-				} else {
-					Log.d("load", "not ready for blips");
+	
 				}
-
+			};
+	
+			// if its not set, then set the starting location for the arView
+			if (!OriginalLocationSet) {
+				arView.startingLocation = location;
+				Log.i("load", "setting location...");
+				OriginalLocationSet = true;
+				blah.schedule(meep, 100, 100);
 			}
-		};
-
-		// if its not set, then set the starting location for the arView
-		if (!OriginalLocationSet) {
-			arView.startingLocation = location;
-			Log.i("load", "setting location...");
-			OriginalLocationSet = true;
-			blah.schedule(meep, 100, 100);
+			
+			if ((arView.worldReadyToGo) && (OriginalLocationSet)) {
+				//set current location
+					Log.i("loc", "location changed");
+				currentLocation = location;
+				arView.currentRealLocation = currentLocation;
+				arView.updateLocation(currentLocation);
+			}
+			currentLocation = location;
+			arView.TestVar = arView.TestVar+1;
+			arView.currentRealLocation = currentLocation;
 		}
-		
-		if ((arView.worldReadyToGo) && (OriginalLocationSet)) {
-		//set current location
-			Log.i("loc", "location changed");
-		currentLocation = location;
-		arView.currentRealLocation = currentLocation;
-		arView.updateLocation(currentLocation);
-		
-		}
-		currentLocation = location;
-		arView.TestVar = arView.TestVar+1;
-		arView.currentRealLocation = currentLocation;
-	}
+	
 
-	public void onProviderDisabled(String provider) {
-		
-	}
-
-	public void onProviderEnabled(String provider) {
-		
-	}
-
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		
-	}
 
 	public void noOp(String arg0, WaveletData arg1) {
 		
@@ -977,6 +1025,26 @@ public class start extends MapActivity implements SensorEventListener,
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
+	}
+
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void onProviderEnabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
