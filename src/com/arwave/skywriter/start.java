@@ -578,7 +578,9 @@ int status, Bundle extras)
 				}
 
 				camera = android.hardware.Camera.open();
-				camera.setDisplayOrientation(90);
+				
+				//camera.setDisplayOrientation(90);
+				
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
 				try {
@@ -764,6 +766,7 @@ int status, Bundle extras)
 
 	/* Handles item selections */
 	public boolean onOptionsItemSelected(MenuItem item) {
+		
 		switch (item.getItemId()) {
 		
 		case MENU_ADDTEST3DS:
@@ -771,16 +774,17 @@ int status, Bundle extras)
 
 			ARBlip testblip = new ARBlip();
 			//random position relative to real world current location
-			testblip.x = currentLocation.getLatitude()+(Math.random() * 0.0001);
-			testblip.y = currentLocation.getLongitude()+(Math.random() * 0.0001);
+			testblip.x = 51.560286;
+			testblip.y = 5.078049;
 			testblip.z = 0;
 			testblip.BlipID = "Test3dsBlip";
-			testblip.ObjectData = "http://www.darkflame.co.uk/testTObject.3DS";
+			testblip.ObjectData = "http://www.darkflame.co.uk/building_1.3DS";
 			testblip.MIMEtype = "application/x-3ds";
-			
-			
+			 			
 			try {
 				arView.addBlip(testblip);
+				
+				
 			} catch (IOException e) {
 				// addBlip can cause an error if it has a malformed url, or other problem loading a remote 3d file		
 				Log.e("3ds", "failed to load");

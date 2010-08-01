@@ -362,7 +362,7 @@ public class ARBlipView extends GLSurfaceView {
 		float z = (float)worldZ;
 		//update camera location
 		Camera cam = world.getCamera();
-		cam.setPosition(x, -250, z); //we might want to animate this at some point
+		cam.setPosition(x, -10, z); //we might want to animate this at some point
 		
 		//if map showing, then update it (or try to)
 //		if (MapModeSet){
@@ -413,10 +413,35 @@ public class ARBlipView extends GLSurfaceView {
 				URLConnection conn = downloadfrom.openConnection();
                 conn.connect();
                 BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
+                Log.i("3ds","got stream");
                 Object3D[] newobjects = Loader.load3DS(bis, 1);
-                newmarker = Object3D.mergeAll(newobjects);
-                Log.i("newmaker","created 3ds");
                 
+                for( int x = 0; x < newobjects.length; x++ )
+                {
+                	newobjects[x].rotateX( (float) Math.PI / 2 );
+                	newobjects[x].rotateZ( (float) Math.PI );
+                	newobjects[x].rotateMesh();
+                	newobjects[x].setRotationMatrix( new Matrix() );
+                }
+                
+                
+                Log.i("3ds","now merging...");
+                newmarker = Object3D.mergeAll(newobjects);
+                
+                Log.i("3ds","created 3ds");
+                
+			} else if (newblip.MIMEtype.equalsIgnoreCase("TESTONLY")) {
+				
+				//load 3d model
+			
+                newmarker = Primitives.getCube(10);
+                //rotate it io
+                newmarker.rotateX(-(float) Math.PI / 2);
+                
+                Log.i("3ds","created 3ds");
+			
+			
+			
 			} else {
 				//if no recognised type, then we assume its a billboard with text
 				//if not,create a new arblip placemark			
@@ -469,6 +494,8 @@ public class ARBlipView extends GLSurfaceView {
 			
             
 			world.addObject(newmarker);
+			
+			//this one shouldn't always be added, only for billboards!
 			world.addObject(newplane);
 			
 			world.buildAllObjects();
