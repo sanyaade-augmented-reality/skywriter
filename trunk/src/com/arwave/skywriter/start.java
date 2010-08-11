@@ -641,6 +641,7 @@ int status, Bundle extras)
 
 	public void onSensorChanged(SensorEvent s_ev) {
 
+	//	if (true) return;
 		
 		switch (s_ev.sensor.getType()) {
         case Sensor.TYPE_ACCELEROMETER:
@@ -769,6 +770,7 @@ int status, Bundle extras)
 		
 		switch (item.getItemId()) {
 		
+					
 		case MENU_ADDTEST3DS:
 			
 
@@ -778,7 +780,7 @@ int status, Bundle extras)
 			testblip.y = 5.078049;
 			testblip.z = 0;
 			testblip.BlipID = "Test3dsBlip";
-			testblip.ObjectData = "http://www.darkflame.co.uk/building_1.3DS";
+			testblip.ObjectData = "http://www.darkflame.co.uk/building.3DS";
 			testblip.MIMEtype = "application/x-3ds";
 			 			
 			try {
@@ -850,11 +852,6 @@ int status, Bundle extras)
 		public void useLocation(Location location) {
 			
 			
-			
-			//fake location_______________________________________________________________
-			//location.setLatitude(51.559230);
-			//location.setLongitude(5.07974);
-			
 			// only run if world is set
 			Log.d("loading", "gps updated");
 	
@@ -869,6 +866,8 @@ int status, Bundle extras)
 						this.cancel();
 						Log.d("loading", "loading blips");
 	
+						//A list of sample markers down a street in tilburg! (please change if you wish to test more localy to you)
+						
 						double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
 						double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
 	
@@ -900,7 +899,7 @@ int status, Bundle extras)
 			// if its not set, then set the starting location for the arView
 			if (!OriginalLocationSet) {
 				arView.startingLocation = location;
-				Log.i("load", "setting location...");
+				Log.i("loading", "setting location..........");
 				OriginalLocationSet = true;
 				blah.schedule(meep, 100, 100);
 			}
