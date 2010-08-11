@@ -403,10 +403,32 @@ public class ARBlipView extends GLSurfaceView {
 			Object3D newmarker = Object3D.createDummyObj();
 			Object3D newplane = Object3D.createDummyObj();
 			
-			//in future, this should be a seperate function supporting many blip types
 			//if blip type is specified
 			// load 3d object from url
 			if (newblip.MIMEtype.equalsIgnoreCase("application/x-3ds")){
+				
+				//get a texture first (currently only supports one texture)
+			    // Note; The texture is associated with the 3ds object automaticaly based on the name.
+				// This is why we set the texture name equal to the file name.
+				String TextureURL = newblip.ObjectData.substring(0,newblip.ObjectData.length()-4)+".jpg";
+				Log.i("3ds","getting texture at "+TextureURL);
+				
+				URL texturedownloadfrom = new URL(TextureURL);
+				
+				 URLConnection textureconnection = texturedownloadfrom.openConnection();
+
+				 textureconnection.connect();
+				 BufferedInputStream texturebis = new BufferedInputStream(textureconnection.getInputStream());
+                  Bitmap maxtexture1 = BitmapFactory.decodeStream(texturebis);
+                  TextureManager tm = TextureManager.getInstance();          		
+          		Texture newmaxtexture = new Texture(maxtexture1);
+          		
+          		//work out texture name
+          		String texturefilename =TextureURL.substring(TextureURL.lastIndexOf('/')+1,TextureURL.length());
+          		Log.i("3ds", "adding texture="+texturefilename);
+          		          		
+          		tm.addTexture(texturefilename.toUpperCase(),newmaxtexture);
+                
 				
 				//load 3d model
 				URL downloadfrom = new URL(newblip.ObjectData);
@@ -420,6 +442,8 @@ public class ARBlipView extends GLSurfaceView {
                 {
                 	newobjects[x].rotateX( (float) Math.PI / 2 );
                 	newobjects[x].rotateZ( (float) Math.PI );
+                	newobjects[x].rotateY( -((float) Math.PI /2));
+                	
                 	newobjects[x].rotateMesh();
                 	newobjects[x].setRotationMatrix( new Matrix() );
                 }
@@ -430,6 +454,9 @@ public class ARBlipView extends GLSurfaceView {
                 
                 Log.i("3ds","created 3ds");
                 
+                
+                
+                
 			} else if (newblip.MIMEtype.equalsIgnoreCase("TESTONLY")) {
 				
 				//load 3d model
@@ -437,9 +464,7 @@ public class ARBlipView extends GLSurfaceView {
                 newmarker = Primitives.getCube(10);
                 //rotate it io
                 newmarker.rotateX(-(float) Math.PI / 2);
-                
-                Log.i("3ds","created 3ds");
-			
+                		
 			
 			
 			} else {
