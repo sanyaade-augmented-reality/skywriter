@@ -21,6 +21,9 @@ public class ARBlip {
 	double y = 0.0; //long
 	double z = 0.0;
 
+// Is an occulusion mask object
+	boolean isOcculisionMask = false;
+	
 //Vector
 //If no vector is specified, its assumed to be a facing sprite.
 	int baring = 0;

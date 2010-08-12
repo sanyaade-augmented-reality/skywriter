@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -407,29 +408,10 @@ public class ARBlipView extends GLSurfaceView {
 			// load 3d object from url
 			if (newblip.MIMEtype.equalsIgnoreCase("application/x-3ds")){
 				
-				//get a texture first (currently only supports one texture)
-			    // Note; The texture is associated with the 3ds object automaticaly based on the name.
-				// This is why we set the texture name equal to the file name.
-				String TextureURL = newblip.ObjectData.substring(0,newblip.ObjectData.length()-4)+".jpg";
-				Log.i("3ds","getting texture at "+TextureURL);
-				
-				URL texturedownloadfrom = new URL(TextureURL);
-				
-				 URLConnection textureconnection = texturedownloadfrom.openConnection();
-
-				 textureconnection.connect();
-				 BufferedInputStream texturebis = new BufferedInputStream(textureconnection.getInputStream());
-                  Bitmap maxtexture1 = BitmapFactory.decodeStream(texturebis);
-                  TextureManager tm = TextureManager.getInstance();          		
-          		Texture newmaxtexture = new Texture(maxtexture1);
+	
+          		HashSet<String> Namesbefore = TextureManager.getInstance().getNames(); 
+          		int SizeBefore = Namesbefore.size();
           		
-          		//work out texture name
-          		String texturefilename =TextureURL.substring(TextureURL.lastIndexOf('/')+1,TextureURL.length());
-          		Log.i("3ds", "adding texture="+texturefilename);
-          		          		
-          		tm.addTexture(texturefilename.toUpperCase(),newmaxtexture);
-                
-				
 				//load 3d model
 				URL downloadfrom = new URL(newblip.ObjectData);
 				URLConnection conn = downloadfrom.openConnection();
@@ -448,10 +430,60 @@ public class ARBlipView extends GLSurfaceView {
                 	newobjects[x].setRotationMatrix( new Matrix() );
                 }
                 
-                
                 Log.i("3ds","now merging...");
                 newmarker = Object3D.mergeAll(newobjects);
+              
+                newmarker.scale(2f);
                 
+                HashSet<String> newNames = TextureManager.getInstance().getNames(); 
+               
+                
+                newNames.removeAll(Namesbefore);
+               
+                //now get the texture names
+                Iterator<String> it = newNames.iterator();
+                
+                
+                //clear rmemory first
+                System.gc(); //no idea if this is a good place, but I was getting some out of memory errors  without it
+                
+                //get path
+                String URLPath = newblip.ObjectData.substring(0,newblip.ObjectData.lastIndexOf('/')+1);
+                
+                while (it.hasNext()){
+                	
+                	String textureNameToLoad = (String)it.next();
+                	Log.i("3ds", "Loading Texture:-"+textureNameToLoad);
+                	
+                	//get the url
+                	//NOTE; filename must be lower case 
+                	// In future we might want to check for uppercase too.
+                	// Unfortuntely, 3dsmax stores all its filenames uppercase internaly, so we cant have mixed cases
+                	// in filenames, as they wont be recognised.
+                	String TextureURL = URLPath+textureNameToLoad.toLowerCase();
+                	
+    				Log.i("3ds","getting texture at "+TextureURL);
+    				
+                	//make the texture
+    				URL texturedownloadfrom = new URL(TextureURL);
+    				URLConnection textureconnection = texturedownloadfrom.openConnection();
+                    textureconnection.connect();
+   				    BufferedInputStream texturebis = new BufferedInputStream(textureconnection.getInputStream());
+                     
+   				    Bitmap maxtexture1 = BitmapFactory.decodeStream(texturebis);
+                    TextureManager tm = TextureManager.getInstance();          		
+             		Texture newmaxtexture = new Texture(maxtexture1);
+             	
+    				
+                	//swap it in
+                	// Note; This automaticaly assigns the correct textures onto the model, because
+             		// when the model was loaded, it was assigned the file names in the 3ds file for its texture names.
+             		// neat eh?
+             		tm.replaceTexture(textureNameToLoad, newmaxtexture);
+    				
+                }
+                
+                              
                 Log.i("3ds","created 3ds");
                 
                 
@@ -511,12 +543,11 @@ public class ARBlipView extends GLSurfaceView {
 			float y = (float)-worldY;
 			float z = (float)worldZ;
 			
+			Log.i("3ds", "positioning at z="+z+" y="+y+"x="+x);
+			
+			//newmarker.setTranslationMatrix(new Matrix());
 			newmarker.translate(x,y,z);
-			
-			//need a way to generate a texture from text?
-			//String text = blip.ObjectData
-
-			
+						
             
 			world.addObject(newmarker);
 			
@@ -742,27 +773,6 @@ public class ARBlipView extends GLSurfaceView {
 			
 			
 			
-			/*
-			//expirment texture
-			Texture textTexture = new Texture(64,64, RGBColor.BLACK);
-
-			FrameBuffer meep = new FrameBuffer(gl, 100, 100);
-
-			World tw=new World();
-            tw.renderScene(meep);
-            tw.draw(meep);
-            
-			meep.display();	
-			
-			meep.setRenderTarget(textTexture);				
-			meep.clear(RGBColor.BLACK);	
-			glFont.blitString(meep, " test test test! ", 
-					5, 5, 10, RGBColor.WHITE);		
-				
-			meep.display();		
-			
-			meep.removeRenderTarget();
-			*/
 			
 			
 			//set up pre-made landscape
@@ -820,7 +830,7 @@ public class ARBlipView extends GLSurfaceView {
 			tree2.rotateZ((float) Math.PI);
 			groundPlane.rotateX((float) Math.PI / 2f);
 			groundPlane.rotateY((float) -Math.PI / 2f);
-			
+			groundPlane.translate(0, 0, 0);
 			groundPlane.setName("plane");
 			tree1.setName("tree1");
 			//tree2.setName("tree2");
