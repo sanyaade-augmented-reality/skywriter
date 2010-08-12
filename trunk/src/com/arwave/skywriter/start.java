@@ -779,12 +779,23 @@ int status, Bundle extras)
 			testblip.x = 51.560286;
 			testblip.y = 5.078049;
 			testblip.z = 0;
-			testblip.BlipID = "Test3dsBlip";
+			testblip.BlipID = "Building";
 			testblip.ObjectData = "http://www.darkflame.co.uk/building.3DS";
 			testblip.MIMEtype = "application/x-3ds";
-			 			
+			 		
+			
+			ARBlip testblip2 = new ARBlip();
+			//random position relative to real world current location
+			testblip2.x = 51.558360;
+			testblip2.y = 5.077972;
+			testblip2.z = 0;
+			testblip2.BlipID = "PetrolStation";
+			testblip2.ObjectData = "http://www.darkflame.co.uk/petrolstation.3ds";
+			testblip2.MIMEtype = "application/x-3ds";
+			
 			try {
 				arView.addBlip(testblip);
+				arView.addBlip(testblip2);
 				
 				
 			} catch (IOException e) {
