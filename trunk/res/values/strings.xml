@@ -22,4 +22,5 @@
 <string name="openWaveText">Open</string>
 <string name="cancelButton">Cancel</string>
 <string name="addButton">Add ARBlip</string>
+<string name="autoSeLocationText">Auto-set the location</string>
 </resources>

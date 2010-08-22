@@ -17,8 +17,6 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -41,9 +39,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -91,7 +89,11 @@ public class start extends MapActivity implements SensorEventListener,
 	//location handeling
 	private boolean OriginalLocationSet = false;
 	public Location currentLocation;
+	CheckBox AutoSetLocation;
+	EditText AddBlipLat;
+	EditText AddBlipLong;
 	
+	boolean overheadmode=false;
 	
 	// Camera Orientation Related
 	static SensorHelper sensorfunctions = new SensorHelper();
@@ -112,15 +114,16 @@ public class start extends MapActivity implements SensorEventListener,
 	    private boolean mFailed;
 	
 	
-	DigitalAverage[] filter = { new DigitalAverage(), new DigitalAverage(),
-			new DigitalAverage(), new DigitalAverage(), new DigitalAverage(),
-			new DigitalAverage() };
+	//DigitalAverage[] filter = { new DigitalAverage(), new DigitalAverage(),
+	//		new DigitalAverage(), new DigitalAverage(), new DigitalAverage(),
+	//		new DigitalAverage() };
 
 	// Menu items
 	private static final int MENU_TOGGLE_MAP = 1;
 	private static final int MENU_BLITSENSOR = 2;
 	private static final int MENU_ADDTEST3DS = 3;
-	
+	private static final int MENU_REMOVESCENE  = 4;
+	private static final int MENU_OVERHEAD = 5;
 	// Matrix tempR = new Matrix();
 	float RTmp[] = new float[9];
 	float Rt[] = new float[9];
@@ -205,18 +208,41 @@ public class start extends MapActivity implements SensorEventListener,
 		arPage.addView(arView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 
+		// -----------------------------------------------------------
+		// for adding blips
+		Button cancelButton = (Button) findViewById(R.id.cancelButton);
+		
+
+		Log.i("setup", "setting addblips");
+		AutoSetLocation = (CheckBox) findViewById(R.id.AutoSetLocation);
+		AddBlipLat = (EditText) findViewById(R.id.latitude);
+		AddBlipLong = (EditText) findViewById(R.id.longitude);
+		
+		cancelButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				//					
+			}
+		});
+
+		Button addConfirmBlipButton = (Button) findViewById(R.id.cancelButton);
+		addConfirmBlipButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				//					
+			}
+		});
+
+		
 		//map tests
 		//LinearLayout blipPage = (LinearLayout) findViewById(R.id.add_arblip_layout);		
 		
 		// ,
 		//        	
 		// listen for gps
-		Log.d("setting", "location checker");
 		
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		
 		Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		useLocation(loc);
+		
 		
 		locListener = new LocListener();				
 		
@@ -227,7 +253,7 @@ public class start extends MapActivity implements SensorEventListener,
 	
 		
 		
-		
+		Log.i("setup", "setting buttons");
 
 		// initialize the communication manager
 		// TODO: other choices will be available in the future
@@ -275,23 +301,7 @@ public class start extends MapActivity implements SensorEventListener,
 		 * });
 		 */
 
-		// -----------------------------------------------------------
-		// for adding blips
-		Button cancelButton = (Button) findViewById(R.id.cancelButton);
-
-		cancelButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				//					
-			}
-		});
-
-		Button addConfirmBlipButton = (Button) findViewById(R.id.cancelButton);
-		addConfirmBlipButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				//					
-			}
-		});
-
+		
 		// add a context menu to the list of waves
 		registerForContextMenu(waveListViewBox);
 	}
@@ -516,6 +526,7 @@ int status, Bundle extras)
 	}
 
 	// ================================================================================================================
+	/*
 	private class DigitalAverage {
 
 		final int history_len = 4;
@@ -540,7 +551,7 @@ int status, Bundle extras)
 			return (int) avg;
 		}
 	}
-
+*/
 	
 	
 	class CameraView extends SurfaceView implements SurfaceHolder.Callback {
@@ -667,6 +678,12 @@ int status, Bundle extras)
                 cameraVector.y = smoothY(mOrientation[2]);
                 cameraVector.z = smoothZ(mOrientation[0]);
 
+                //log the output for graphing
+             // Log.i("cameraX", ""+cameraVector.x);
+             //   Log.i("cameraY", ""+cameraVector.y);
+              //  Log.i("cameraZ", ""+cameraVector.z);
+                
+             //  Log.i("cameraZ", ","+mOrientation[0]);
                 
                 
                 arView.setCameraOrientation(cameraVector);
@@ -760,8 +777,9 @@ int status, Bundle extras)
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(0, MENU_TOGGLE_MAP, 0, "Toggle Map");
 		menu.add(0, MENU_BLITSENSOR, 0, "Bit Sensor");
-		menu.add(0, MENU_ADDTEST3DS,0,"Test3DSLoad");
-		
+		menu.add(0, MENU_ADDTEST3DS,0,  "Test3DSLoad");
+		menu.add(0, MENU_REMOVESCENE,0, "ToggleScenary");
+		menu.add(0, MENU_OVERHEAD, 0, "Set Overhead");
 		return true;
 	}
 
@@ -775,7 +793,6 @@ int status, Bundle extras)
 			
 
 			ARBlip testblip = new ARBlip();
-			//random position relative to real world current location
 			testblip.x = 51.560286;
 			testblip.y = 5.078049;
 			testblip.z = 0;
@@ -783,15 +800,25 @@ int status, Bundle extras)
 			testblip.ObjectData = "http://www.darkflame.co.uk/building.3DS";
 			testblip.MIMEtype = "application/x-3ds";
 			 		
-			
 			ARBlip testblip2 = new ARBlip();
-			//random position relative to real world current location
-			testblip2.x = 51.558360;
-			testblip2.y = 5.077972;
+			testblip2.x = 51.558393;
+			testblip2.y = 5.077996;
 			testblip2.z = 0;
-			testblip2.BlipID = "PetrolStation";
+			testblip2.isOcculisionMask = false;
+			testblip2.BlipID = "CastleTest";
 			testblip2.ObjectData = "http://www.darkflame.co.uk/petrolstation.3ds";
 			testblip2.MIMEtype = "application/x-3ds";
+		
+			/*
+			ARBlip testblip2 = new ARBlip();
+			testblip2.x = 51.557856;
+			testblip2.y = 5.077389;
+			testblip2.z = 0;
+			testblip2.isOcculisionMask = false;
+			testblip2.BlipID = "CastleTest";
+			testblip2.ObjectData = "http://www.darkflame.co.uk/objtest.obj";
+			testblip2.MIMEtype = "application/x-obj";
+			*/
 			
 			try {
 				arView.addBlip(testblip);
@@ -845,6 +872,15 @@ int status, Bundle extras)
 			}
 
 			return true;
+		case MENU_REMOVESCENE:
+			
+			//toggle the scene background
+			arView.toggleBackgroundScenary();
+			
+			
+			
+			return true;
+			
 		case MENU_BLITSENSOR:
 
 			// toggle the screen blitting
@@ -852,8 +888,24 @@ int status, Bundle extras)
 			Log.i("debug","_"+arView.showDebugInfo);
 			
 			return true;
-		}
 		
+		case MENU_OVERHEAD:
+			
+			overheadmode=!overheadmode;
+			//set the camera to overhead
+			if (overheadmode) {
+			   arView.cameraHeight = -120;
+			} else {
+				arView.cameraHeight = -3;					
+			}
+			
+			return true;
+			
+		}
+			
+			
+			
+			
 		
 		
 		return false;
@@ -901,7 +953,7 @@ int status, Bundle extras)
 						}
 	
 					} else {
-						Log.d("load", "not ready for blips");
+						//Log.d("load", "not ready for blips");
 					}
 	
 				}
@@ -923,6 +975,16 @@ int status, Bundle extras)
 				arView.updateLocation(currentLocation);
 			}
 			currentLocation = location;
+			
+			
+			if (AutoSetLocation.isChecked()){
+				Log.i("setting", "setting location");
+				
+				AddBlipLat.setText(""+currentLocation.getLatitude());
+				AddBlipLong.setText(""+currentLocation.getLongitude());
+				
+			}
+			
 			arView.TestVar = arView.TestVar+1;
 			arView.currentRealLocation = currentLocation;
 		}

@@ -120,6 +120,8 @@
 						android:layout_height="wrap_content" android:layout_gravity="right"
 						android:id="@+id/addButton" android:text="@string/addButton" />
 				</LinearLayout>
+				<CheckBox android:text="@string/autoSeLocationText" android:id="@+id/AutoSetLocation" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+				
 			</LinearLayout>
 			
 			
