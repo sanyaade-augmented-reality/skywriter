@@ -57,10 +57,15 @@ public class ARBlipView extends GLSurfaceView {
 	
 	//our world, to which we add stuff
 	private World world = null;	
-	//ground plane
 
+	//scenary
 	private Object3D groundPlane = null;
+	private Object3D tree2 = null;
+	private Object3D tree1 = null;
+	private Object3D grass = null;
+    private Object3D rock = null;
 	
+    private boolean backgroundScenaryVisible = true;
 	//renderer
 	MyRenderer renderer = null;
 	 
@@ -96,6 +101,8 @@ public class ARBlipView extends GLSurfaceView {
 	float newCameraY =0;
 	float newCameraZ =0;
 		
+	float cameraHeight = -3;
+	
 	int TestVar = 0;
 	boolean MapModeSet = true;
 	
@@ -363,7 +370,7 @@ public class ARBlipView extends GLSurfaceView {
 		float z = (float)worldZ;
 		//update camera location
 		Camera cam = world.getCamera();
-		cam.setPosition(x, -10, z); //we might want to animate this at some point
+		cam.setPosition(x, cameraHeight, z); //we might want to animate this at some point
 		
 		//if map showing, then update it (or try to)
 //		if (MapModeSet){
@@ -433,7 +440,29 @@ public class ARBlipView extends GLSurfaceView {
                 Log.i("3ds","now merging...");
                 newmarker = Object3D.mergeAll(newobjects);
               
-                newmarker.scale(2f);
+                //This scale is wrong...no idea what the correct scale to use is :(
+                //newmarker.scale(2f);
+                
+
+                //clear memory first
+                System.gc(); //no idea if this is a good place, but I was getting some out of memory errors  without it
+                
+                
+                //ok, if occlusion is set, then we simply dont specify a texture
+                if (newblip.isOcculisionMask){
+
+            		//Bitmap.Config config = Bitmap.Config.ARGB_8888;			
+                	//Bitmap charImage = Bitmap.createBitmap(16, 16, config);
+            		//Canvas canvas = new Canvas(charImage);			
+            		//canvas.drawColor(Color.BLACK);			
+            		//TextureManager tm = TextureManager.getInstance();          		
+             		//Texture newmaxtexture = new Texture(charImage,false);
+            		//tm.addTexture("occlusion", newmaxtexture);
+            		             		
+             		//newmarker.setTexture("occlusion");
+             		
+                	return;
+                }
                 
                 HashSet<String> newNames = TextureManager.getInstance().getNames(); 
                
@@ -444,44 +473,10 @@ public class ARBlipView extends GLSurfaceView {
                 Iterator<String> it = newNames.iterator();
                 
                 
-                //clear rmemory first
-                System.gc(); //no idea if this is a good place, but I was getting some out of memory errors  without it
-                
                 //get path
                 String URLPath = newblip.ObjectData.substring(0,newblip.ObjectData.lastIndexOf('/')+1);
                 
-                while (it.hasNext()){
-                	
-                	String textureNameToLoad = (String)it.next();
-                	Log.i("3ds", "Loading Texture:-"+textureNameToLoad);
-                	
-                	//get the url
-                	//NOTE; filename must be lower case 
-                	// In future we might want to check for uppercase too.
-                	// Unfortuntely, 3dsmax stores all its filenames uppercase internaly, so we cant have mixed cases
-                	// in filenames, as they wont be recognised.
-                	String TextureURL = URLPath+textureNameToLoad.toLowerCase();
-                	
-    				Log.i("3ds","getting texture at "+TextureURL);
-    				
-                	//make the texture
-    				URL texturedownloadfrom = new URL(TextureURL);
-    				URLConnection textureconnection = texturedownloadfrom.openConnection();
-                    textureconnection.connect();
-   				    BufferedInputStream texturebis = new BufferedInputStream(textureconnection.getInputStream());
-                     
-   				    Bitmap maxtexture1 = BitmapFactory.decodeStream(texturebis);
-                    TextureManager tm = TextureManager.getInstance();          		
-             		Texture newmaxtexture = new Texture(maxtexture1);
-             	
-    				
-                	//swap it in
-                	// Note; This automaticaly assigns the correct textures onto the model, because
-             		// when the model was loaded, it was assigned the file names in the 3ds file for its texture names.
-             		// neat eh?
-             		tm.replaceTexture(textureNameToLoad, newmaxtexture);
-    				
-                }
+                fetchAndSwapTexturesFromURL(it, URLPath);
                 
                               
                 Log.i("3ds","created 3ds");
@@ -489,6 +484,57 @@ public class ARBlipView extends GLSurfaceView {
                 
                 
                 
+			} else if (newblip.MIMEtype.equalsIgnoreCase("application/x-obj")) { 
+			
+				HashSet<String> Namesbefore = TextureManager.getInstance().getNames(); 
+          		int SizeBefore = Namesbefore.size();
+          		
+				//load 3d model
+          		
+          		//get model source
+
+                Log.i("obj","getting model stream");
+				URL downloadfrom = new URL(newblip.ObjectData);
+				URLConnection conn = downloadfrom.openConnection();
+                conn.connect();
+                BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
+                
+                //get texture source
+                Log.i("obj","getting texture stream");
+                URL downloadtexturefrom = new URL(newblip.ObjectData.substring(0, newblip.ObjectData.length()-4)+".mtl");
+				URLConnection textconn = downloadtexturefrom.openConnection();
+                conn.connect();
+                BufferedInputStream textbis = new BufferedInputStream(textconn.getInputStream());
+                
+                
+                Log.i("obj","got streams");
+                Object3D[] newobjects = Loader.loadOBJ(bis, textbis, 1);
+
+                Log.i("obj","now merging...");
+                newmarker = Object3D.mergeAll(newobjects);
+                newmarker.rotateX(3.14f);
+                //This scale is wrong...no idea what the correct scale to use is :(
+              //  newmarker.scale(2f);
+                
+                //clear memory first
+                System.gc(); //no idea if this is a good place, but I was getting some out of memory errors  without it
+                
+                HashSet<String> newNames = TextureManager.getInstance().getNames(); 
+               
+                
+                newNames.removeAll(Namesbefore);
+               
+                Log.i("obj","number of textures;"+newNames.size());
+                
+                //now get the texture names
+                Iterator<String> it = newNames.iterator();
+                //get path
+                String URLPath = newblip.ObjectData.substring(0,newblip.ObjectData.lastIndexOf('/')+1);
+                
+                fetchAndSwapTexturesFromURL(it, URLPath);
+               
+                
+			
 			} else if (newblip.MIMEtype.equalsIgnoreCase("TESTONLY")) {
 				
 				//load 3d model
@@ -564,6 +610,44 @@ public class ARBlipView extends GLSurfaceView {
 		}
 		
 		
+	}
+
+	private void fetchAndSwapTexturesFromURL(Iterator<String> it, String URLPath)
+			throws MalformedURLException, IOException {
+		while (it.hasNext()){
+			
+			String textureNameToLoad = (String)it.next();
+			Log.i("3ds", "Loading Texture:-"+textureNameToLoad);
+			
+			//get the url
+			//NOTE; filename must be lower case 
+			// In future we might want to check for uppercase too.
+			// Unfortuntely, 3dsmax stores all its filenames uppercase internaly, so we cant have mixed cases
+			// in filenames, as they wont be recognised.
+			String TextureURL = URLPath+textureNameToLoad.toLowerCase();
+			
+			Log.i("3d","getting texture at "+TextureURL);
+			
+			//make the texture
+			URL texturedownloadfrom = new URL(TextureURL);
+			URLConnection textureconnection = texturedownloadfrom.openConnection();
+			
+			
+		    textureconnection.connect();
+		    BufferedInputStream texturebis = new BufferedInputStream(textureconnection.getInputStream());
+		     
+		    Bitmap maxtexture1 = BitmapFactory.decodeStream(texturebis);
+		    TextureManager tm = TextureManager.getInstance();          		
+			Texture newmaxtexture = new Texture(maxtexture1);
+		
+			
+			//swap it in
+			// Note; This automaticaly assigns the correct textures onto the model, because
+			// when the model was loaded, it was assigned the file names in the 3ds file for its texture names.
+			// neat eh?
+			tm.replaceTexture(textureNameToLoad, newmaxtexture);
+			
+		}
 	}
 /** updates a texture to a bit of text **/
 	private void updatedTexture(String Texturename,String text) {
@@ -661,6 +745,18 @@ public class ARBlipView extends GLSurfaceView {
 		
 	}
 	
+	
+	public void toggleBackgroundScenary(){
+		
+		backgroundScenaryVisible =! backgroundScenaryVisible;
+		
+		groundPlane.setVisibility(backgroundScenaryVisible);
+		rock.setVisibility(backgroundScenaryVisible);
+		tree1.setVisibility(backgroundScenaryVisible);
+		tree2.setVisibility(backgroundScenaryVisible);
+		grass.setVisibility(backgroundScenaryVisible);
+	}
+	
 	/** Map mode **/
 	/** This will add a google map image as the ground plan and set camera overhead **/
 	public void setMapMode(boolean setMapMode, LocatedMapBundle MapBundle)
@@ -723,9 +819,7 @@ public class ARBlipView extends GLSurfaceView {
 	
 	class MyRenderer implements GLSurfaceView.Renderer {
 
-		private Object3D tree2 = null;
-		private Object3D tree1 = null;
-		private Object3D grass = null;
+	
 		private Texture numberFont = null;
 
 		//
@@ -735,7 +829,6 @@ public class ARBlipView extends GLSurfaceView {
 		private long time = System.currentTimeMillis();
 
 		private Light sun = null;
-		private Object3D rock = null;
 
 		private boolean stop = false;
 
@@ -763,6 +856,9 @@ public class ARBlipView extends GLSurfaceView {
 			fb = new FrameBuffer(gl, w, h);
 		}
 
+		
+		
+		
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 			TextureManager.getInstance().flush();
 			world = new World();
@@ -837,7 +933,7 @@ public class ARBlipView extends GLSurfaceView {
 			grass.setName("grass");
 			rock.setName("rock");
 
-		    rock.scale(0.3f);
+		    rock.scale(0.1f);
 				
 		    //note the rock is at 0,0,0 to mark the center point.
 		    //the tree is at -200,-180,0 
@@ -867,11 +963,11 @@ public class ARBlipView extends GLSurfaceView {
 			sun = new Light(world);
 
 			Camera cam = world.getCamera();
-			//cam.moveCamera(Camera.CAMERA_MOVEOUT, 250);
 			cam.moveCamera(Camera.CAMERA_MOVEUP, 100);
 			cam.lookAt(groundPlane.getTransformedCenter());
 
-			cam.setFOV(1.5f);
+			
+			cam.setFOV(0.5f); // used to be 1.5, 0.5 seemed closer to my phones camera -thomas
 			sun.setIntensity(250, 250, 250);
 
 			SimpleVector sv = new SimpleVector();
@@ -909,7 +1005,21 @@ public class ARBlipView extends GLSurfaceView {
 						
 						
 						if (move != 0) {
+							
 							world.getCamera().moveCamera(cam.getDirection(), move);
+							
+							
+							/*  FOV adjustment;
+							float FOV = world.getCamera().convertDEGAngleIntoFOV( Math.abs(move));
+							
+							if (move>0){
+								
+								world.getCamera().increaseFOV(FOV);
+							} else {
+								world.getCamera().decreaseFOV(FOV);									
+							}
+							Log.i("FOV", "="+world.getCamera().getFOV());
+							*/
 						}
 						
 						//set rotation
