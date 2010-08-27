@@ -4,27 +4,27 @@ import java.util.ArrayList;
 /** Current, crude, version of a blip object. A lot needed to refine **/
 public class ARBlip {
 	
-//Should be a unique identification of the object
+     /** Should be a unique identification of the object **/
 	String BlipID = "";
 		
-//A url pointing to the data to geolocate
+	/**A url pointing to the data to geolocate **/
 	String ObjectData = "";
 	
-//MIME type
+    /**MIME type **/
 	String MIMEtype = "";
 	
-// Co-ordinate system in use
+	/** Co-ordinate system in use **/
 	String CordinateSystemUsed ="";
 	
-//Location
-	double x = 0.0; //lat
-	double y = 0.0; //long
-	double z = 0.0;
+	/**Location **/
+	double x = 0.0; /** lat **/
+	double y = 0.0; /** long **/
+	double z = 0.0; /** alt **/
 
-// Is an occulusion mask object
+	/** Is an occlusion mask object **/
 	boolean isOcculisionMask = false;
 	
-//Vector
+	/**Vector **/
 //If no vector is specified, its assumed to be a facing sprite.
 	int baring = 0;
 	int elevation = 0;
@@ -35,11 +35,10 @@ public class ARBlip {
 	
 //Permissions 
 	
-	
-//Referance URL for positioning on a marker
+	/**Reference URL for positioning on a marker **/
 	String MarkerURL="";
 	
-//Metatags
+	/**Metatags **/
 	ArrayList<String> MetaTags = new ArrayList<String>();
 
 	

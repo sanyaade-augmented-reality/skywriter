@@ -58,6 +58,7 @@ public class ARBlipView extends GLSurfaceView {
 	//our world, to which we add stuff
 	private World world = null;	
 
+	private Light sun = null;
 	//scenary
 	private Object3D groundPlane = null;
 	private Object3D tree2 = null;
@@ -389,9 +390,19 @@ public class ARBlipView extends GLSurfaceView {
 //		}
 		
 	}
+
+	/** Supposed to set the subs rotation **/
+	public void setSunRotation (SimpleVector degrees){
+
+		//arg, this works relatively..no clue how to fix this
+		degrees = new SimpleVector(0, 0.05f, 0);
 	
+		sun.rotate(degrees, groundPlane.getTransformedCenter());
+
+		
+	}
 	/** adds a new ARBlip to the scene **/
-	/** at the moment, this is cube marker only 
+	/** 
 	 * @throws IOException **/
 	
 	public void addBlip (ARBlip newblip) throws IOException
@@ -510,9 +521,20 @@ public class ARBlipView extends GLSurfaceView {
                 Log.i("obj","got streams");
                 Object3D[] newobjects = Loader.loadOBJ(bis, textbis, 1);
 
+                
+                for( int x = 0; x < newobjects.length; x++ )
+                {
+                	newobjects[x].rotateX(3.14f);
+                	
+                	newobjects[x].rotateMesh();
+                	newobjects[x].setRotationMatrix( new Matrix() );
+                }
+                
+                
                 Log.i("obj","now merging...");
                 newmarker = Object3D.mergeAll(newobjects);
-                newmarker.rotateX(3.14f);
+                
+                
                 //This scale is wrong...no idea what the correct scale to use is :(
               //  newmarker.scale(2f);
                 
@@ -577,6 +599,7 @@ public class ARBlipView extends GLSurfaceView {
 				//newmarker = newplane.mergeObjects(newplane, newmarker);
 			}
 			
+			newmarker.setName(newblip.BlipID);
 			
 			//work out the co-ordinates to place it at
 			//we are going to have to work out the best way to convey real world log/lat
@@ -594,7 +617,7 @@ public class ARBlipView extends GLSurfaceView {
 			//newmarker.setTranslationMatrix(new Matrix());
 			newmarker.translate(x,y,z);
 						
-            
+            Log.i("3ds", "adding "+newblip.BlipID+" to scene");
 			world.addObject(newmarker);
 			
 			//this one shouldn't always be added, only for billboards!
@@ -704,9 +727,24 @@ public class ARBlipView extends GLSurfaceView {
 		
 		//update location (oddly, you have to clear the location and then "move" the position, rather then merely setting it)
 		//                (you can use setOrigin to directly set it, but this wont move child objects)
+		
+		//updateThis.setTranslationMatrix(new Matrix());
+		
+		double worldX = ARBlipUtilitys.getRelativeXLocation(newblipdata, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		double worldY = ARBlipUtilitys.getRelativeYLocation(newblipdata, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		double worldZ = ARBlipUtilitys.getRelativeZLocation(newblipdata, startingLocation); //As the world is set on loading, and then the camera moves, we always messure relative to the loading location.		
+		
+		//Log.i("3ds","moving to ="+worldX+" , "+worldY+" , "+worldZ);
+		
 		updateThis.setTranslationMatrix(new Matrix());
-		updateThis.translate(new SimpleVector(newblipdata.x,newblipdata.y,newblipdata.z));
+		updateThis.translate(new SimpleVector(worldX,worldY,worldZ));
+		
 		//update rotation
+		updateThis.setRotationMatrix(new Matrix());
+		updateThis.rotateX( (float)Math.toRadians(newblipdata.roll));
+		updateThis.rotateY( (float)Math.toRadians(newblipdata.baring ));
+		updateThis.rotateZ( (float)Math.toRadians(newblipdata.elevation));
+		
 		
 		//update textures
 		String text = newblipdata.ObjectData;		
@@ -828,7 +866,6 @@ public class ARBlipView extends GLSurfaceView {
 
 		private long time = System.currentTimeMillis();
 
-		private Light sun = null;
 
 		private boolean stop = false;
 
@@ -1074,8 +1111,7 @@ public class ARBlipView extends GLSurfaceView {
 						
 						fb.display();
 						
-						
-						sun.rotate(new SimpleVector(0, 0.05f, 0), groundPlane.getTransformedCenter());
+						//sun.rotate(new SimpleVector(0, 0.05f, 0), groundPlane.getTransformedCenter());
 
 						if (System.currentTimeMillis() - time >= 1000) {
 							lfps = (fps + lfps) >> 1;

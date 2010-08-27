@@ -50,6 +50,7 @@ import android.widget.TabHost.OnTabChangeListener;
 
 import com.google.android.maps.MapActivity;
 import com.threed.jpct.Matrix;
+import com.threed.jpct.RGBColor;
 import com.threed.jpct.SimpleVector;
 
 /**
@@ -675,13 +676,22 @@ int status, Bundle extras)
                 
                 SimpleVector cameraVector = new SimpleVector();
                 cameraVector.x = smoothX(mOrientation[1]);
+                //cameraVector.x =0;
                 cameraVector.y = smoothY(mOrientation[2]);
-                cameraVector.z = smoothZ(mOrientation[0]);
-
+                //cameraVector.y =0;
+                
+                cameraVector.z = smoothZ(mOrientation[0]);  //<-----------this one goes wrong                
+                //cameraVector.z =0;
+                
                 //log the output for graphing
-             // Log.i("cameraX", ""+cameraVector.x);
-             //   Log.i("cameraY", ""+cameraVector.y);
-              //  Log.i("cameraZ", ""+cameraVector.z);
+             
+
+                Log.i("Orientation", ","+mOrientation[0]+","+mOrientation[1]+","+mOrientation[2]+",");
+            
+                
+                // Log.i("cameraX", ""+cameraVector.x);
+                
+ //  Log.i("cameraZ", ""+cameraVector.z);
                 
              //  Log.i("cameraZ", ","+mOrientation[0]);
                 
@@ -797,7 +807,7 @@ int status, Bundle extras)
 			testblip.y = 5.078049;
 			testblip.z = 0;
 			testblip.BlipID = "Building";
-			testblip.ObjectData = "http://www.darkflame.co.uk/building.3DS";
+			testblip.ObjectData = "http://www.atresica.nl/images/largebuilding/building.3DS";
 			testblip.MIMEtype = "application/x-3ds";
 			 		
 			ARBlip testblip2 = new ARBlip();
@@ -805,7 +815,7 @@ int status, Bundle extras)
 			testblip2.y = 5.077996;
 			testblip2.z = 0;
 			testblip2.isOcculisionMask = false;
-			testblip2.BlipID = "CastleTest";
+			testblip2.BlipID = "petrolstation";
 			testblip2.ObjectData = "http://www.darkflame.co.uk/petrolstation.3ds";
 			testblip2.MIMEtype = "application/x-3ds";
 		
@@ -823,6 +833,57 @@ int status, Bundle extras)
 			try {
 				arView.addBlip(testblip);
 				arView.addBlip(testblip2);
+				
+				
+				/** The following code is just a demo real-time update of blips, comment out the mTimer.schedule statement below it to try it out **/
+	             
+				
+				//trigger rotation on one
+				Timer mTimer = new Timer();
+				
+				TimerTask mTimerTask = new TimerTask() {
+					 
+					 int pos=0;
+					
+	                 public void run() {
+	                
+	                	 pos=pos+2;
+	                	double rad = Math.toRadians(pos);
+	                	double pz=((double)(Math.sin(rad)*3));
+	                	double hz = ((double)(pz/10000.0));
+	                	// int z=(int)Math.round(Math.cos(rad)*100);  51.558360, 5.077947
+	                	
+	                	if (pos>360){
+	                		pos=0;
+	                	}
+	                	
+	                	//Log.i("3ds",pos+"--"+pz+"--"+(51.558393 + hz));
+	                	                	
+	                	ARBlip testblip = new ARBlip();
+	         			testblip.x = 51.558393;
+	        			testblip.y = 5.077996;
+	         			testblip.z = 0;
+	         			testblip.baring = pos;
+	         			testblip.BlipID = "petrolstation";
+	         			testblip.ObjectData = "http://www.darkflame.co.uk/petrolstation.3DS";
+	         			testblip.MIMEtype = "application/x-3ds";
+	                	 
+	         			
+	                	 //update	                	 
+	                		try {
+								
+	                			arView.addBlip(testblip);
+								
+							} catch (IOException e) {
+								
+								e.printStackTrace();
+							}             	 
+	                	 
+	                 }
+	             };
+	             
+	             
+	     //    mTimer.schedule(mTimerTask, 0,100); //<<-- This will trigger a rotating object for testing the update.
 				
 				
 			} catch (IOException e) {
@@ -858,7 +919,6 @@ int status, Bundle extras)
 				} catch (MalformedURLException e) {
 							
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					Log.e("mapE","io exception");
 				}
 				
