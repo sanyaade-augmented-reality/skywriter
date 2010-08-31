@@ -97,11 +97,14 @@ public class ARBlipView extends GLSurfaceView {
 	float touchTurn = 0;
 	float touchTurnUp = 0;
 	private Matrix CameraMatrix;
-	private boolean updateCamRotation;
+	private boolean updateCamRotation = false;
 	float newCameraX =0;
 	float newCameraY =0;
 	float newCameraZ =0;
-		
+	final static SimpleVector Y_AXIS = new SimpleVector(0,0,1);	 //Fixed simple vectors used to rotate in one of 3 axis's
+	final static SimpleVector X_AXIS = new SimpleVector(1,0,0);	
+	final static SimpleVector Z_AXIS = new SimpleVector(0,1,0);	
+	
 	float cameraHeight = -3;
 	
 	int TestVar = 0;
@@ -209,19 +212,30 @@ public class ARBlipView extends GLSurfaceView {
 		
 		
 		if (worldReadyToGo){
-			Camera worldcam = world.getCamera();
+			//Camera worldcam = world.getCamera();
 			
-			worldcam.getBack().setIdentity(); 
+			//worldcam.getBack().setIdentity(); 
 			
 			float Z = xyzAngles.z;	
 			float Y = xyzAngles.y;			
 			float X = xyzAngles.x;
 			
-			worldcam.rotateCameraAxis(new SimpleVector(0,1,0), -Z);
-			worldcam.rotateCameraAxis(new SimpleVector(1,0,0), X);
-			worldcam.rotateCameraAxis(new SimpleVector(0,0,1), -Y);
+			updateCamRotation=true;
+	        newCameraX =X;		
+			newCameraY =-Y;		
+			newCameraZ =-Z;
 			
-	
+			//worldcam.rotateCameraAxis(new SimpleVector(0,1,0), -Z);
+			//worldcam.rotateCameraAxis(new SimpleVector(1,0,0), X);
+			//worldcam.rotateCameraAxis(new SimpleVector(0,0,1), -Y);
+			
+		//	worldcam.rotateCameraAxis(new SimpleVector(0,1,0), -0.081920266f);
+		//	worldcam.rotateCameraAxis(new SimpleVector(1,0,0), 0.5303804f);
+		//	worldcam.rotateCameraAxis(new SimpleVector(0,0,1), 0.84379244f);
+			
+		//	 Log.i("GameCamera", ","+worldcam.getDirection().x+","+worldcam.getDirection().y+","+worldcam.getDirection().z+",");
+			 
+	            
 			
 			}
 		/*
@@ -1023,6 +1037,7 @@ public class ARBlipView extends GLSurfaceView {
 					if (paused) {
 						Thread.sleep(500);
 					} else {
+						
 						Camera cam = world.getCamera();
 						if (turn != 0) {
 							world.getCamera().rotateY(-turn);
@@ -1086,10 +1101,23 @@ public class ARBlipView extends GLSurfaceView {
 						
 						
 						if (updateCamRotation){
-						Log.d("newx","x="+CameraMatrix.getXAxis().x);
-						updateCamRotation=false;	
+							
+							
+					//	Log.d("newx","x="+CameraMatrix.getXAxis().x);
+														
+						 world.getCamera().getBack().setIdentity(); 
+							
+					   	updateCamRotation=false;							
+						world.getCamera().rotateCameraAxis(Z_AXIS, newCameraZ);
+						world.getCamera().rotateCameraAxis(X_AXIS, newCameraX);
+						world.getCamera().rotateCameraAxis(Y_AXIS, newCameraY);
+													
+							//worldcam.rotateCameraAxis(new SimpleVector(0,1,0), -Z);
+							//worldcam.rotateCameraAxis(new SimpleVector(1,0,0), X);
+							//worldcam.rotateCameraAxis(new SimpleVector(0,0,1), -Y);
 						
 						//first we bleet a random number to help diagnoise
+						/*
 						if (showDebugInfo){
 							
 							Log.i("debug", "__debug messages");
@@ -1106,6 +1134,9 @@ public class ARBlipView extends GLSurfaceView {
 						blitNumber(Math.round(CameraMatrix.getZAxis().y*1000), 55, 65);
 						blitNumber(Math.round(CameraMatrix.getZAxis().z*1000), 105, 65);
 						}
+						*/
+						
+						
 						}
 						
 						
