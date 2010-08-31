@@ -675,13 +675,15 @@ int status, Bundle extras)
                 SensorManager.getOrientation(mRemapedRotationM, mOrientation);
                 
                 SimpleVector cameraVector = new SimpleVector();
+                
                 cameraVector.x = smoothX(mOrientation[1]);
-                //cameraVector.x =0;
+               // cameraVector.x = mOrientation[1];
+                
                 cameraVector.y = smoothY(mOrientation[2]);
-                //cameraVector.y =0;
+               // cameraVector.y =mOrientation[2];
                 
                 cameraVector.z = smoothZ(mOrientation[0]);  //<-----------this one goes wrong                
-                //cameraVector.z =0;
+               // cameraVector.z =mOrientation[0];
                 
                 //log the output for graphing
              
