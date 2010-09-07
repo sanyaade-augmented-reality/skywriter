@@ -50,7 +50,6 @@ import android.widget.TabHost.OnTabChangeListener;
 
 import com.google.android.maps.MapActivity;
 import com.threed.jpct.Matrix;
-import com.threed.jpct.RGBColor;
 import com.threed.jpct.SimpleVector;
 
 /**
@@ -66,6 +65,14 @@ public class start extends MapActivity implements SensorEventListener,
 
 	private static final int OPEN_WAVE_ID = 0;
 	private static final int ADD_ARBLIP_ID = 1;
+	
+//ar view context  menu
+	private static final int ADD_ARBLIPFROMARVIEW_ID =2;
+	private static final int MENU_CONFIRM_BLIP = 3;
+	private static final int MENU_CONTINUE_EDITING  = 4;
+	private static final int MENU_CANCEL_BLIP  = 5;
+	
+	
 	private static AbstractCommunicationManager acm;
 
 	// screen views
@@ -125,6 +132,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_ADDTEST3DS = 3;
 	private static final int MENU_REMOVESCENE  = 4;
 	private static final int MENU_OVERHEAD = 5;
+	
 	// Matrix tempR = new Matrix();
 	float RTmp[] = new float[9];
 	float Rt[] = new float[9];
@@ -212,6 +220,11 @@ public class start extends MapActivity implements SensorEventListener,
 		// -----------------------------------------------------------
 		// for adding blips
 		Button cancelButton = (Button) findViewById(R.id.cancelButton);
+
+		
+		
+		
+		
 		
 
 		Log.i("setup", "setting addblips");
@@ -257,7 +270,6 @@ public class start extends MapActivity implements SensorEventListener,
 		Log.i("setup", "setting buttons");
 
 		// initialize the communication manager
-		// TODO: other choices will be available in the future
 		acm = new FedOneCommunicationManager(this);
 		// prompt for a login
 		Button button = (Button) findViewById(R.id.LoginButton);
@@ -305,6 +317,8 @@ public class start extends MapActivity implements SensorEventListener,
 		
 		// add a context menu to the list of waves
 		registerForContextMenu(waveListViewBox);
+		registerForContextMenu(arView);
+		
 	}
 
 	/**
@@ -688,7 +702,7 @@ int status, Bundle extras)
                 //log the output for graphing
              
 
-                Log.i("Orientation", ","+mOrientation[0]+","+mOrientation[1]+","+mOrientation[2]+",");
+              //  Log.i("Orientation", ","+mOrientation[0]+","+mOrientation[1]+","+mOrientation[2]+",");
             
                 
                 // Log.i("cameraX", ""+cameraVector.x);
@@ -786,6 +800,7 @@ int status, Bundle extras)
 	
 	
 	/* Creates the menu items */
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(0, MENU_TOGGLE_MAP, 0, "Toggle Map");
 		menu.add(0, MENU_BLITSENSOR, 0, "Bit Sensor");
@@ -796,6 +811,7 @@ int status, Bundle extras)
 	}
 
 	/* Handles item selections */
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
 		switch (item.getItemId()) {
@@ -847,12 +863,13 @@ int status, Bundle extras)
 					 
 					 int pos=0;
 					
-	                 public void run() {
+	                 @Override
+					public void run() {
 	                
 	                	 pos=pos+2;
 	                	double rad = Math.toRadians(pos);
-	                	double pz=((double)(Math.sin(rad)*3));
-	                	double hz = ((double)(pz/10000.0));
+	                	double pz=((Math.sin(rad)*3));
+	                	double hz = ((pz/10000.0));
 	                	// int z=(int)Math.round(Math.cos(rad)*100);  51.558360, 5.077947
 	                	
 	                	if (pos>360){
@@ -912,7 +929,7 @@ int status, Bundle extras)
 				
 				
 				try {
-					LocatedMapBundle currentmap =mapView.getMap(currentLocation);
+					LocatedMapBundle currentmap =StaticMapFetcher.getMap(currentLocation);
 					if (currentmap!=null){
 					arPage.removeView(cameraView);						
 					arView.setMapMode(true,currentmap);
@@ -983,6 +1000,7 @@ int status, Bundle extras)
 			Timer blah = new Timer();
 	
 			TimerTask meep = new TimerTask() {
+				@Override
 				public void run() {
 	
 					// load the sample blips after the world is set up
@@ -1117,13 +1135,33 @@ int status, Bundle extras)
 		}
 	}
 
+	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
+		
+		Log.i("add", "options");
+		
+		//different menus for different situations
+		if (v==arView){			
+			
+			if (arView.CurrentMode==arView.EDIT_MODE){
+			
+			menu.add(0, MENU_CONFIRM_BLIP, 0, R.string.arView_ConfirmBlipPlacement);			
+			menu.add(0, MENU_CONTINUE_EDITING, 0, R.string.arView_ContinueBlipPlacement);			
+			menu.add(0, MENU_CANCEL_BLIP, 0, R.string.arView_CancelBlipPlacement);			
+						
+			} else {
+				menu.add(0, ADD_ARBLIPFROMARVIEW_ID, 0, R.string.addARblipText);
+			}
+		
+		} else {
 		menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
 		menu.add(0, ADD_ARBLIP_ID, 0, R.string.addARblipText);
+		}
 	}
 
+	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
@@ -1152,6 +1190,24 @@ int status, Bundle extras)
 			// wavesListPage.addView(v);
 			// setContentView(findViewById(R.id.add_arblip_layout));
 			return true;
+			
+		case ADD_ARBLIPFROMARVIEW_ID:
+			
+			arView.createBlipInFrontOfCamera();			
+			return true;
+		
+		case MENU_CONFIRM_BLIP:
+			arView.confirmObjectCreation();
+			return true;
+			
+		case MENU_CONTINUE_EDITING:	
+			
+			return true;
+		
+		case MENU_CANCEL_BLIP:
+			arView.cancelObjectCreation();
+			return true;
+		
 		}
 		return super.onContextItemSelected(item);
 	}

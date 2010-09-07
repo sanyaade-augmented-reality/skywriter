@@ -30,6 +30,11 @@ import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.util.FloatMath;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.threed.jpct.Camera;
 import com.threed.jpct.Config;
@@ -111,13 +116,24 @@ public class ARBlipView extends GLSurfaceView {
 	boolean MapModeSet = true;
 	
 	
+	
+	
+	//object editing
+	Object3D CurrentObject; 
+	int EditModeSecondsLeft =0; //edit mode ends automaticaly a few seconds after the last key is pressed.
+	int newobject_distance=25;
+	//modes
+	int VIEWING_MODE = 0;
+	int EDIT_MODE =1;
+	int CurrentMode;
+	
+	
 	public ARBlipView(Context context) {		
 		super(context);
 		
 		
-		
-
 		this.setZOrderMediaOverlay(true);
+		
 		//mGLView.setBackgroundColor(Color.TRANSPARENT);
 		//mGLView.setBackgroundDrawable(null);
 		
@@ -155,9 +171,198 @@ public class ARBlipView extends GLSurfaceView {
 		
 		paint.setTextSize(16);
 		glFont = new GLFont(paint);
+	
+	}
+	
+	/*
+	@Override
+	public void onCreateContextMenu(menu) {
+		
+	  
+	  menu.add(0, MENU_ADD_NOTE, 0, "Add Note");
+	  menu.add(0, MENY_DUMMY, 0, "dummy");
+	    
+	
+	}
+	
+	
+	public boolean onContextItemSelected(MenuItem item) {
+	  AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+	  switch (item.getItemId()) {
+	  case MENU_ADD_NOTE:
+	    editNote(info.id);
+	    return true;
+	  case MENY_DUMMY:
+	    deleteNote(info.id);
+	    return true;
+	  default:
+	    return super.setOnCreateContextMenuListener(l)
+	  }
+	}
+	
+	
+	User clicks
+	
+	Option Menu
+	
+	AddBillboard
+	
+	- Place at current GPS + x meters away from camera in direction its facing
+	- vol can then move it back/forward.
+	
+	
+*/
+	
+	public void createBlipInFrontOfCamera(){
+		
+		// first we get the current camera location
+		//double x = currentRealLocation.getLatitude();
+		//double y = currentRealLocation.getLongitude();
+		
+		float x = world.getCamera().getPosition().x;
+		float y = world.getCamera().getPosition().y;
+		float z = world.getCamera().getPosition().z;
+		
+		
+		// and the current camera direction
+		SimpleVector direction = world.getCamera().getDirection();
+		Log.i("add", "current directionx="+direction.x);
+		Log.i("add", "current directiony="+direction.y);
+		Log.i("add", "current directionz="+direction.z);
+		
+		
+		// and the current distance to use from the camera
+		newobject_distance = 25;
+		
+		Object3D temptest =  new Rectangle(1,8,3);
+		
+		
+		temptest.translate(x, y, z);
+		temptest.align(world.getCamera());
+		
+		//SimpleVector test = temptest.getZAxis();
+		//test.scalarMul(5);
+		//temptest.translate(test);
+				
+		temptest.setAdditionalColor(RGBColor.BLACK);
+		
+		
+		world.addObject(temptest);
+		
+		temptest.build();
+		
+		CurrentObject = temptest;
+		
+		//set edit mode on
+		CurrentMode = EDIT_MODE;
+		EditModeSecondsLeft = 5;
+		
+		//start edit mode timer
+		
+		
+		
+		
+		// then we add the blip
+		/*
+		ARBlip newblip = new ARBlip();
+		
+		
+		newblip.x = x; 
+		newblip.y = y;
+		newblip.z = 0;
+		newblip.BlipID = "_NEWBLIP_";
+		newblip.ObjectData = "(newly created blip)";
+		1
+		try {
+			this.addBlip(newblip);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			Log.i("add", "io exception");
+			
+		}
+		*/
 		
 	}
+	
 
+	/** finish an object creation **/
+	public void confirmObjectCreation(){
+	
+		//get internal co-ordinates
+		
+		double x = CurrentObject.getTranslation().x;
+		double y = CurrentObject.getTranslation().y;
+		double z = CurrentObject.getTranslation().z;
+		
+		//get baring from noth
+		//tan a = o/a
+		double baring = Math.toDegrees(Math.atan2(x,z)); 
+		double distance = Math.hypot(x, z);
+		
+		Log.e("add", "baring ="+baring);
+		Log.e("add", "distance ="+distance);
+		
+		//work out real world co-ordinates
+		
+		Log.i("add", "base Long = "+startingLocation.getLongitude());
+		Log.i("add", "base Lat = "+startingLocation.getLatitude());
+		
+		Log.i("add", "displacing by = "+distance+" at "+baring);
+		
+		//int i=0;
+		//while (i<20){
+		//i++;
+			Location newLocation = ARBlipUtilitys.displaceLocation(startingLocation, distance, baring); //baring is 90 degree's off!
+			//Log.i("add", "new Long = "+);
+		///	Log.i("add", "loc:"+newLocation.getLatitude()+","+newLocation.getLongitude());
+		
+		//}
+		
+		
+			//remove tempobject
+		world.removeObject(CurrentObject);
+	
+		
+		//temptest
+		ARBlip newblip = new ARBlip();
+				
+		newblip.x = newLocation.getLatitude(); 
+		newblip.y = newLocation.getLongitude();
+		newblip.z = 0;
+		
+		newblip.BlipID = "_NEWBLIP_"+baring;
+		newblip.ObjectData = "(newly created blip)";
+		
+		try {
+			Log.i("add", "creating blip");
+			this.addBlip(newblip);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			Log.i("add", "io exception");
+			
+		}
+		
+		
+		
+		
+		//and absolute angle
+		
+		//bring up post dialogue with details filled in.
+	
+		
+		//back to viewing mode
+		CurrentMode = VIEWING_MODE;
+	}	
+	
+	
+	/** cancel an object creation **/
+	public void cancelObjectCreation(){
+	
+		CurrentMode = VIEWING_MODE;
+		world.removeObject(CurrentObject);
+		
+	}	
+	
 	/** Made as a test **/
 	public void creatingSpinningCube()
 	{
@@ -206,6 +411,8 @@ public class ARBlipView extends GLSurfaceView {
 		newCameraY =y;		
 		newCameraZ =z;
 	}
+	
+	
 	/** Sets the camera orientation **/
 	public void setCameraOrientation(SimpleVector xyzAngles)	
 	{
@@ -1055,7 +1262,7 @@ public class ARBlipView extends GLSurfaceView {
 						}
 						
 						
-						
+						if (CurrentMode == VIEWING_MODE){
 						if (move != 0) {
 							
 							world.getCamera().moveCamera(cam.getDirection(), move);
@@ -1072,7 +1279,29 @@ public class ARBlipView extends GLSurfaceView {
 							}
 							Log.i("FOV", "="+world.getCamera().getFOV());
 							*/
+						}}
+						
+						if (CurrentMode == EDIT_MODE){
+							
+
+							CurrentObject.setTranslationMatrix(new Matrix());
+							
+							SimpleVector CameraPosition = world.getCamera().getPosition();
+							
+							CurrentObject.translate(CameraPosition);
+							
+							//change distance of last added object
+							CurrentObject.align(world.getCamera());							
+							SimpleVector test = CurrentObject.getZAxis();
+							newobject_distance=newobject_distance+move;
+							test.scalarMul(newobject_distance);
+							CurrentObject.translate(test);
+							
+						//	Log.i("add", "exiting adding mode"+move);
+							
+							
 						}
+						
 						
 						//set rotation
 						
