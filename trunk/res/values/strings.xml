@@ -6,9 +6,9 @@
 <string name="password">Password :</string>
 <string name="username">Username :</string>
 <string name="Server">Server :</string>
-<string name="defaultServer">192.168.0.3</string>
-<string name="defaultUsername">davidee@arwave.org</string>
-<string name="defaultPassword">aaaa</string>
+<string name="defaultServer">atresica.nl</string>
+<string name="defaultUsername">darkflame@atresica.nl</string>
+<string name="defaultPassword">10123</string>
 <string name="messages">What happens goes here</string>
 <string name="latitudeText">Latitude: </string>
 <string name="latitudeValue">0.0</string>
@@ -23,4 +23,7 @@
 <string name="cancelButton">Cancel</string>
 <string name="addButton">Add ARBlip</string>
 <string name="autoSeLocationText">Auto-set the location</string>
+<string name="arView_ConfirmBlipPlacement">Confirm Blip</string>
+<string name="arView_CancelBlipPlacement">Cancel Blip</string>
+<string name="arView_ContinueBlipPlacement">Continue Editing</string>
 </resources>
