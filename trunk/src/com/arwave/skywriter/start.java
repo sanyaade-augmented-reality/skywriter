@@ -96,10 +96,12 @@ public class start extends MapActivity implements SensorEventListener,
 
 	//location handeling
 	private boolean OriginalLocationSet = false;
+	
 	public Location currentLocation;
-	CheckBox AutoSetLocation;
-	EditText AddBlipLat;
-	EditText AddBlipLong;
+	static CheckBox AutoSetLocation;
+	static EditText AddBlipLat;
+	static EditText AddBlipLong;
+	static EditText AddBlipText;
 	
 	boolean overheadmode=false;
 	
@@ -140,7 +142,7 @@ public class start extends MapActivity implements SensorEventListener,
 	float I[] = new float[9];
 	private boolean isReady;
 
-	TabHost tabHost;
+	static TabHost tabHost;
 
 	private ArrayAdapter<String> usersWaveListAdapter;
 	private List<String> usersWavesList;
@@ -231,6 +233,7 @@ public class start extends MapActivity implements SensorEventListener,
 		AutoSetLocation = (CheckBox) findViewById(R.id.AutoSetLocation);
 		AddBlipLat = (EditText) findViewById(R.id.latitude);
 		AddBlipLong = (EditText) findViewById(R.id.longitude);
+		AddBlipText  = (EditText) findViewById(R.id.arblipContent);
 		
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -536,6 +539,35 @@ int status, Bundle extras)
 
 	}
 
+	/** turns to the addblip page with the location set so the user can simply enter text
+	 * and create a new blip. 
+	 * In future this should also auto-set the rotation **/
+	public static void sendToAddBlipPage(ARBlip newblip){
+		
+		String id ="0";
+		
+		// open add blip page with correct values
+		AutoSetLocation.setChecked(false);		
+		AddBlipLat.setText(""+newblip.x);
+		AddBlipLong.setText(""+newblip.y);
+	
+		//bring add blip page to front
+		tabHost.setCurrentTab(3);
+		
+		// after the blip is submitted from the Add page, the text string would have to be
+		// updated, and the ID made to match the blips real ID.
+		
+		// For this I suspect we will need to assign a temp ID to the blip, and use that to update
+		// the blip later.
+		
+		//update the 
+		//newblip.ObjectData = AddBlipText.getText().toString();
+		//newblip.BlipID = id;
+		
+		return;
+		
+	}
+	
 	protected boolean isFullscreenOpaque() {
 		return true;
 	}
@@ -1023,6 +1055,8 @@ int status, Bundle extras)
 							testblip1.z = 0;
 							testblip1.BlipID = "NewTestBlip" + i;
 							testblip1.ObjectData = "" + i;
+							testblip1.isFacingSprite=true;
+							
 							try {
 								arView.addBlip(testblip1);
 							} catch (IOException e) {							
