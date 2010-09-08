@@ -29,6 +29,8 @@ public class ARBlip {
 	int baring = 0;
 	int elevation = 0;
 	int roll = 0;
+	boolean isFacingSprite = false;
+	
 	// (should these be doubles too? or is that wastefull? float? half a degree could make quite a difference)
 	
 	String DataUpdatedTimestamp; //Time the Data was updated/changed, not merely when the blip was changed.

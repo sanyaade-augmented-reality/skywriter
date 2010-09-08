@@ -294,6 +294,14 @@ public class ARBlipView extends GLSurfaceView {
 		double y = CurrentObject.getTranslation().y;
 		double z = CurrentObject.getTranslation().z;
 		
+		double obj_roll = Math.toDegrees(CurrentObject.getZAxis().x);
+		
+		double obj_baring =Math.toDegrees(CurrentObject.getZAxis().y);		
+		
+		double obj_elevation = Math.toDegrees(CurrentObject.getZAxis().z);
+		
+		Log.e("add", "roation x ="+obj_roll+" z = "+obj_elevation+" y (baring) = "+obj_baring);
+		
 		//get baring from noth
 		//tan a = o/a
 		double baring = Math.toDegrees(Math.atan2(x,z)); 
@@ -309,48 +317,54 @@ public class ARBlipView extends GLSurfaceView {
 		
 		Log.i("add", "displacing by = "+distance+" at "+baring);
 		
-		//int i=0;
-		//while (i<20){
-		//i++;
-			Location newLocation = ARBlipUtilitys.displaceLocation(startingLocation, distance, baring); //baring is 90 degree's off!
-			//Log.i("add", "new Long = "+);
-		///	Log.i("add", "loc:"+newLocation.getLatitude()+","+newLocation.getLongitude());
 		
-		//}
+		Location newLocation = ARBlipUtilitys.displaceLocation(startingLocation, distance, baring+90); //baring is 90 degree's off!
+		
 		
 		
 			//remove tempobject
 		world.removeObject(CurrentObject);
 	
-		
-		//temptest
-		ARBlip newblip = new ARBlip();
-				
-		newblip.x = newLocation.getLatitude(); 
-		newblip.y = newLocation.getLongitude();
-		newblip.z = 0;
-		
-		newblip.BlipID = "_NEWBLIP_"+baring;
-		newblip.ObjectData = "(newly created blip)";
-		
-		try {
-			Log.i("add", "creating blip");
-			this.addBlip(newblip);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			Log.i("add", "io exception");
-			
-		}
-		
-		
-		
-		
-		//and absolute angle
-		
-		//bring up post dialogue with details filled in.
+		//int i=0;
+		//while (i<10) {
+		//	i=i+1;
+			//temptest
+			ARBlip newblip = new ARBlip();
+			newblip.x = newLocation.getLatitude();
+			newblip.y = newLocation.getLongitude();
+			newblip.z = -y; //note the co-ordinate switch. ARBlips have "z" as vertical, but the game engine use's "y" as the vertical.
 	
-		
-		//back to viewing mode
+			//	newblip.baring = (int) obj_baring;			
+		//	newblip.elevation = (int) obj_elevation;
+		//	newblip.roll =(int) obj_roll;
+			
+			newblip.isFacingSprite=true;
+			newblip.BlipID = "_NEWBLIP_"+Math.random(); //crude tempID only
+			newblip.ObjectData = "(newly created blip)";
+			try {
+				Log.i("add", "creating blip:"+newblip.BlipID);
+				this.addBlip(newblip);
+			} catch (IOException e) {
+				Log.i("add", "io exception");
+			}			
+			
+			//update blip submit page and bring it to the front so people can fill in the text
+			
+			//--------------------------
+			
+			start.sendToAddBlipPage(newblip);
+									
+			//-----------------------
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		//set 3d scene back to viewing mode
 		CurrentMode = VIEWING_MODE;
 	}	
 	
@@ -791,30 +805,38 @@ public class ARBlipView extends GLSurfaceView {
 			} else {
 				//if no recognised type, then we assume its a billboard with text
 				//if not,create a new arblip placemark			
-				newmarker = Primitives.getPyramide(2, 8);	
+			//	newmarker = Primitives.getPyramide(2, 8);	
 				
-				newmarker.setName(newblip.BlipID);
+			//	newmarker.setName(newblip.BlipID);
 				//newmarker.setTexture("rock");
-				newmarker.setAdditionalColor(RGBColor.BLACK);
+			//	newmarker.setAdditionalColor(RGBColor.BLACK);
 				
 				//billboard bit at top
 				//Object3D newplane = Primitives.getPlane(1, 60);
-				newplane = new Rectangle(1,8,3);
+				//newplane = new Rectangle(1,8,3);
 				
-				newplane.setAdditionalColor(RGBColor.WHITE);
-				newplane.setBillboarding(true);
+				//newplane.setAdditionalColor(RGBColor.WHITE);
+				//newplane.setBillboarding(true);
 				
-				
+				//simplifed (no stand for billboard now)
+				newplane = new SkywriterBillboard();
+				newplane.setName(newblip.BlipID);
 				//set texture
-				String text = newblip.ObjectData;
-							
+				String text = newblip.ObjectData;							
 				updatedTexture(newblip.BlipID,text);
-				newplane.setOrigin(new SimpleVector(0,-15,0));
+				//newplane.setOrigin(new SimpleVector(0,-15,0));(used to move it upwards for when it was on a stand)
 				newplane.setTexture(newblip.BlipID);
+
+				//set billboarding off if rotations are set				
+				if (newblip.isFacingSprite){
+				newplane.setBillboarding(true);
+				}
+				
+				newmarker = newplane;
 				
 				//newplane.setBillboarding(true); 
 				//link objects together
-				newplane.addParent(newmarker);
+				//newplane.addParent(newmarker);
 						
 				//merge the plane and 
 				//newmarker = newplane.mergeObjects(newplane, newmarker);
@@ -832,12 +854,21 @@ public class ARBlipView extends GLSurfaceView {
 			float x = (float)-worldX;
 			float y = (float)-worldY;
 			float z = (float)worldZ;
-			
+								
 			Log.i("3ds", "positioning at z="+z+" y="+y+"x="+x);
 			
 			//newmarker.setTranslationMatrix(new Matrix());
 			newmarker.translate(x,y,z);
-						
+			
+			//set rotation
+			if (!newblip.isFacingSprite){
+				newmarker.setRotationMatrix(new Matrix());
+				Log.i("add","roating..."+newblip.baring);				
+				newmarker.rotateX( (float)Math.toRadians(newblip.roll));
+				newmarker.rotateY( (float)Math.toRadians(newblip.baring ));
+				newmarker.rotateZ( (float)Math.toRadians(newblip.elevation));
+			}
+			
             Log.i("3ds", "adding "+newblip.BlipID+" to scene");
 			world.addObject(newmarker);
 			
@@ -1297,6 +1328,10 @@ public class ARBlipView extends GLSurfaceView {
 							test.scalarMul(newobject_distance);
 							CurrentObject.translate(test);
 							
+							
+							
+							
+							
 						//	Log.i("add", "exiting adding mode"+move);
 							
 							
@@ -1328,7 +1363,15 @@ public class ARBlipView extends GLSurfaceView {
 						blitNumber(TestVar, 200, 25);
 						}
 						
-						
+						if (CurrentMode == EDIT_MODE){
+						//	int currentXvalue = (int) Math.toDegrees(CurrentObject.getZAxis().x);							
+						//	int currentYvalue = (int) Math.toDegrees(CurrentObject.getZAxis().y);							
+						//	int currentZvalue = (int) Math.toDegrees(CurrentObject.getZAxis().z);		
+														
+						//	Log.i("add", "test x="+currentXvalue+" y "+currentYvalue+" z="+currentZvalue);
+							
+						//	blitNumber(1000+currentYvalue, 50, 55);
+						}
 						if (updateCamRotation){
 							
 							
