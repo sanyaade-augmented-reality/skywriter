@@ -6,7 +6,10 @@ public class ARBlip {
 	
      /** Should be a unique identification of the object **/
 	String BlipID = "";
-		
+	
+	/** The wave this blip belongs too **/
+	String ParentWaveID="";	
+	
 	/**A url pointing to the data to geolocate **/
 	String ObjectData = "";
 	
@@ -25,7 +28,7 @@ public class ARBlip {
 	boolean isOcculisionMask = false;
 	
 	/**Vector **/
-//If no vector is specified, its assumed to be a facing sprite.
+    //If no vector is specified, its assumed to be a facing sprite.
 	int baring = 0;
 	int elevation = 0;
 	int roll = 0;
