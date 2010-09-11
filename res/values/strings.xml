@@ -8,7 +8,7 @@
 <string name="Server">Server :</string>
 <string name="defaultServer">atresica.nl</string>
 <string name="defaultUsername">darkflame@atresica.nl</string>
-<string name="defaultPassword">10123</string>
+<string name="defaultPassword">temppassword</string>
 <string name="messages">What happens goes here</string>
 <string name="latitudeText">Latitude: </string>
 <string name="latitudeValue">0.0</string>
