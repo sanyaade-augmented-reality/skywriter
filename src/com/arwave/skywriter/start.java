@@ -1066,6 +1066,13 @@ int status, Bundle extras)
 							i++;
 						}
 	
+						
+						//now remove one 
+						Log.d("deleteing", "deleteing blips");
+						
+						//arView.deleteBlip("NewTestBlip4");
+						
+						
 					} else {
 						//Log.d("load", "not ready for blips");
 					}

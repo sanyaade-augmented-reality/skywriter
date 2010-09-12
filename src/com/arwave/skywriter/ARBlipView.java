@@ -116,7 +116,8 @@ public class ARBlipView extends GLSurfaceView {
 	boolean MapModeSet = true;
 	
 	
-	
+	//delete queue 
+	ArrayList<Object3D> deleteQueue = new ArrayList<Object3D>();
 	
 	//object editing
 	Object3D CurrentObject; 
@@ -504,6 +505,69 @@ public class ARBlipView extends GLSurfaceView {
 		}
 		*/
 	}
+	
+	
+	/** deletes a blip from the 3d view **/
+	public void deleteBlip (ARBlip removethis){
+				
+		//get the ID to remove
+		String BlipID = removethis.BlipID;
+		this.deleteBlip(BlipID);
+		
+		
+	}
+	
+	/** deletes a blip from the 3d view **/
+	public void deleteBlip(String BlipsID){
+		
+		Log.d("deleteing", "deleteing blips2");
+		
+		//ensure it exists and isn't already in delete queue
+		if (this.isBlipInScene(BlipsID)==true && (!deleteQueue.contains(deleteQueue)))
+		{
+		//get the ID to remove
+		//String BlipID = removethis.BlipID;
+				
+		//find it by its blip ID, and return its internal (JBCT) id
+			Object3D object = world.getObjectByName(BlipsID);
+			
+			
+		//remove it from storage	
+		
+		Iterator<ARBlip> it = scenesBlips.iterator();
+		while (it.hasNext())
+		{
+			ARBlip currentBlip = it.next();
+		if (currentBlip.BlipID.equals(BlipsID)){
+			scenesBlips.remove(currentBlip);	
+		}
+			
+		}
+		
+		Log.d("deleteing", "deleteing blips3");
+		
+		//remove from scene objects
+		scenesObjects.remove(object);
+		
+		
+		Log.d("deleteing", "deleteing blips4");
+		
+		//remove it from view
+		
+		Log.i("deleteing", "object="+object.getName());
+		
+		//add to delete queue
+		
+		//world.removeObject(object);
+		
+		//deleteQueue.add(object); <--causes a crash later :-/
+		
+		
+			
+		}
+		
+	}
+	
 	
 	public SimpleVector deriveAngles(Matrix mat) {
 	    SimpleVector s=new SimpleVector();
@@ -1007,6 +1071,24 @@ public class ARBlipView extends GLSurfaceView {
 		
 	}
 	
+	
+	public boolean isBlipInScene(String BlipsID)
+	{
+		
+		
+		Iterator<ARBlip> it = scenesBlips.iterator();
+		while (it.hasNext())
+		{
+			
+		if (it.next().BlipID.equals(BlipsID)){
+			return true;			
+		}
+			
+		}
+
+		return false;
+	}
+	
 	/** upoptimised check for pre-existing blip */
 	public boolean isBlipInScene(ARBlip blipToCheck)
 	{
@@ -1017,8 +1099,10 @@ public class ARBlipView extends GLSurfaceView {
 		//}
 		
 		//is the blip loaded
-		String BlipID = blipToCheck.BlipID;
+		String BlipsID = blipToCheck.BlipID;
+		this.isBlipInScene(BlipsID);
 		
+		/*
 		Iterator<ARBlip> it = scenesBlips.iterator();
 		while (it.hasNext())
 		{
@@ -1028,7 +1112,7 @@ public class ARBlipView extends GLSurfaceView {
 		}
 			
 		}
-		
+		*/
 	   
 		
 		return false;
@@ -1291,6 +1375,28 @@ public class ARBlipView extends GLSurfaceView {
 							touchTurnUp = 0;
 							
 						}
+						
+						
+						
+						//If theres objects in the delete queue
+						if (deleteQueue.size()>0){
+							
+							Iterator<Object3D> dqit = deleteQueue.iterator();
+							while (dqit.hasNext()){
+							Log.d("deleteing", "removing");
+							
+								Object3D toremove = dqit.next();
+								world.removeObject(toremove);
+								dqit.remove();
+							}
+							
+						}
+						
+						
+						
+						
+						
+						
 						
 						
 						if (CurrentMode == VIEWING_MODE){
