@@ -124,10 +124,6 @@ public class start extends MapActivity implements SensorEventListener,
 	    private boolean mFailed;
 	
 	
-	//DigitalAverage[] filter = { new DigitalAverage(), new DigitalAverage(),
-	//		new DigitalAverage(), new DigitalAverage(), new DigitalAverage(),
-	//		new DigitalAverage() };
-
 	// Menu items
 	private static final int MENU_TOGGLE_MAP = 1;
 	private static final int MENU_BLITSENSOR = 2;
@@ -1054,6 +1050,7 @@ int status, Bundle extras)
 							testblip1.y = blipDataY[i];
 							testblip1.z = 0;
 							testblip1.BlipID = "NewTestBlip" + i;
+							Log.i("creating", testblip1.BlipID);
 							testblip1.ObjectData = "" + i;
 							testblip1.isFacingSprite=true;
 							
@@ -1069,6 +1066,8 @@ int status, Bundle extras)
 						
 						//now remove one 
 						Log.d("deleteing", "deleteing blips");
+						
+						
 						
 						//arView.deleteBlip("NewTestBlip4");
 						
@@ -1140,6 +1139,7 @@ int status, Bundle extras)
 
 	public void waveletDocumentUpdated(String arg0, WaveletData arg1,
 			WaveletDocumentOperation arg2) {
+		
 		
 	}
 
