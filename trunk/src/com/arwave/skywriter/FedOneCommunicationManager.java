@@ -24,6 +24,8 @@ import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
+import android.widget.Toast;
+
 /**
  * @author Davide
  *
@@ -284,6 +286,7 @@ public class FedOneCommunicationManager implements
 			WaveletDocumentOperation arg2) {
 		// TODO default method stub
 		//mainWindow.addMessage("waveletDocumentUpdated");
+		Toast.makeText(mainWindow.getApplicationContext(), arg0, 20);
 	}
 
 	public String getBlips(String waveletID) {
