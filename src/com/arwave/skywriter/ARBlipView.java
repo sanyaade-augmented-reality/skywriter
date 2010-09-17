@@ -17,6 +17,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -28,11 +29,16 @@ import android.graphics.Typeface;
 import android.graphics.Paint.FontMetricsInt;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
+import android.util.DisplayMetrics;
 import android.util.FloatMath;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Display;
+import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
@@ -40,6 +46,7 @@ import com.threed.jpct.Camera;
 import com.threed.jpct.Config;
 import com.threed.jpct.FrameBuffer;
 import com.threed.jpct.GenericVertexController;
+import com.threed.jpct.Interact2D;
 import com.threed.jpct.Light;
 import com.threed.jpct.Loader;
 import com.threed.jpct.Logger;
@@ -106,6 +113,8 @@ public class ARBlipView extends GLSurfaceView {
 	float newCameraX = 0;
 	float newCameraY = 0;
 	float newCameraZ = 0;
+	
+	
 	final static SimpleVector Y_AXIS = new SimpleVector(0, 0, 1); // Fixed
 																	// simple
 																	// vectors
@@ -126,14 +135,16 @@ public class ARBlipView extends GLSurfaceView {
 
 	// object editing
 	Object3D CurrentObject;
-	int EditModeSecondsLeft = 0; // edit mode ends automaticaly a few seconds
+	int EditModeSecondsLeft = 0; // edit mode could ends automaticaly a few seconds
 									// after the last key is pressed.
 	int newobject_distance = 25;
 	// modes
 	int VIEWING_MODE = 0;
 	int EDIT_MODE = 1;
+	int EDIT_END_FLAG =2; //used when the edit mode has requested to end (lets the context menu appear again);
+	
 	int CurrentMode;
-
+    
 	public ARBlipView(Context context) {
 		super(context);
 
@@ -201,6 +212,71 @@ public class ARBlipView extends GLSurfaceView {
 	 * facing - vol can then move it back/forward.
 	 */
 
+	/** handels screen interactions **/
+	public boolean onTouchEvent(MotionEvent event) {
+       
+		
+		int touchX = (int) event.getX();
+		int touchY = (int) event.getY();
+			
+		
+		
+		
+		// if in edit mode, touch determains distance (like +/- on the volume controlls
+		if (CurrentMode==EDIT_MODE){
+			
+			double screenwidth = this.getWidth(); //probably should be screen width.
+			
+			
+			Log.i("touch","screenwidth "+screenwidth);
+			
+			//resize based on distance from center x
+			int distancefromscreencenterx =  Math.abs((int) ((screenwidth/2)-touchX));
+			int distancefromscreencentery =  Math.abs((int) ((screenwidth/2)-touchY));
+			
+			//if its in the center, and its a click, we exit edit more
+			if (event.getAction()==MotionEvent.ACTION_DOWN){				
+				if ((distancefromscreencenterx<30)&&(distancefromscreencentery<30)){
+					CurrentMode = EDIT_END_FLAG;
+					move = 0;
+				}				
+			}
+			
+			
+			
+			//newobject_distance =  (int)(distancefromscreencenterx/25)
+			
+			Log.i("touch","screen from center= "+distancefromscreencenterx);
+				
+			move = (int)(((screenwidth/2)-touchX)/100);
+						
+			Log.i("touch","move from center= "+(move));
+			
+			//(maybe later we can change this to a funky multi-touch pinch gesture?)
+			
+			
+			
+		} else {
+			Camera camera = world.getCamera();
+			
+			SimpleVector dir=Interact2D.reproject2D3D(world.getCamera(), fb,touchX, touchY);
+		
+			Object[] res=world.calcMinDistanceAndObject3D(camera.getPosition(), dir, 10000 /*or whatever*/);
+			
+			Log.i("touch", "touch test");
+			
+			if (res[1]!=null){
+			Log.i("touch", "object="+((Object3D)res[1]).getID());
+			}
+			
+			
+		}
+		
+		
+        return super.onTouchEvent(event);
+    }
+	
+	
 	public void createBlipInFrontOfCamera() {
 
 		// first we get the current camera location
@@ -315,7 +391,8 @@ public class ARBlipView extends GLSurfaceView {
 
 		newblip.isFacingSprite = true;
 		newblip.BlipID = "_NEWBLIP_" + Math.random(); // crude tempID only
-		newblip.ObjectData = "(newly created blip)";
+		int randomint = (int) (Math.random()*1000);
+		newblip.ObjectData = "(newly blip:"+randomint+")";
 		/*
 		try {
 			Log.i("add", "creating blip:" + newblip.BlipID);
@@ -947,6 +1024,12 @@ public class ARBlipView extends GLSurfaceView {
 				newmarker.rotateY((float) Math.toRadians(newblip.baring));
 				newmarker.rotateZ((float) Math.toRadians(newblip.elevation));
 			}
+			//is editable
+			if (true){
+				newmarker.setCollisionMode(Object3D.COLLISION_CHECK_OTHERS);
+			}
+			
+			
 
 			Log.i("3ds", "adding " + newblip.BlipID + " to scene");
 			world.addObject(newmarker);
@@ -956,6 +1039,7 @@ public class ARBlipView extends GLSurfaceView {
 
 			// add object+blip to internal lists (was going to use the built in
 			// getObjectByName, but seems to crash)
+			
 			scenesBlips.add(newblip);
 			scenesObjects.add(newmarker);
 			// (Note these two should never go out of sycn! If a blip is in the
@@ -1009,6 +1093,9 @@ public class ARBlipView extends GLSurfaceView {
 
 	/** updates a texture to a bit of text **/
 	private void updatedTexture(String Texturename, String text) {
+		
+		Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
+		
 		paint.setColor(Color.BLACK);
 
 		Bitmap.Config config = Bitmap.Config.ARGB_8888;
@@ -1036,7 +1123,12 @@ public class ARBlipView extends GLSurfaceView {
 															// assumed to be
 															// alpha!
 
+		//
+		
 		if (tm.containsTexture(Texturename)) {
+			
+			Log.i("add", "updating texture="+Texturename);
+			
 			tm.removeTexture(Texturename);
 			tm.unloadTexture(fb, tm.getTexture(Texturename));
 			tm.addTexture(Texturename, testtext);
@@ -1085,10 +1177,13 @@ public class ARBlipView extends GLSurfaceView {
 									// the camera moves, we always messure
 									// relative to the loading location.
 
+		float x = (float) -worldX;
+		float y = (float) -worldY;
+		float z = (float) worldZ;
 		// Log.i("3ds","moving to ="+worldX+" , "+worldY+" , "+worldZ);
 
 		updateThis.setTranslationMatrix(new Matrix());
-		updateThis.translate(new SimpleVector(worldX, worldY, worldZ));
+		updateThis.translate(new SimpleVector(x, y, z));
 
 		// update rotation
 		updateThis.setRotationMatrix(new Matrix());
@@ -1106,10 +1201,14 @@ public class ARBlipView extends GLSurfaceView {
 
 	public boolean isBlipInScene(String BlipsID) {
 
+		Log.i("blip","checking for "+BlipsID+" in scene");
+		
 		Iterator<ARBlip> it = scenesBlips.iterator();
 		while (it.hasNext()) {
-
-			if (it.next().BlipID.equals(BlipsID)) {
+			String currentID = it.next().BlipID;
+			Log.i("check","checking for "+BlipsID+" against "+currentID);
+			
+			if (currentID.equals(BlipsID)) {
 				return true;
 			}
 
@@ -1128,7 +1227,7 @@ public class ARBlipView extends GLSurfaceView {
 
 		// is the blip loaded
 		String BlipsID = blipToCheck.BlipID;
-		this.isBlipInScene(BlipsID);
+		boolean exists = this.isBlipInScene(BlipsID);
 
 		/*
 		 * Iterator<ARBlip> it = scenesBlips.iterator(); while (it.hasNext()) {
@@ -1138,7 +1237,7 @@ public class ARBlipView extends GLSurfaceView {
 		 * }
 		 */
 
-		return false;
+		return exists;
 
 	}
 
@@ -1444,6 +1543,12 @@ public class ARBlipView extends GLSurfaceView {
 							CurrentObject.align(world.getCamera());
 							SimpleVector test = CurrentObject.getZAxis();
 							newobject_distance = newobject_distance + move;
+							
+							//not closer then 2 meters
+							if (newobject_distance<2){
+								newobject_distance=2;
+							}
+							
 							test.scalarMul(newobject_distance);
 							CurrentObject.translate(test);
 

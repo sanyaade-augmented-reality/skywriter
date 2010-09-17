@@ -7,7 +7,7 @@
 <string name="username">Username :</string>
 <string name="Server">Server :</string>
 <string name="defaultServer">atresica.nl</string>
-<string name="defaultUsername">thomas@atresica.nl</string>
+<string name="defaultUsername">demo@atresica.nl</string>
 <string name="defaultPassword">temppassword</string>
 <string name="messages">What happens goes here</string>
 <string name="latitudeText">Latitude: </string>

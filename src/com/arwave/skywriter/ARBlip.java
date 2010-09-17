@@ -69,14 +69,23 @@ public class ARBlip {
 			
 			ArBlipString = ArBlipString.substring(ARWAVEIDENTIFIER.length());
 				
-		String newx = ArBlipString.split("#")[0];
-		String newy = ArBlipString.split("#")[1];
-		String newz = ArBlipString.split("#")[2];
-		String newObjectData = ArBlipString.split("#")[3];
-		
-		x = Double.parseDouble(newx);
-		y = Double.parseDouble(newy);
-		z = Double.parseDouble(newz);
+		String newObjectData;
+		try {
+			String newx = ArBlipString.split("#")[0];
+			String newy = ArBlipString.split("#")[1];
+			String newz = ArBlipString.split("#")[2];
+			newObjectData = ArBlipString.split("#")[3];
+			
+			x = Double.parseDouble(newx);
+			y = Double.parseDouble(newy);
+			z = Double.parseDouble(newz);
+		} catch(NullPointerException e){
+			return false;
+		} catch (NumberFormatException e) {
+			
+			// TODO Auto-generated catch block
+			return false;
+		}
 		
 		Log.i("wave", "object data x="+x+" y="+y+" z="+z);
 		
