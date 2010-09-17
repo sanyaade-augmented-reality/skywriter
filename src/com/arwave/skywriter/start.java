@@ -5,6 +5,7 @@ import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -102,6 +103,7 @@ public class start extends MapActivity implements SensorEventListener,
 	static EditText AddBlipLat;
 	static EditText AddBlipLong;
 	static EditText AddBlipText;
+	static EditText AddBlipAlt;
 	
 	boolean overheadmode=false;
 	
@@ -229,7 +231,9 @@ public class start extends MapActivity implements SensorEventListener,
 		AutoSetLocation = (CheckBox) findViewById(R.id.AutoSetLocation);
 		AddBlipLat = (EditText) findViewById(R.id.latitude);
 		AddBlipLong = (EditText) findViewById(R.id.longitude);
+		AddBlipAlt = (EditText) findViewById(R.id.altitude);
 		AddBlipText  = (EditText) findViewById(R.id.arblipContent);
+		
 		
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -237,10 +241,24 @@ public class start extends MapActivity implements SensorEventListener,
 			}
 		});
 
-		Button addConfirmBlipButton = (Button) findViewById(R.id.cancelButton);
+		Button addConfirmBlipButton = (Button) findViewById(R.id.addButton);
 		addConfirmBlipButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				//					
+				Log.i("wave", "adding blip_on view");
+				
+				//make arblip from data
+				ARBlip newtemp = new ARBlip();
+				newtemp.x = Double.parseDouble(AddBlipLat.getText().toString());
+				newtemp.y = Double.parseDouble(AddBlipLong.getText().toString());
+				newtemp.z = Double.parseDouble(AddBlipAlt.getText().toString());
+				newtemp.ObjectData = AddBlipText.getText().toString();
+				
+				
+				String tempdata = newtemp.serialise();
+				
+				//add it
+				acm.addARBlip(tempdata);
+				
 			}
 		});
 
@@ -546,7 +564,8 @@ int status, Bundle extras)
 		AutoSetLocation.setChecked(false);		
 		AddBlipLat.setText(""+newblip.x);
 		AddBlipLong.setText(""+newblip.y);
-	
+		AddBlipAlt.setText(""+newblip.z);
+		
 		//bring add blip page to front
 		tabHost.setCurrentTab(3);
 		
@@ -1140,6 +1159,8 @@ int status, Bundle extras)
 	public void waveletDocumentUpdated(String arg0, WaveletData arg1,
 			WaveletDocumentOperation arg2) {
 		
+		Log.i("wave","documented updated");
+		
 		
 	}
 
@@ -1208,10 +1229,20 @@ int status, Bundle extras)
 				.getMenuInfo();
 		switch (item.getItemId()) {
 		case OPEN_WAVE_ID:
-			Toast.makeText(
-					getApplicationContext(),
-					acm.getBlips(((TextView) info.targetView).getText()
-							.toString()), Toast.LENGTH_LONG).show();
+			
+			//disabled as its now an arraylist
+			//Toast.makeText(
+			//		getApplicationContext(),
+			//		acm.getBlips(((TextView) info.targetView).getText()
+			//				.toString()), Toast.LENGTH_LONG).show();
+			
+			//demo code; parse's blips into arblips and displays them
+			String waveid = ((TextView)info.targetView).getText().toString();
+			
+			Log.i("wave","getting wave id-"+waveid);
+			updateWavesARBlips(waveid);
+			
+			
 			return true;
 
 		case ADD_ARBLIP_ID:
@@ -1251,6 +1282,66 @@ int status, Bundle extras)
 		
 		}
 		return super.onContextItemSelected(item);
+	}
+
+	/** Finishes adding a new ar blip **/
+	public void finishAddingArBlip(){
+		
+		tabHost.setCurrentTab(2);
+		arView.cancelObjectCreation();
+		Log.i("wave", "turning page back to world:");
+		
+		
+	}	
+	
+	/** triggers a wave to be rechecked and all blips in it updated **/
+	public void updateWavesARBlips(String waveid) {
+		
+		ArrayList<Blip> blips = acm.getBlips(waveid);
+			
+		Iterator<Blip> blipIT = blips.iterator();
+		
+		//loop over the array converting them to arblips, and (if valid), adding them to the 3d view
+		
+		while(blipIT.hasNext()){
+			
+			Blip currentblip = blipIT.next();				
+			
+			Log.i("blips","WaveID="+currentblip.BlipsParentWaveID+"|BlipID="+currentblip.BlipID+"|Content="+currentblip.Content);
+						
+			//test if its an AR formated blip 
+			String Content = currentblip.Content;			
+			ARBlip newblip = new ARBlip();
+			if (newblip.deserialise(Content)){
+				
+				Log.i("wave", "new AR Blip");
+				Log.i("wave", "x="+newblip.x);
+				Log.i("wave", "y="+newblip.y);
+				Log.i("wave", "z="+newblip.z);
+				Log.i("wave", "object="+newblip.ObjectData);
+				
+				newblip.BlipID=currentblip.BlipID;
+				newblip.isFacingSprite=true;
+				newblip.ParentWaveID = currentblip.BlipsParentWaveID;
+				
+				try {
+					arView.addBlip(newblip);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+								
+			}
+			
+			//if so load into arblip
+			
+			
+			//--
+
+		}
+
+		
+		
+		//trigger auto-updatiing of blips in a wave??
 	}
 
 	public void onTabChanged(String tabId) {

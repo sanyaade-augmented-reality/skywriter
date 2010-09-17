@@ -1,5 +1,7 @@
 package com.arwave.skywriter;
 
+import java.util.ArrayList;
+
 public interface AbstractCommunicationManager {
 
 	public void login( String serverAddress, int serverPort, String username, String password );
@@ -13,5 +15,6 @@ public interface AbstractCommunicationManager {
 	public void addParticipant( String participant );
 	public void ARBlipUpdated();
 	public void ARBlipInserted();
-	public String getBlips(String waveID);
+	public ArrayList<Blip> getBlips(String waveID);
+	
 }
