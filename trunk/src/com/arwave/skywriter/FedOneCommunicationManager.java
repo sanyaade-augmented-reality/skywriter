@@ -5,6 +5,7 @@ package com.arwave.skywriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -117,11 +118,11 @@ public class FedOneCommunicationManager implements
 				}
 
 				public void onSuccess(ProtocolSubmitResponse arg0) {
-					Log.i("wave", "addingBlip success:");
 					
+					Log.i("wave", "addingBlip success:");					
 					//turn the page back to the 3d view
-					mainWindow.finishAddingArBlip();
-				    
+					mainWindow.mHandler.post(mainWindow.goBackToWorldView);
+					
 				}
 		    
 		    });
@@ -213,24 +214,10 @@ public class FedOneCommunicationManager implements
 		
 
 		if (tempWaveletData==null){
-			Log.i("wave","null wave error");
+			Log.e("wave","null wave error");
 			return;
 		}
 		
-		//String test = 
-		
-	//	Log.i("wave","wave="+test);
-		
-		/*
-		List<IndexEntry> indexEntries = ClientUtils.getIndexEntries(backend.getIndexWave());
-        String[] list = new String[ indexEntries.size() ];
-        int i = 0;
-        for (IndexEntry entry: indexEntries) {
-        	
-      	  list[i++] = entry.getWaveId().serialise();      	  
-      	  Log.i("wave", "TEST:serialisedWaveID:"+list[i-1]);
-      	  
-        }*/
 		
 		
 		
@@ -272,7 +259,7 @@ public class FedOneCommunicationManager implements
 						//big things here
 						
 						//if( type.equals(DocumentConstants.BLIP_ID)){
-														
+											
 							final String blipsID = attr.get(DocumentConstants.BLIP_ID);									
 							Log.i("wave", "blipID="+blipsID);
 							
@@ -281,9 +268,14 @@ public class FedOneCommunicationManager implements
 					//	}
 						
 						if( type.equals(DocumentConstants.BLIP)){
+							
+							
 							//looks like this is a blip...
 							//let's see if it has content too
 							if( attr.containsKey(DocumentConstants.BLIP_ID)) {
+								
+								
+								
 								
 								BufferedDocOp document = documentMap.get(attr.get(DocumentConstants.BLIP_ID));
 								

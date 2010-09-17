@@ -26,6 +26,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -77,7 +79,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static AbstractCommunicationManager acm;
 
 	// screen views
-	private ARBlipView arView;
+	static ARBlipView arView;
 	CameraView cameraView;
 	
 	FrameLayout arBackground;
@@ -151,6 +153,24 @@ public class start extends MapActivity implements SensorEventListener,
 	private LocationListener locListener;
 
 	
+	//stats
+//	; 
+	static int screenwidth = 300;
+	static int screenheight = 400;
+	
+	//admin mode (used for debuging)
+	private boolean adminmode = false;
+	
+	// Need handler for callbacks to the UI thread
+    final public static Handler mHandler = new Handler();
+
+    // Create runnable to let the view switch from any thread
+    public static final Runnable goBackToWorldView = new Runnable() {    	
+        public void run() {
+        	tabHost.setCurrentTab(2);
+        }
+    };
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -158,13 +178,10 @@ public class start extends MapActivity implements SensorEventListener,
 		Resources res = getResources();
 		setContentView(R.layout.main);
 		
+		//set up screen stats 
+		final DisplayMetrics dm = new DisplayMetrics();
+		screenwidth = dm.widthPixels;
 		
-		// load xml files for other pages
-		// LayoutInflater factory = LayoutInflater.from(this);
-		// final View loginpage = factory.inflate(R.layout.loginpage, null);
-		// final LinearLayout LoginPage2 =
-		// (LinearLayout)loginpage.findViewById(R.id.MainLoginPage);
-
 		// SET UP TABS
 		//tabHost = getTabHost(); // The activity TabHost
 		//tabHost = new TabHost(this);		
@@ -237,7 +254,9 @@ public class start extends MapActivity implements SensorEventListener,
 		
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				//					
+				//	
+				tabHost.setCurrentTab(2);
+			//	arView.cancelObjectCreation();
 			}
 		});
 
@@ -295,11 +314,18 @@ public class start extends MapActivity implements SensorEventListener,
 				// try to log the user in
 				EditText username = (EditText) findViewById(R.id.EditText02);
 				EditText serverAddress = (EditText) findViewById(R.id.EditText03);
+				
+				if (username.getText().toString().equalsIgnoreCase("darkflame"))
+						{
+					         adminmode = true;
+					         
+						}
+						
 				// EditText serverPort =
 				// (EditText)findViewById(R.id.serverPortEdit);
 				acm.login(serverAddress.getText().toString(), 9876, username
 						.getText().toString(), new String(""));
-				tabHost.setCurrentTab(1);
+				tabHost.setCurrentTab(2);
 			}
 
 		});
@@ -565,7 +591,7 @@ int status, Bundle extras)
 		AddBlipLat.setText(""+newblip.x);
 		AddBlipLong.setText(""+newblip.y);
 		AddBlipAlt.setText(""+newblip.z);
-		
+		AddBlipText.setText(""+newblip.ObjectData);
 		//bring add blip page to front
 		tabHost.setCurrentTab(3);
 		
@@ -1196,7 +1222,8 @@ int status, Bundle extras)
 			Log.i("wavelist", list[i]);
 		}
 	}
-
+	
+	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
@@ -1204,10 +1231,14 @@ int status, Bundle extras)
 		
 		Log.i("add", "options");
 		
+		//if currently editing, no menu!
+		if (arView.CurrentMode==arView.EDIT_MODE){
+		return;
+	     }
 		//different menus for different situations
 		if (v==arView){			
 			
-			if (arView.CurrentMode==arView.EDIT_MODE){
+			if (arView.CurrentMode==arView.EDIT_END_FLAG){
 			
 			menu.add(0, MENU_CONFIRM_BLIP, 0, R.string.arView_ConfirmBlipPlacement);			
 			menu.add(0, MENU_CONTINUE_EDITING, 0, R.string.arView_ContinueBlipPlacement);			
@@ -1215,12 +1246,17 @@ int status, Bundle extras)
 						
 			} else {
 				menu.add(0, ADD_ARBLIPFROMARVIEW_ID, 0, R.string.addARblipText);
+				menu.add(0, MENU_CANCEL_BLIP, 0, R.string.arView_CancelBlipPlacement);			
+				
 			}
 		
 		} else {
 		menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
 		menu.add(0, ADD_ARBLIP_ID, 0, R.string.addARblipText);
 		}
+		
+		
+		
 	}
 
 	@Override
@@ -1242,15 +1278,19 @@ int status, Bundle extras)
 			Log.i("wave","getting wave id-"+waveid);
 			updateWavesARBlips(waveid);
 			
+			//open view
+			tabHost.setCurrentTab(2);
 			
 			return true;
 
 		case ADD_ARBLIP_ID:
 
-			Intent i = new Intent(this, ARBlipAddingView.class);
-			i.putExtra("WaveID", ((TextView) info.targetView).getText()
-					.toString()); // FIXME: WaveID shouldn't be hardcoded
-			startActivity(i);
+			//not used at the moment (blips created from ar view)
+			
+			//Intent i = new Intent(this, ARBlipAddingView.class);
+			//i.putExtra("WaveID", ((TextView) info.targetView).getText()
+			//		.toString()); // FIXME: WaveID shouldn't be hardcoded
+			//startActivity(i);
 
 			// FrameLayout wavesListPage =
 			// (FrameLayout)findViewById(R.id.WavePage);
@@ -1277,7 +1317,9 @@ int status, Bundle extras)
 			return true;
 		
 		case MENU_CANCEL_BLIP:
+			if (arView.CurrentMode==arView.EDIT_MODE){
 			arView.cancelObjectCreation();
+			}
 			return true;
 		
 		}
@@ -1286,10 +1328,10 @@ int status, Bundle extras)
 
 	/** Finishes adding a new ar blip **/
 	public void finishAddingArBlip(){
+		Log.i("wave", "turning page back to world:");
 		
 		tabHost.setCurrentTab(2);
-		arView.cancelObjectCreation();
-		Log.i("wave", "turning page back to world:");
+		//arView.cancelObjectCreation();
 		
 		
 	}	
@@ -1319,8 +1361,12 @@ int status, Bundle extras)
 				Log.i("wave", "y="+newblip.y);
 				Log.i("wave", "z="+newblip.z);
 				Log.i("wave", "object="+newblip.ObjectData);
+			
 				
 				newblip.BlipID=currentblip.BlipID;
+				
+				Log.i("wave", "blipID="+newblip.BlipID);
+				
 				newblip.isFacingSprite=true;
 				newblip.ParentWaveID = currentblip.BlipsParentWaveID;
 				
@@ -1372,5 +1418,9 @@ int status, Bundle extras)
 		// TODO Auto-generated method stub
 		
 	}
+
+	
+
+	
 
 }
