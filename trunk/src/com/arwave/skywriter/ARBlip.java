@@ -1,8 +1,13 @@
 package com.arwave.skywriter;
 import java.util.ArrayList;
 
+import android.util.Log;
+
 /** Current, crude, version of a blip object. A lot needed to refine **/
 public class ARBlip {
+	
+	static private String ARWAVEIDENTIFIER = "#ARWAVE#";
+	
 	
      /** Should be a unique identification of the object **/
 	String BlipID = "";
@@ -45,7 +50,45 @@ public class ARBlip {
 	
 	/**Metatags **/
 	ArrayList<String> MetaTags = new ArrayList<String>();
-
+	
+	/** incomplete serialisation **/
+	public String serialise(){
+		//converts to a string
+		
+		String ArBlipString = ARWAVEIDENTIFIER+x+"#"+y+"#"+z+"#"+ObjectData;
+		return ArBlipString;
+	}
+	
+	/** incomplete deserialisation **/
+	public boolean deserialise(String ArBlipString){
+		
+		Log.i("wave", "object data ="+ArBlipString);
+		
+		//check it starts with the identifier
+		if (ArBlipString.startsWith(ARWAVEIDENTIFIER)){
+			
+			ArBlipString = ArBlipString.substring(ARWAVEIDENTIFIER.length());
+				
+		String newx = ArBlipString.split("#")[0];
+		String newy = ArBlipString.split("#")[1];
+		String newz = ArBlipString.split("#")[2];
+		String newObjectData = ArBlipString.split("#")[3];
+		
+		x = Double.parseDouble(newx);
+		y = Double.parseDouble(newy);
+		z = Double.parseDouble(newz);
+		
+		Log.i("wave", "object data x="+x+" y="+y+" z="+z);
+		
+		ObjectData = newObjectData;
+		
+		return true;
+		
+		} else {
+		return false;
+		}
+		
+	}
 	
 }
 

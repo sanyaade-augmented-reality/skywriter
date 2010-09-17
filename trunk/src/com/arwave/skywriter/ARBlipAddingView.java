@@ -2,6 +2,7 @@ package com.arwave.skywriter;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -16,6 +17,7 @@ public class ARBlipAddingView extends Activity {
 		//set up the layout
 		setContentView(R.layout.add_arblip);
 		
+		Log.i("wave", "adding blip_on view");
 		
 		Button cancelButton = (Button)findViewById(R.id.cancelButton);
 		

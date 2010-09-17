@@ -6,8 +6,8 @@
 <string name="password">Password :</string>
 <string name="username">Username :</string>
 <string name="Server">Server :</string>
-<string name="defaultServer">192.168.1.105</string>
-<string name="defaultUsername">davide@arwave.org</string>
+<string name="defaultServer">atresica.nl</string>
+<string name="defaultUsername">thomas@atresica.nl</string>
 <string name="defaultPassword">temppassword</string>
 <string name="messages">What happens goes here</string>
 <string name="latitudeText">Latitude: </string>

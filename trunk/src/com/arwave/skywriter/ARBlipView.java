@@ -316,12 +316,13 @@ public class ARBlipView extends GLSurfaceView {
 		newblip.isFacingSprite = true;
 		newblip.BlipID = "_NEWBLIP_" + Math.random(); // crude tempID only
 		newblip.ObjectData = "(newly created blip)";
+		/*
 		try {
 			Log.i("add", "creating blip:" + newblip.BlipID);
-			this.addBlip(newblip);
+			//this.addBlip(newblip);
 		} catch (IOException e) {
-			Log.i("add", "io exception");
-		}
+			//Log.i("add", "io exception");
+		}*/
 
 		// update blip submit page and bring it to the front so people can fill
 		// in the text
