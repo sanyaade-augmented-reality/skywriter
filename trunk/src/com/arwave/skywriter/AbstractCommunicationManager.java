@@ -10,7 +10,7 @@ public interface AbstractCommunicationManager {
 	public void openWavelet( String waveletID );
 	public void closeWavelet();
 	public void addARBlip( String text );
-	public void updateARBlip( String blipID, String text );
+	public void updateARBlip( String blipID,String WaveID, String text );
 	public void deleteARBlip( String blipID );
 	public void addParticipant( String participant );
 	public void ARBlipUpdated();

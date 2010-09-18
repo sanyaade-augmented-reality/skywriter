@@ -90,7 +90,7 @@ public class ARBlipView extends GLSurfaceView {
 
 	// generic font
 	private GLFont glFont;
-	Paint paint = new Paint();
+	static final Paint paint = new Paint();
 	// World setup flag
 	boolean worldReadyToGo = false;
 
@@ -223,10 +223,10 @@ public class ARBlipView extends GLSurfaceView {
 		
 		
 		// if in edit mode, touch determains distance (like +/- on the volume controlls
-		if (CurrentMode==EDIT_MODE){
+		if ((CurrentMode==EDIT_MODE)||(CurrentMode==EDIT_END_FLAG)){
 			
 			double screenwidth = this.getWidth(); //probably should be screen width.
-			
+			double screenheight= this.getHeight();
 			
 			Log.i("touch","screenwidth "+screenwidth);
 			
@@ -236,19 +236,23 @@ public class ARBlipView extends GLSurfaceView {
 			
 			//if its in the center, and its a click, we exit edit more
 			if (event.getAction()==MotionEvent.ACTION_DOWN){				
-				if ((distancefromscreencenterx<30)&&(distancefromscreencentery<30)){
+				if ((distancefromscreencenterx<30)&&(distancefromscreencentery<40)){
 					CurrentMode = EDIT_END_FLAG;
 					move = 0;
-				}				
+				}	else {
+					CurrentMode = EDIT_MODE;
+				}
 			}
-			
+			if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
+				move = 0;
+			}
 			
 			
 			//newobject_distance =  (int)(distancefromscreencenterx/25)
 			
 			Log.i("touch","screen from center= "+distancefromscreencenterx);
 				
-			move = (int)(((screenwidth/2)-touchX)/100);
+			move = (int)(((screenheight/2)-touchY)/100);
 						
 			Log.i("touch","move from center= "+(move));
 			
@@ -423,10 +427,21 @@ public class ARBlipView extends GLSurfaceView {
 	}
 
 	/** Made as a test **/
-	public void creatingSpinningCube() {
+	public void creatingBouncingCone() {
 
-		// animated cube
-		rotateingcube = Primitives.getCube(10);
+		//get current location
+		
+		//make the new blip
+		
+		
+		//add to world
+		
+		
+		
+		
+		
+		/*
+		 * rotateingcube = Primitives.getCone(10);
 		rotateingcube.translate(50, -250, 50);
 
 		world.addObject(rotateingcube);
@@ -457,7 +472,7 @@ public class ARBlipView extends GLSurfaceView {
 		};
 
 		mTimer.schedule(mTimerTask, 0, 50);
-
+		 */
 	}
 
 	public void setCameraOrentation(float x, float y, float z) {
@@ -935,13 +950,13 @@ public class ARBlipView extends GLSurfaceView {
 
 				fetchAndSwapTexturesFromURL(it, URLPath);
 
-			} else if (newblip.MIMEtype.equalsIgnoreCase("TESTONLY")) {
+			} else if (newblip.MIMEtype.equalsIgnoreCase("Primative_Bounceing_Cone")) {
 
 				// load 3d model
 
-				newmarker = Primitives.getCube(10);
+				newmarker = Primitives.getCone(5);
 				// rotate it io
-				newmarker.rotateX(-(float) Math.PI / 2);
+				//newmarker.rotateX(-(float) Math.PI / 2);
 
 			} else {
 				// if no recognised type, then we assume its a billboard with
@@ -1117,7 +1132,7 @@ public class ARBlipView extends GLSurfaceView {
 		TextureManager tm = TextureManager.getInstance();
 
 		Texture testtext = new Texture(charImage, true); // the true specifys
-															// the texture has
+		                         							// the texture has
 															// its own alpha. If
 															// not, black is
 															// assumed to be
@@ -1129,9 +1144,14 @@ public class ARBlipView extends GLSurfaceView {
 			
 			Log.i("add", "updating texture="+Texturename);
 			
-			tm.removeTexture(Texturename);
-			tm.unloadTexture(fb, tm.getTexture(Texturename));
-			tm.addTexture(Texturename, testtext);
+			//tm.removeAndUnload(Texturename,fb);
+
+			Log.i("add", "updated texture="+Texturename);
+			
+			//tm.addTexture(Texturename, testtext);
+			tm.replaceTexture(Texturename, testtext);
+			
+			
 		} else {
 			tm.addTexture(Texturename, testtext);
 		}
@@ -1530,7 +1550,7 @@ public class ARBlipView extends GLSurfaceView {
 							}
 						}
 
-						if (CurrentMode == EDIT_MODE) {
+						if ((CurrentMode == EDIT_MODE)||(CurrentMode == EDIT_END_FLAG)) {
 
 							CurrentObject.setTranslationMatrix(new Matrix());
 

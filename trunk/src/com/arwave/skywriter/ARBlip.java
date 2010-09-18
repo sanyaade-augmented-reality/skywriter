@@ -55,7 +55,7 @@ public class ARBlip {
 	public String serialise(){
 		//converts to a string
 		
-		String ArBlipString = ARWAVEIDENTIFIER+x+"#"+y+"#"+z+"#"+ObjectData;
+		String ArBlipString = ARWAVEIDENTIFIER+x+"#"+y+"#"+z+"#"+ObjectData+"#"+MIMEtype;
 		return ArBlipString;
 	}
 	
@@ -76,9 +76,21 @@ public class ARBlip {
 			String newz = ArBlipString.split("#")[2];
 			newObjectData = ArBlipString.split("#")[3];
 			
+			//optional;
+			String mime;
+			try {
+				mime = ArBlipString.split("#")[4];
+			} catch (Exception e) {
+				mime="";
+				
+			}
+		
+			
 			x = Double.parseDouble(newx);
 			y = Double.parseDouble(newy);
 			z = Double.parseDouble(newz);
+			MIMEtype=mime;
+			
 		} catch(NullPointerException e){
 			return false;
 		} catch (NumberFormatException e) {
@@ -87,7 +99,7 @@ public class ARBlip {
 			return false;
 		}
 		
-		Log.i("wave", "object data x="+x+" y="+y+" z="+z);
+		Log.i("wave", "object data "+MIMEtype+" x="+x+" y="+y+" z="+z);
 		
 		ObjectData = newObjectData;
 		
