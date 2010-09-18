@@ -244,9 +244,12 @@ public class ARBlipView extends GLSurfaceView {
 				}
 			}
 			if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
+				Log.d("action","=cancel movement");
 				move = 0;
+				return false;
 			}
 			
+		
 			
 			//newobject_distance =  (int)(distancefromscreencenterx/25)
 			
@@ -1149,6 +1152,7 @@ public class ARBlipView extends GLSurfaceView {
 			Log.i("add", "updated texture="+Texturename);
 			
 			//tm.addTexture(Texturename, testtext);
+			tm.unloadTexture(fb, tm.getTexture(Texturename));
 			tm.replaceTexture(Texturename, testtext);
 			
 			
