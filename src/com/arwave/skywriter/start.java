@@ -134,7 +134,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_ADDTEST3DS = 3;
 	private static final int MENU_REMOVESCENE  = 4;
 	private static final int MENU_OVERHEAD = 5;
-	
+	private static final int MENU_ADDSPINNINGTHING =6;
 	// Matrix tempR = new Matrix();
 	float RTmp[] = new float[9];
 	float Rt[] = new float[9];
@@ -159,7 +159,7 @@ public class start extends MapActivity implements SensorEventListener,
 	static int screenheight = 400;
 	
 	//admin mode (used for debuging)
-	private boolean adminmode = false;
+	private boolean adminmode = true;
 	
 	// Need handler for callbacks to the UI thread
     final public static Handler mHandler = new Handler();
@@ -876,10 +876,15 @@ int status, Bundle extras)
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(0, MENU_TOGGLE_MAP, 0, "Toggle Map");
-		menu.add(0, MENU_BLITSENSOR, 0, "Bit Sensor");
+		//menu.add(0, MENU_BLITSENSOR, 0, "Bit Sensor");
 		menu.add(0, MENU_ADDTEST3DS,0,  "Test3DSLoad");
 		menu.add(0, MENU_REMOVESCENE,0, "ToggleScenary");
 		menu.add(0, MENU_OVERHEAD, 0, "Set Overhead");
+		
+		if (adminmode){
+			menu.add(0, MENU_ADDSPINNINGTHING, 0, "Add BouncingThing");			
+		}
+		
 		return true;
 	}
 
@@ -1052,7 +1057,59 @@ int status, Bundle extras)
 			}
 			
 			return true;
+		
+		case MENU_ADDSPINNINGTHING:
 			
+			
+			//add a bouncing cone at the current location.
+			
+			
+				
+				
+
+				Timer blah = new Timer();
+		
+				TimerTask meep = new TimerTask(){
+					int angle = 15;
+					int height = 0;
+					@Override
+					public void run() {
+						
+						angle=angle+25;
+						if (angle>360){
+							angle = angle-360;
+						}
+						
+						height = (int) (60.0+(Math.sin(Math.toRadians(angle))*20));
+												
+						ARBlip testblip1 = new ARBlip();
+						testblip1.x =  currentLocation.getLatitude();
+						testblip1.y =  currentLocation.getLongitude();
+						testblip1.z =  height;
+						testblip1.roll = 180;
+						testblip1.BlipID = "_BOUNCEINGTHING_";
+						
+						Log.i("add","creating bouncing thing "+testblip1.BlipID);
+						
+						testblip1.ObjectData = "_FIXEDID_TEMP_SOLUTION_"; //ugly, need a real blip ID from submitted blips
+						
+						testblip1.MIMEtype = "Primative_Bounceing_Cone";
+						
+						//delete old
+						
+						arView.deleteBlip("_FIXEDID_TEMP_SOLUTION_");
+						
+						//acm.deleteARBlip(testblip1.serialise());
+						//post it again (we hope)
+						acm.addARBlip(testblip1.serialise());
+						
+						
+					}};
+		
+					blah.schedule(meep, 0, 500);
+					
+			
+			return true;
 		}
 			
 			
@@ -1083,7 +1140,7 @@ int status, Bundle extras)
 						Log.d("loading", "loading blips");
 	
 						//A list of sample markers down a street in tilburg! (please change if you wish to test more localy to you)
-						
+						/*
 						double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
 						double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
 	
@@ -1108,12 +1165,9 @@ int status, Bundle extras)
 							i++;
 						}
 	
-						
+						*/
 						//now remove one 
-						Log.d("deleteing", "deleteing blips");
-						
-						
-						
+						//Log.d("deleteing", "deleteing blips");
 						//arView.deleteBlip("NewTestBlip4");
 						
 						
@@ -1252,7 +1306,7 @@ int status, Bundle extras)
 		
 		} else {
 		menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
-		menu.add(0, ADD_ARBLIP_ID, 0, R.string.addARblipText);
+		//menu.add(0, ADD_ARBLIP_ID, 0, R.string.addARblipText);
 		}
 		
 		
@@ -1317,9 +1371,11 @@ int status, Bundle extras)
 			return true;
 		
 		case MENU_CANCEL_BLIP:
-			if (arView.CurrentMode==arView.EDIT_MODE){
+			
+			if ((arView.CurrentMode==arView.EDIT_MODE)||(arView.CurrentMode==arView.EDIT_END_FLAG)){
 			arView.cancelObjectCreation();
 			}
+			
 			return true;
 		
 		}
@@ -1419,7 +1475,19 @@ int status, Bundle extras)
 		
 	}
 
-	
+	/** updates a blip to have a new id
+	 * should only be used for when a new blip returns its true ID
+	 * **/
+	public static void updateBlipID(String OldID, String NewID, String waveID){
+				
+		//Log.i("add","new ID:"+NewID);
+		
+		//acm.updateARBlip(NewID,waveID, "ITWORKEDYESSSSSSSSSSSSSSSSS");
+	//	Log.i("add","newID end");
+		
+		
+		
+	}
 
 	
 

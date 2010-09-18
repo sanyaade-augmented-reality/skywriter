@@ -23,15 +23,21 @@ import org.waveprotocol.wave.model.document.operation.BufferedDocOp;
 import org.waveprotocol.wave.model.document.operation.DocInitializationCursor;
 import org.waveprotocol.wave.model.document.operation.impl.InitializationCursorAdapter;
 import org.waveprotocol.wave.model.id.WaveId;
+import org.waveprotocol.wave.model.id.WaveletId;
 import org.waveprotocol.wave.model.id.IdSerialiser.InvalidIdException;
+import org.waveprotocol.wave.model.id.IdSerialiser.RuntimeInvalidIdException;
+import org.waveprotocol.wave.model.operation.OperationException;
 import org.waveprotocol.wave.model.operation.wave.WaveletDelta;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
+import org.waveprotocol.wave.model.util.Preconditions;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
 import android.util.Log;
 import android.widget.Toast;
 import org.waveprotocol.wave.examples.fedone.util.SuccessFailCallback;
+
+import com.google.protobuf.Descriptors.FieldDescriptor;
 /**
  * @author Davide
  *
@@ -79,7 +85,7 @@ public class FedOneCommunicationManager implements
 		// TODO Auto-generated method stub
 		Log.i("wave", "addARBlip:"+blipText);
 		
-		 ClientWaveView wave;
+		 final ClientWaveView wave;
 		try {
 			wave = backend.getWave(( WaveId.checkedDeserialise(CurrentWaveletID) ));
 		} catch (InvalidIdException e) {
@@ -101,16 +107,16 @@ public class FedOneCommunicationManager implements
 		      return;
 		    }
 		    
-		    
 		    BufferedDocOp manifest = convRoot.getDocuments().get(DocumentConstants.MANIFEST_DOCUMENT_ID);
 		    if (convRoot == null) {
 		    	Log.i("wave","null manifest");
 		      return;
 		    }
-		    String newDocId =  backend.getIdGenerator().newDocumentId();
+		    final String newDocId =  backend.getIdGenerator().newDocumentId();
 		    
 		    WaveletDelta delta = ClientUtils.createAppendBlipDelta(manifest, backend.getUserId(), newDocId, blipText);
-		   
+		    
+		    
 		    backend.sendWaveletDelta(convRoot.getWaveletName(), delta, new SuccessFailCallback<ProtocolSubmitResponse, String>(){
 		    	public void onFailure(String arg0) {
 					Log.i("wave", "addingBlip failed");
@@ -119,7 +125,27 @@ public class FedOneCommunicationManager implements
 
 				public void onSuccess(ProtocolSubmitResponse arg0) {
 					
-					Log.i("wave", "addingBlip success:");					
+					Log.i("wave", "addingBlip success:");	
+					
+					/*
+					Iterator<FieldDescriptor> fields = arg0.
+					while (fields.hasNext())
+					{
+						Log.d("add", "FIELD="+fields.next().getName());
+					}
+					
+					Iterator<FieldDescriptor> fields2 = arg0.getHashedVersionAfterApplication().getAllFields().keySet(). ;
+					while (fields.hasNext())
+					{
+						Log.d("add", "FIELD2="+fields2.next().getName());
+					}
+					*/
+					
+					// WHERE DO I GET THE NEW ID?!?!?!
+					
+					//update the last submitted blip
+					start.updateBlipID("_NEWBLIPTEMP_",newDocId,wave.getWaveId().serialise());
+					
 					//turn the page back to the 3d view
 					mainWindow.mHandler.post(mainWindow.goBackToWorldView);
 					
@@ -162,9 +188,43 @@ public class FedOneCommunicationManager implements
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#deleteARBlip(java.lang.String)
 	 */
-	public void deleteARBlip(String blipID) {
-		// TODO Auto-generated method stub
-
+	public void updateARBlip(String blipID, String WaveID, String newcontent) {
+		
+		Log.e("wave", "update GO!");
+		 
+		 ClientWaveView wave = null;
+		 
+		 
+		 
+		 try {
+			wave = backend.getWave(( WaveId.checkedDeserialise(WaveID) ));
+		} catch (InvalidIdException e1) {
+			// TODO Auto-generated catch block
+			
+			Log.i("wave", "failed to get wave from waveletid");
+			return;
+			
+		}
+		
+		WaveletData tempWaveletData = ClientUtils.getConversationRoot(wave);
+		
+		Map<String, BufferedDocOp> documentMap = tempWaveletData.getDocuments();
+		   
+		 BufferedDocOp manifest = documentMap.get("conversation");
+		 try {
+			 Log.i("wave", "modifying:");
+			wave.getWavelet(WaveletId.deserialise(blipID)).modifyDocument(newcontent, manifest);
+		 } catch (RuntimeInvalidIdException e) {
+			// TODO Auto-generated catch block
+			Log.e("wave", "failed to get wavelet from blipID:"+e.getMessage()+"__"+blipID);
+			
+		} catch (OperationException e) {
+			// TODO Auto-generated catch block
+			Log.e("wave", "failed to modify:"+e.getMessage());
+		}		  
+		// DocumentBasedManifest.delete(getManifestDocument(wavelet));
+		 
+		// Preconditions.checkState(manifest == null, "Conversation still usable");
 	}
 
 	/* (non-Javadoc)
@@ -226,7 +286,8 @@ public class FedOneCommunicationManager implements
 		Map<String, BufferedDocOp> documentMap = tempWaveletData.getDocuments();
 	   
 		BufferedDocOp manifest = documentMap.get("conversation"); //it's a BufferedDocOpImpl actually
-	   
+		
+		
 	    //clear current blips
 		blips.clear();
 		
@@ -346,7 +407,7 @@ public class FedOneCommunicationManager implements
 	public void updateARBlip(String blipID, String text) {
 		// TODO Auto-generated method stub
 		
-		Log.i("wave", "updatedBlip-"+text);
+		Log.w("wave", "updatedBlip-"+text);
 		
 		
 	}
@@ -467,5 +528,11 @@ public class FedOneCommunicationManager implements
 	public ArrayList<Blip> getBlips(String waveletID) {
 		this.openWavelet(waveletID);
 		return blips;
+	}
+
+
+	public void deleteARBlip(String blipID) {
+		// TODO Auto-generated method stub
+		
 	}
 }
