@@ -159,7 +159,7 @@ public class start extends MapActivity implements SensorEventListener,
 	static int screenheight = 400;
 	
 	//admin mode (used for debuging)
-	private boolean adminmode = true;
+	private boolean adminmode = false;
 	
 	// Need handler for callbacks to the UI thread
     final public static Handler mHandler = new Handler();
@@ -1320,11 +1320,8 @@ int status, Bundle extras)
 		switch (item.getItemId()) {
 		case OPEN_WAVE_ID:
 			
-			//disabled as its now an arraylist
-			//Toast.makeText(
-			//		getApplicationContext(),
-			//		acm.getBlips(((TextView) info.targetView).getText()
-			//				.toString()), Toast.LENGTH_LONG).show();
+			//first we check we have gps working and the scene loaded, if not exit!
+			if ((arView.worldReadyToGo) && (currentLocation!=null)) {
 			
 			//demo code; parse's blips into arblips and displays them
 			String waveid = ((TextView)info.targetView).getText().toString();
@@ -1334,6 +1331,13 @@ int status, Bundle extras)
 			
 			//open view
 			tabHost.setCurrentTab(2);
+			} else {
+				
+				//temp message to warn if gps is not connected
+				Toast.makeText(getApplicationContext(), " Can't Open Wave...please check your GPS connection is working and the world scene is loaded ", Toast.LENGTH_LONG).show();
+				
+				
+			}
 			
 			return true;
 
