@@ -17,7 +17,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,19 +28,9 @@ import android.graphics.Typeface;
 import android.graphics.Paint.FontMetricsInt;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
-import android.util.DisplayMetrics;
 import android.util.FloatMath;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.Display;
-import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.WindowManager;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-
 import com.threed.jpct.Camera;
 import com.threed.jpct.Config;
 import com.threed.jpct.FrameBuffer;
@@ -113,15 +102,15 @@ public class ARBlipView extends GLSurfaceView {
 	float newCameraX = 0;
 	float newCameraY = 0;
 	float newCameraZ = 0;
-	
-	
+
+
 	final static SimpleVector Y_AXIS = new SimpleVector(0, 0, 1); // Fixed
-																	// simple
-																	// vectors
-																	// used to
-																	// rotate in
-																	// one of 3
-																	// axis's
+	// simple
+	// vectors
+	// used to
+	// rotate in
+	// one of 3
+	// axis's
 	final static SimpleVector X_AXIS = new SimpleVector(1, 0, 0);
 	final static SimpleVector Z_AXIS = new SimpleVector(0, 1, 0);
 
@@ -135,16 +124,17 @@ public class ARBlipView extends GLSurfaceView {
 
 	// object editing
 	Object3D CurrentObject;
-	int EditModeSecondsLeft = 0; // edit mode could ends automaticaly a few seconds
-									// after the last key is pressed.
+	// after the last key is pressed.
 	int newobject_distance = 25;
+
+
 	// modes
 	int VIEWING_MODE = 0;
 	int EDIT_MODE = 1;
 	int EDIT_END_FLAG =2; //used when the edit mode has requested to end (lets the context menu appear again);
-	
+
 	int CurrentMode;
-    
+
 	public ARBlipView(Context context) {
 		super(context);
 
@@ -214,26 +204,26 @@ public class ARBlipView extends GLSurfaceView {
 
 	/** handels screen interactions **/
 	public boolean onTouchEvent(MotionEvent event) {
-       
-		
+
+
 		int touchX = (int) event.getX();
 		int touchY = (int) event.getY();
-			
-		
-		
-		
+
+
+
+
 		// if in edit mode, touch determains distance (like +/- on the volume controlls
 		if ((CurrentMode==EDIT_MODE)||(CurrentMode==EDIT_END_FLAG)){
-			
+
 			double screenwidth = this.getWidth(); //probably should be screen width.
 			double screenheight= this.getHeight();
-			
+
 			Log.i("touch","screenwidth "+screenwidth);
-			
+
 			//resize based on distance from center x
 			int distancefromscreencenterx =  Math.abs((int) ((screenwidth/2)-touchX));
 			int distancefromscreencentery =  Math.abs((int) ((screenwidth/2)-touchY));
-			
+
 			//if its in the center, and its a click, we exit edit more
 			if (event.getAction()==MotionEvent.ACTION_DOWN){				
 				if ((distancefromscreencenterx<30)&&(distancefromscreencentery<40)){
@@ -248,42 +238,67 @@ public class ARBlipView extends GLSurfaceView {
 				move = 0;
 				return false;
 			}
-			
-		
-			
+
+
+
 			//newobject_distance =  (int)(distancefromscreencenterx/25)
-			
+
 			Log.i("touch","screen from center= "+distancefromscreencenterx);
-				
+
 			move = (int)(((screenheight/2)-touchY)/100);
-						
+
 			Log.i("touch","move from center= "+(move));
-			
+
 			//(maybe later we can change this to a funky multi-touch pinch gesture?)
-			
-			
-			
+
+
+
 		} else {
 			Camera camera = world.getCamera();
-			
-			SimpleVector dir=Interact2D.reproject2D3D(world.getCamera(), fb,touchX, touchY);
-		
-			Object[] res=world.calcMinDistanceAndObject3D(camera.getPosition(), dir, 10000 /*or whatever*/);
-			
-			Log.i("touch", "touch test");
-			
+
+			SimpleVector dir=Interact2D.reproject2D3DWS(world.getCamera(), fb,touchX, touchY);
+
+			Object[] res=world.calcMinDistanceAndObject3D(camera.getPosition(), dir, 1000 /*or whatever*/);
+
 			if (res[1]!=null){
-			Log.i("touch", "object="+((Object3D)res[1]).getID());
+
+				//get the object number and distance
+				Object3D pickedObject = (Object3D)res[1];	
+				Object distance = (Object)res[0];
+				float dis = ((float)((Float)distance).floatValue());
+
+
+				Log.i("touch", "object="+pickedObject.getID());
+				Log.i("touch", "distance="+dis);
+
+				//set as current object
+				CurrentObject = pickedObject;
+				//set current distance
+				newobject_distance = (int)dis;
+
+				//fill in submission fields to match current objects existing data 
+				String BlipsID = CurrentObject.getName();
+				ARBlip currentBlip = this.getBlipFromScene(BlipsID);
+				//set content
+				start.AddBlipText.setText(currentBlip.ObjectData);
+				//set occlusion status
+				//set all other things except position/rot which are set automaticly by placement.
+				
+				//===
+				
+			} else {
+				CurrentObject=null;
+				newobject_distance=25;
 			}
-			
-			
+
+
 		}
-		
-		
-        return super.onTouchEvent(event);
-    }
-	
-	
+
+
+		return super.onTouchEvent(event);
+	}
+
+
 	public void createBlipInFrontOfCamera() {
 
 		// first we get the current camera location
@@ -322,7 +337,6 @@ public class ARBlipView extends GLSurfaceView {
 
 		// set edit mode on
 		CurrentMode = EDIT_MODE;
-		EditModeSecondsLeft = 5;
 
 		// start edit mode timer
 
@@ -376,7 +390,7 @@ public class ARBlipView extends GLSurfaceView {
 
 		Location newLocation = ARBlipUtilitys.displaceLocation(
 				startingLocation, distance, baring + 90); // baring is 90
-															// degree's off!
+		// degree's off!
 
 		// remove tempobject
 		world.removeObject(CurrentObject);
@@ -389,8 +403,8 @@ public class ARBlipView extends GLSurfaceView {
 		newblip.x = newLocation.getLatitude();
 		newblip.y = newLocation.getLongitude();
 		newblip.z = -y; // note the co-ordinate switch. ARBlips have "z" as
-						// vertical, but the game engine use's "y" as the
-						// vertical.
+		// vertical, but the game engine use's "y" as the
+		// vertical.
 
 		// newblip.baring = (int) obj_baring;
 		// newblip.elevation = (int) obj_elevation;
@@ -433,16 +447,16 @@ public class ARBlipView extends GLSurfaceView {
 	public void creatingBouncingCone() {
 
 		//get current location
-		
+
 		//make the new blip
-		
-		
+
+
 		//add to world
-		
-		
-		
-		
-		
+
+
+
+
+
 		/*
 		 * rotateingcube = Primitives.getCone(10);
 		rotateingcube.translate(50, -250, 50);
@@ -586,9 +600,9 @@ public class ARBlipView extends GLSurfaceView {
 			while (it.hasNext()) {
 				ARBlip currentBlip = it.next();
 				if (currentBlip.BlipID.equals(BlipsID)) {
-					
+
 					scenesBlips.remove(currentBlip);
-					
+
 				}
 
 			}
@@ -612,25 +626,25 @@ public class ARBlipView extends GLSurfaceView {
 			//world.getObjectByName("rock");
 			//world.removeObject(rock);
 			//Object3D testob = new SkywriterBillboard();
-			
+
 			//testob.setName("__");
 			// set texture
 			//String text = "test test";
-		//updatedTexture("_temp_", text);
+			//updatedTexture("_temp_", text);
 			// newplane.setOrigin(new SimpleVector(0,-15,0));(used to move
 			// it upwards for when it was on a stand)
-		//	testob.setTexture("_temp_");
-			
-			
-			
-			
+			//	testob.setTexture("_temp_");
+
+
+
+
 			Object3D meep = world.getObjectByName(BlipsID);
-			
-			
-			
+
+
+
 			deleteQueue.add(meep);// <--causes a crash later :-/
-			 
-			
+
+
 		}
 
 	}
@@ -694,17 +708,17 @@ public class ARBlipView extends GLSurfaceView {
 
 		TextureManager tm = TextureManager.getInstance();
 		Texture maptiletexture = new Texture(loc.centerMap, true); // the true
-																	// specifys
-																	// the
-																	// texture
-																	// has its
-																	// own
-																	// alpha. If
-																	// not,
-																	// black is
-																	// assumed
-																	// to be
-																	// alpha!
+		// specifys
+		// the
+		// texture
+		// has its
+		// own
+		// alpha. If
+		// not,
+		// black is
+		// assumed
+		// to be
+		// alpha!
 		tm.addTexture("MapTile_" + loc.lat + "_" + loc.lon, maptiletexture);
 		MapTile.setTexture("MapTile_" + loc.lat + "_" + loc.lon);
 		MapTile.setAdditionalColor(RGBColor.WHITE);
@@ -712,20 +726,20 @@ public class ARBlipView extends GLSurfaceView {
 		// position
 		double worldX = ARBlipUtilitys.getRelativeXLocation(loc.lat,
 				startingLocation); // As the world is set on loading, and then
-									// the camera moves, we always messure
-									// relative to the loading location.
+		// the camera moves, we always messure
+		// relative to the loading location.
 		double worldY = ARBlipUtilitys
-				.getRelativeYLocation(0, startingLocation); // As the world is
-															// set on loading,
-															// and then the
-															// camera moves, we
-															// always messure
-															// relative to the
-															// loading location.
+		.getRelativeYLocation(0, startingLocation); // As the world is
+		// set on loading,
+		// and then the
+		// camera moves, we
+		// always messure
+		// relative to the
+		// loading location.
 		double worldZ = ARBlipUtilitys.getRelativeZLocation(loc.lon,
 				startingLocation); // As the world is set on loading, and then
-									// the camera moves, we always messure
-									// relative to the loading location.
+		// the camera moves, we always messure
+		// relative to the loading location.
 
 		float x = (float) -worldX;
 		float y = (float) -worldY;
@@ -747,24 +761,24 @@ public class ARBlipView extends GLSurfaceView {
 	public void updateLocation(Location current) {
 		double worldX = ARBlipUtilitys.getRelativeXLocation(current
 				.getLatitude(), startingLocation); // As the world is set on
-													// loading, and then the
-													// camera moves, we always
-													// messure relative to the
-													// loading location.
+		// loading, and then the
+		// camera moves, we always
+		// messure relative to the
+		// loading location.
 		double worldY = ARBlipUtilitys
-				.getRelativeYLocation(0, startingLocation); // As the world is
-															// set on loading,
-															// and then the
-															// camera moves, we
-															// always messure
-															// relative to the
-															// loading location.
+		.getRelativeYLocation(0, startingLocation); // As the world is
+		// set on loading,
+		// and then the
+		// camera moves, we
+		// always messure
+		// relative to the
+		// loading location.
 		double worldZ = ARBlipUtilitys.getRelativeZLocation(current
 				.getLongitude(), startingLocation); // As the world is set on
-													// loading, and then the
-													// camera moves, we always
-													// messure relative to the
-													// loading location.
+		// loading, and then the
+		// camera moves, we always
+		// messure relative to the
+		// loading location.
 
 		float x = (float) -worldX;
 		float y = (float) -worldY;
@@ -772,7 +786,7 @@ public class ARBlipView extends GLSurfaceView {
 		// update camera location
 		Camera cam = world.getCamera();
 		cam.setPosition(x, cameraHeight, z); // we might want to animate this at
-												// some point
+		// some point
 
 		// if map showing, then update it (or try to)
 		// if (MapModeSet){
@@ -825,7 +839,7 @@ public class ARBlipView extends GLSurfaceView {
 			if (newblip.MIMEtype.equalsIgnoreCase("application/x-3ds")) {
 
 				HashSet<String> Namesbefore = TextureManager.getInstance()
-						.getNames();
+				.getNames();
 				int SizeBefore = Namesbefore.size();
 
 				// load 3d model
@@ -855,7 +869,7 @@ public class ARBlipView extends GLSurfaceView {
 
 				// clear memory first
 				System.gc(); // no idea if this is a good place, but I was
-								// getting some out of memory errors without it
+				// getting some out of memory errors without it
 
 				// ok, if occlusion is set, then we simply dont specify a
 				// texture
@@ -875,7 +889,7 @@ public class ARBlipView extends GLSurfaceView {
 				}
 
 				HashSet<String> newNames = TextureManager.getInstance()
-						.getNames();
+				.getNames();
 
 				newNames.removeAll(Namesbefore);
 
@@ -893,7 +907,7 @@ public class ARBlipView extends GLSurfaceView {
 			} else if (newblip.MIMEtype.equalsIgnoreCase("application/x-obj")) {
 
 				HashSet<String> Namesbefore = TextureManager.getInstance()
-						.getNames();
+				.getNames();
 				int SizeBefore = Namesbefore.size();
 
 				// load 3d model
@@ -936,10 +950,10 @@ public class ARBlipView extends GLSurfaceView {
 
 				// clear memory first
 				System.gc(); // no idea if this is a good place, but I was
-								// getting some out of memory errors without it
+				// getting some out of memory errors without it
 
 				HashSet<String> newNames = TextureManager.getInstance()
-						.getNames();
+				.getNames();
 
 				newNames.removeAll(Namesbefore);
 
@@ -1011,19 +1025,19 @@ public class ARBlipView extends GLSurfaceView {
 			// into a sensible onscreen scale.
 			double worldX = ARBlipUtilitys.getRelativeXLocation(newblip,
 					startingLocation); // As the world is set on loading, and
-										// then the camera moves, we always
-										// messure relative to the loading
-										// location.
+			// then the camera moves, we always
+			// messure relative to the loading
+			// location.
 			double worldY = ARBlipUtilitys.getRelativeYLocation(newblip,
 					startingLocation); // As the world is set on loading, and
-										// then the camera moves, we always
-										// messure relative to the loading
-										// location.
+			// then the camera moves, we always
+			// messure relative to the loading
+			// location.
 			double worldZ = ARBlipUtilitys.getRelativeZLocation(newblip,
 					startingLocation); // As the world is set on loading, and
-										// then the camera moves, we always
-										// messure relative to the loading
-										// location.
+			// then the camera moves, we always
+			// messure relative to the loading
+			// location.
 
 			float x = (float) -worldX;
 			float y = (float) -worldY;
@@ -1046,8 +1060,8 @@ public class ARBlipView extends GLSurfaceView {
 			if (true){
 				newmarker.setCollisionMode(Object3D.COLLISION_CHECK_OTHERS);
 			}
-			
-			
+
+
 
 			Log.i("3ds", "adding " + newblip.BlipID + " to scene");
 			world.addObject(newmarker);
@@ -1057,7 +1071,7 @@ public class ARBlipView extends GLSurfaceView {
 
 			// add object+blip to internal lists (was going to use the built in
 			// getObjectByName, but seems to crash)
-			
+
 			scenesBlips.add(newblip);
 			scenesObjects.add(newmarker);
 			// (Note these two should never go out of sycn! If a blip is in the
@@ -1069,7 +1083,7 @@ public class ARBlipView extends GLSurfaceView {
 	}
 
 	private void fetchAndSwapTexturesFromURL(Iterator<String> it, String URLPath)
-			throws MalformedURLException, IOException {
+	throws MalformedURLException, IOException {
 		while (it.hasNext()) {
 
 			String textureNameToLoad = (String) it.next();
@@ -1088,7 +1102,7 @@ public class ARBlipView extends GLSurfaceView {
 			// make the texture
 			URL texturedownloadfrom = new URL(TextureURL);
 			URLConnection textureconnection = texturedownloadfrom
-					.openConnection();
+			.openConnection();
 
 			textureconnection.connect();
 			BufferedInputStream texturebis = new BufferedInputStream(
@@ -1111,15 +1125,15 @@ public class ARBlipView extends GLSurfaceView {
 
 	/** updates a texture to a bit of text **/
 	private void updatedTexture(String Texturename, String text) {
-		
+
 		Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
-		
+
 		paint.setColor(Color.BLACK);
 
 		Bitmap.Config config = Bitmap.Config.ARGB_8888;
 		FontMetricsInt fontMetrics = paint.getFontMetricsInt();
 		int fontHeight = fontMetrics.leading - fontMetrics.ascent
-				+ fontMetrics.descent;
+		+ fontMetrics.descent;
 		int baseline = -fontMetrics.top;
 		int height = fontMetrics.bottom - fontMetrics.top;
 
@@ -1130,32 +1144,32 @@ public class ARBlipView extends GLSurfaceView {
 		Canvas canvas = new Canvas(charImage);
 		canvas.drawColor(Color.WHITE);
 		canvas.drawText(text, 10, baseline, paint); // draw text with a margin
-													// of 10
+		// of 10
 
 		TextureManager tm = TextureManager.getInstance();
 
 		Texture testtext = new Texture(charImage, true); // the true specifys
-		                         							// the texture has
-															// its own alpha. If
-															// not, black is
-															// assumed to be
-															// alpha!
+		// the texture has
+		// its own alpha. If
+		// not, black is
+		// assumed to be
+		// alpha!
 
 		//
-		
+
 		if (tm.containsTexture(Texturename)) {
-			
+
 			Log.i("add", "updating texture="+Texturename);
-			
+
 			//tm.removeAndUnload(Texturename,fb);
 
 			Log.i("add", "updated texture="+Texturename);
-			
+
 			//tm.addTexture(Texturename, testtext);
 			tm.unloadTexture(fb, tm.getTexture(Texturename));
 			tm.replaceTexture(Texturename, testtext);
-			
-			
+
+
 		} else {
 			tm.addTexture(Texturename, testtext);
 		}
@@ -1190,16 +1204,16 @@ public class ARBlipView extends GLSurfaceView {
 
 		double worldX = ARBlipUtilitys.getRelativeXLocation(newblipdata,
 				startingLocation); // As the world is set on loading, and then
-									// the camera moves, we always messure
-									// relative to the loading location.
+		// the camera moves, we always messure
+		// relative to the loading location.
 		double worldY = ARBlipUtilitys.getRelativeYLocation(newblipdata,
 				startingLocation); // As the world is set on loading, and then
-									// the camera moves, we always messure
-									// relative to the loading location.
+		// the camera moves, we always messure
+		// relative to the loading location.
 		double worldZ = ARBlipUtilitys.getRelativeZLocation(newblipdata,
 				startingLocation); // As the world is set on loading, and then
-									// the camera moves, we always messure
-									// relative to the loading location.
+		// the camera moves, we always messure
+		// relative to the loading location.
 
 		float x = (float) -worldX;
 		float y = (float) -worldY;
@@ -1226,12 +1240,12 @@ public class ARBlipView extends GLSurfaceView {
 	public boolean isBlipInScene(String BlipsID) {
 
 		Log.i("blip","checking for "+BlipsID+" in scene");
-		
+
 		Iterator<ARBlip> it = scenesBlips.iterator();
 		while (it.hasNext()) {
 			String currentID = it.next().BlipID;
 			Log.i("check","checking for "+BlipsID+" against "+currentID);
-			
+
 			if (currentID.equals(BlipsID)) {
 				return true;
 			}
@@ -1239,6 +1253,25 @@ public class ARBlipView extends GLSurfaceView {
 		}
 
 		return false;
+	}
+	/** returns a blip from a blipID **/
+	public ARBlip getBlipFromScene(String BlipsID) {
+
+		Log.i("blip","checking for "+BlipsID+" in scene");
+
+		Iterator<ARBlip> it = scenesBlips.iterator();
+		while (it.hasNext()) {
+			ARBlip currentblip = it.next();
+			String currentID = currentblip.BlipID;
+			Log.i("check","checking for "+BlipsID+" against "+currentID);
+
+			if (currentID.equals(BlipsID)) {
+				return currentblip;
+			}
+
+		}
+
+		return null;
 	}
 
 	/** Unoptimised check for pre-existing blip */
@@ -1290,14 +1323,14 @@ public class ARBlipView extends GLSurfaceView {
 			// set camera overhead
 			Camera cam = world.getCamera();
 			cam.setPosition(cam.getPosition().x, -250, cam.getPosition().z); // we
-																				// might
-																				// want
-																				// to
-																				// animate
-																				// this
-																				// at
-																				// some
-																				// point
+			// might
+			// want
+			// to
+			// animate
+			// this
+			// at
+			// some
+			// point
 			cam.lookAt(groundPlane.getTransformedCenter());
 			groundPlane.setVisibility(false);
 		} else {
@@ -1458,9 +1491,9 @@ public class ARBlipView extends GLSurfaceView {
 
 			RGBColor dark = new RGBColor(100, 100, 100);
 
-			
-			
-			
+
+
+
 			grass.setTransparency(10);
 			tree1.setTransparency(0);
 			tree2.setTransparency(0);
@@ -1479,7 +1512,7 @@ public class ARBlipView extends GLSurfaceView {
 			cam.lookAt(groundPlane.getTransformedCenter());
 
 			cam.setFOV(0.5f); // used to be 1.5, 0.5 seemed closer to my phones
-								// camera -thomas
+			// camera -thomas
 			sun.setIntensity(250, 250, 250);
 
 			SimpleVector sv = new SimpleVector();
@@ -1488,10 +1521,10 @@ public class ARBlipView extends GLSurfaceView {
 			sv.x -= 100;
 			sv.z += 200;
 			sun.setPosition(sv);
-			
-			
-			
-			
+
+
+
+
 		}
 
 		public void onDrawFrame(GL10 gl) {
@@ -1519,7 +1552,7 @@ public class ARBlipView extends GLSurfaceView {
 						}
 
 						// If theres objects in the delete queue
-						
+
 						if (deleteQueue.size() > 0) {
 
 							Iterator<Object3D> dqit = deleteQueue.iterator();
@@ -1532,7 +1565,7 @@ public class ARBlipView extends GLSurfaceView {
 							}
 
 						}
-						
+
 
 						if (CurrentMode == VIEWING_MODE) {
 							if (move != 0) {
@@ -1559,7 +1592,7 @@ public class ARBlipView extends GLSurfaceView {
 							CurrentObject.setTranslationMatrix(new Matrix());
 
 							SimpleVector CameraPosition = world.getCamera()
-									.getPosition();
+							.getPosition();
 
 							CurrentObject.translate(CameraPosition);
 
@@ -1567,12 +1600,12 @@ public class ARBlipView extends GLSurfaceView {
 							CurrentObject.align(world.getCamera());
 							SimpleVector test = CurrentObject.getZAxis();
 							newobject_distance = newobject_distance + move;
-							
+
 							//not closer then 2 meters
 							if (newobject_distance<2){
 								newobject_distance=2;
 							}
-							
+
 							test.scalarMul(newobject_distance);
 							CurrentObject.translate(test);
 
@@ -1681,8 +1714,8 @@ public class ARBlipView extends GLSurfaceView {
 
 						if (System.currentTimeMillis() - time >= 1000) {
 							lfps = (fps + lfps) >> 1;
-							fps = 0;
-							time = System.currentTimeMillis();
+			fps = 0;
+			time = System.currentTimeMillis();
 						}
 						fps++;
 						ind += 0.02f;
@@ -1716,8 +1749,8 @@ public class ARBlipView extends GLSurfaceView {
 				SimpleVector[] d = getDestinationMesh();
 				for (int i = 0; i < s.length; i++) {
 					d[i].z = s[i].z
-							- (10f * (FloatMath.sin(s[i].x / 50f) + FloatMath
-									.cos(s[i].y / 50f)));
+					- (10f * (FloatMath.sin(s[i].x / 50f) + FloatMath
+							.cos(s[i].y / 50f)));
 					d[i].x = s[i].x;
 					d[i].y = s[i].y;
 				}
