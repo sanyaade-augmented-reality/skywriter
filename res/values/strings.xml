@@ -22,6 +22,8 @@
 <string name="openWaveText">Open</string>
 <string name="cancelButton">Cancel</string>
 <string name="addButton">Add ARBlip</string>
+<string name="arView_editBlip">Edit ARBlip</string>
+<string name="arView_deleteBlip">Delete ARBlip</string>
 <string name="autoSeLocationText">Auto-set the location</string>
 <string name="arView_ConfirmBlipPlacement">Confirm Blip</string>
 <string name="arView_CancelBlipPlacement">Cancel Blip</string>

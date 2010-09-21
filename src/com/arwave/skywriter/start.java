@@ -74,6 +74,8 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_CONFIRM_BLIP = 3;
 	private static final int MENU_CONTINUE_EDITING  = 4;
 	private static final int MENU_CANCEL_BLIP  = 5;
+	private static final int MENU_EDIT_BLIP  = 6;
+	private static final int MENU_DELETE_BLIP  = 7;
 	
 	
 	private static AbstractCommunicationManager acm;
@@ -1140,7 +1142,7 @@ int status, Bundle extras)
 						Log.d("loading", "loading blips");
 	
 						//A list of sample markers down a street in tilburg! (please change if you wish to test more localy to you)
-						/*
+						
 						double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
 						double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
 	
@@ -1165,7 +1167,6 @@ int status, Bundle extras)
 							i++;
 						}
 	
-						*/
 						//now remove one 
 						//Log.d("deleteing", "deleteing blips");
 						//arView.deleteBlip("NewTestBlip4");
@@ -1193,8 +1194,16 @@ int status, Bundle extras)
 				arView.currentRealLocation = currentLocation;
 				arView.updateLocation(currentLocation);
 			}
+			
+			
 			currentLocation = location;
 			
+			//debugging location set
+			if (location!=null){
+			//Log.i("connection","current location set to"+location);
+			} else {
+			Log.e("connection","current location null");					
+			}
 			
 			if (AutoSetLocation.isChecked()){
 				Log.i("setting", "setting location");
@@ -1299,8 +1308,15 @@ int status, Bundle extras)
 			menu.add(0, MENU_CANCEL_BLIP, 0, R.string.arView_CancelBlipPlacement);			
 						
 			} else {
+				
+				//if theres an existing blip to edit
+				if (arView.CurrentObject!=null){
+					menu.add(0, MENU_EDIT_BLIP, 0, R.string.arView_editBlip );	
+					menu.add(0, MENU_DELETE_BLIP, 0, R.string.arView_deleteBlip);	
+				}
+				
 				menu.add(0, ADD_ARBLIPFROMARVIEW_ID, 0, R.string.addARblipText);
-				menu.add(0, MENU_CANCEL_BLIP, 0, R.string.arView_CancelBlipPlacement);			
+				menu.add(0, MENU_CANCEL_BLIP, 0, R.string.arView_CancelBlipPlacement);
 				
 			}
 		
@@ -1321,6 +1337,7 @@ int status, Bundle extras)
 		case OPEN_WAVE_ID:
 			
 			//first we check we have gps working and the scene loaded, if not exit!
+			
 			if ((arView.worldReadyToGo) && (currentLocation!=null)) {
 			
 			//demo code; parse's blips into arblips and displays them
@@ -1335,7 +1352,13 @@ int status, Bundle extras)
 				
 				//temp message to warn if gps is not connected
 				Toast.makeText(getApplicationContext(), " Can't Open Wave...please check your GPS connection is working and the world scene is loaded ", Toast.LENGTH_LONG).show();
-				
+			
+				if (currentLocation==null){
+				Log.e("connection", "current location is null");
+				}
+				if (arView.worldReadyToGo==false){
+				Log.e("connection", "world not set to go");	
+				}
 				
 			}
 			
@@ -1359,6 +1382,18 @@ int status, Bundle extras)
 			// v.addFocusables(bho, 1);
 			// wavesListPage.addView(v);
 			// setContentView(findViewById(R.id.add_arblip_layout));
+			return true;
+			
+		case MENU_DELETE_BLIP:
+			
+			return true;
+			
+		case MENU_EDIT_BLIP:
+			
+			//set edit mode (object has already been selected)
+			arView.CurrentMode=arView.EDIT_MODE;
+			
+			
 			return true;
 			
 		case ADD_ARBLIPFROMARVIEW_ID:
