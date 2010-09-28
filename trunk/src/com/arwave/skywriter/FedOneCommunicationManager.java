@@ -5,7 +5,6 @@ package com.arwave.skywriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -29,15 +28,12 @@ import org.waveprotocol.wave.model.id.IdSerialiser.RuntimeInvalidIdException;
 import org.waveprotocol.wave.model.operation.OperationException;
 import org.waveprotocol.wave.model.operation.wave.WaveletDelta;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
-import org.waveprotocol.wave.model.util.Preconditions;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
 import android.util.Log;
 import android.widget.Toast;
 import org.waveprotocol.wave.examples.fedone.util.SuccessFailCallback;
-
-import com.google.protobuf.Descriptors.FieldDescriptor;
 /**
  * @author Davide
  *
@@ -147,7 +143,7 @@ public class FedOneCommunicationManager implements
 					start.updateBlipID("_NEWBLIPTEMP_",newDocId,wave.getWaveId().serialise());
 					
 					//turn the page back to the 3d view
-					mainWindow.mHandler.post(mainWindow.goBackToWorldView);
+					start.mHandler.post(start.goBackToWorldView);
 					
 				}
 		    

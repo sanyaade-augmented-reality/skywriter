@@ -10,9 +10,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -67,7 +64,7 @@ public class ARBlipView extends GLSurfaceView {
 	private Object3D grass = null;
 	private Object3D rock = null;
 
-	private boolean backgroundScenaryVisible = true;
+	public boolean backgroundScenaryVisible = true;
 	// renderer
 	MyRenderer renderer = null;
 
@@ -88,8 +85,8 @@ public class ARBlipView extends GLSurfaceView {
 
 	// purely for testing
 	// timer
-	private TimerTask mTimerTask = null;
-	private Timer mTimer = null;
+	//private TimerTask mTimerTask = null;
+	//private Timer mTimer = null;
 	Object3D rotateingcube;
 	int pos = 0;
 	boolean paused = false;
@@ -103,14 +100,13 @@ public class ARBlipView extends GLSurfaceView {
 	float newCameraY = 0;
 	float newCameraZ = 0;
 
-
-	final static SimpleVector Y_AXIS = new SimpleVector(0, 0, 1); // Fixed
 	// simple
 	// vectors
 	// used to
 	// rotate in
 	// one of 3
 	// axis's
+	final static SimpleVector Y_AXIS = new SimpleVector(0, 0, 1); // Fixed
 	final static SimpleVector X_AXIS = new SimpleVector(1, 0, 0);
 	final static SimpleVector Z_AXIS = new SimpleVector(0, 1, 0);
 
@@ -131,9 +127,12 @@ public class ARBlipView extends GLSurfaceView {
 	// modes
 	int VIEWING_MODE = 0;
 	int EDIT_MODE = 1;
-	int EDIT_END_FLAG =2; //used when the edit mode has requested to end (lets the context menu appear again);
+	int EDIT_END_FLAG = 2; //used when the edit mode has requested to end (lets the context menu appear again);
+	//used for when the user is on the context menu.
 
 	int CurrentMode;
+	public boolean isOnContextMenu = false;
+	
 
 	public ARBlipView(Context context) {
 		super(context);
@@ -212,7 +211,7 @@ public class ARBlipView extends GLSurfaceView {
 
 
 
-		// if in edit mode, touch determains distance (like +/- on the volume controlls
+		// if in edit mode, touch determains distance (like +/- on the volume controls
 		if ((CurrentMode==EDIT_MODE)||(CurrentMode==EDIT_END_FLAG)){
 
 			double screenwidth = this.getWidth(); //probably should be screen width.
@@ -236,12 +235,10 @@ public class ARBlipView extends GLSurfaceView {
 			if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
 				Log.d("action","=cancel movement");
 				move = 0;
+
 				return false;
 			}
 
-
-
-			//newobject_distance =  (int)(distancefromscreencenterx/25)
 
 			Log.i("touch","screen from center= "+distancefromscreencenterx);
 
@@ -262,31 +259,65 @@ public class ARBlipView extends GLSurfaceView {
 
 			if (res[1]!=null){
 
-				//get the object number and distance
-				Object3D pickedObject = (Object3D)res[1];	
-				Object distance = (Object)res[0];
-				float dis = ((float)((Float)distance).floatValue());
+				//If its canceling;				
+
+				if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
+					//Dont cancel is on the menu!
+					if (!isOnContextMenu){
+						Log.d("action","cancel movement so clear color and unset object");
+
+						if (CurrentObject!=null){
+							CurrentObject.clearAdditionalColor();
+							CurrentObject.setSpecularLighting(true);
+						} 				
+						CurrentObject=null;
+						newobject_distance=25;
+					}
+
+				} else {
+
+					// else
+					Log.d("action","setting object");
+
+					//get the object number and distance
+					Object3D pickedObject = (Object3D)res[1];	
+					Object distance = (Object)res[0];
+					float dis = ((float)((Float)distance).floatValue());
 
 
-				Log.i("touch", "object="+pickedObject.getID());
-				Log.i("touch", "distance="+dis);
+					Log.i("touch", "object="+pickedObject.getID());
+					Log.i("touch", "distance="+dis);
 
-				//set as current object
-				CurrentObject = pickedObject;
-				//set current distance
-				newobject_distance = (int)dis;
+					//if theres an old object,reset its color
+					if (CurrentObject!=null){
+						CurrentObject.clearAdditionalColor();
+						CurrentObject.setSpecularLighting(true);
+					} 	
 
-				//fill in submission fields to match current objects existing data 
-				String BlipsID = CurrentObject.getName();
-				ARBlip currentBlip = this.getBlipFromScene(BlipsID);
-				//set content
-				start.AddBlipText.setText(currentBlip.ObjectData);
-				//set occlusion status
-				//set all other things except position/rot which are set automaticly by placement.
-				
-				//===
-				
+					//set as current object
+					CurrentObject = pickedObject;
+					CurrentObject.setAdditionalColor(RGBColor.RED);
+					CurrentObject.setSpecularLighting(false);
+
+					//set current distance
+					newobject_distance = (int)dis;
+
+					//fill in submission fields to match current objects existing data 
+					String BlipsID = CurrentObject.getName();
+					ARBlip currentBlip = this.getBlipFromScene(BlipsID);
+					//set content
+					start.AddBlipText.setText(currentBlip.ObjectData);
+					//set occlusion status
+					//set all other things except position/rot which are set automaticly by placement.
+
+					//===
+				}
 			} else {
+
+				if (CurrentObject!=null){
+					CurrentObject.clearAdditionalColor();
+					CurrentObject.setSpecularLighting(true);
+				} 				
 				CurrentObject=null;
 				newobject_distance=25;
 			}
@@ -1301,13 +1332,21 @@ public class ARBlipView extends GLSurfaceView {
 	public void toggleBackgroundScenary() {
 
 		backgroundScenaryVisible = !backgroundScenaryVisible;
+		this.setBackgroundScenary(backgroundScenaryVisible);
+
+	}
+
+	public void setBackgroundScenary(Boolean backgroundScenaryVisible){
 
 		groundPlane.setVisibility(backgroundScenaryVisible);
 		rock.setVisibility(backgroundScenaryVisible);
 		tree1.setVisibility(backgroundScenaryVisible);
 		tree2.setVisibility(backgroundScenaryVisible);
 		grass.setVisibility(backgroundScenaryVisible);
+
 	}
+
+
 
 	/** Map mode **/
 	/**
@@ -1488,6 +1527,12 @@ public class ARBlipView extends GLSurfaceView {
 			world.addObject(tree2);
 			world.addObject(grass);
 			world.addObject(rock);
+
+			groundPlane.setVisibility(backgroundScenaryVisible);
+			rock.setVisibility(backgroundScenaryVisible);
+			tree1.setVisibility(backgroundScenaryVisible);
+			tree2.setVisibility(backgroundScenaryVisible);
+			grass.setVisibility(backgroundScenaryVisible);
 
 			RGBColor dark = new RGBColor(100, 100, 100);
 
