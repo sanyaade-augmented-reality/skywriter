@@ -28,6 +28,7 @@
 				<category android:name="android.intent.category.OPENABLE" />
 			</intent-filter>
 		</activity>
+<activity android:name="MyPreferenceActivity" android:screenOrientation="portrait"></activity>
 </application>
 
 

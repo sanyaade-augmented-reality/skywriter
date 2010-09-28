@@ -17,6 +17,7 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -27,6 +28,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -137,6 +139,8 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_REMOVESCENE  = 4;
 	private static final int MENU_OVERHEAD = 5;
 	private static final int MENU_ADDSPINNINGTHING =6;
+	private static final int MENU_PREFERANCES =7;
+	
 	// Matrix tempR = new Matrix();
 	float RTmp[] = new float[9];
 	float Rt[] = new float[9];
@@ -155,6 +159,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private LocationListener locListener;
 
 	
+    
 	//stats
 //	; 
 	static int screenwidth = 300;
@@ -309,13 +314,15 @@ public class start extends MapActivity implements SensorEventListener,
 
 		// initialize the communication manager
 		acm = new FedOneCommunicationManager(this);
+		final EditText username = (EditText) findViewById(R.id.EditText02);
+		final EditText serverAddress = (EditText) findViewById(R.id.EditText03);
+		
 		// prompt for a login
 		Button button = (Button) findViewById(R.id.LoginButton);
 		button.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				// try to log the user in
-				EditText username = (EditText) findViewById(R.id.EditText02);
-				EditText serverAddress = (EditText) findViewById(R.id.EditText03);
+				
 				
 				if (username.getText().toString().equalsIgnoreCase("darkflame"))
 						{
@@ -331,6 +338,10 @@ public class start extends MapActivity implements SensorEventListener,
 			}
 
 		});
+		
+		// Get the user preferences
+	    setUpPreferances(username, serverAddress);
+		
 		// if the user doesn't login we only display the already cached data?
 
 		// setup the page with the wave list
@@ -364,6 +375,21 @@ public class start extends MapActivity implements SensorEventListener,
 		registerForContextMenu(waveListViewBox);
 		registerForContextMenu(arView);
 		
+	}
+
+	private void setUpPreferances(final EditText username,
+			final EditText serverAddress) {
+		SharedPreferences prefs = PreferenceManager
+	                    .getDefaultSharedPreferences(getBaseContext());
+	    	    
+		username.setText(prefs.getString("LoginName","demo"));
+		serverAddress.setText(prefs.getString("DefaultServer","atresica.nl"));
+		
+		//scenary on/off
+		Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);		
+		if (backgroundScenaryOn!=null){
+		arView.backgroundScenaryVisible = backgroundScenaryOn;
+		}
 	}
 
 	/**
@@ -883,6 +909,8 @@ int status, Bundle extras)
 		menu.add(0, MENU_REMOVESCENE,0, "ToggleScenary");
 		menu.add(0, MENU_OVERHEAD, 0, "Set Overhead");
 		
+		menu.add(0,MENU_PREFERANCES,0,"Preferances");
+		
 		if (adminmode){
 			menu.add(0, MENU_ADDSPINNINGTHING, 0, "Add BouncingThing");			
 		}
@@ -896,6 +924,16 @@ int status, Bundle extras)
 		
 		switch (item.getItemId()) {
 		
+		case MENU_PREFERANCES:
+			
+			Log.i("MENU", "loading preferances");
+			
+			Intent i = new Intent(this, MyPreferenceActivity.class);
+			i.putExtra("key", "value"); // FIXME: this really isn't needed
+			
+			startActivity(i);
+			
+			return true;
 					
 		case MENU_ADDTEST3DS:
 			
@@ -1142,7 +1180,7 @@ int status, Bundle extras)
 						Log.d("loading", "loading blips");
 	
 						//A list of sample markers down a street in tilburg! (please change if you wish to test more localy to you)
-						
+						/*
 						double blipDataX[] = { 51.560071,51.559150,51.558890,51.55839,51.55759,51.559230};
 						double blipDataY[] = { 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
 	
@@ -1166,12 +1204,41 @@ int status, Bundle extras)
 							}
 							i++;
 						}
-	
+						 */
 						//now remove one 
 						//Log.d("deleteing", "deleteing blips");
 						//arView.deleteBlip("NewTestBlip4");
+						/*
 						
+						//set clancys
+						ARBlip clancys = new ARBlip();
+						clancys.x = 51.557146;
+						clancys.y = 5.092139;
+						clancys.z = 40;
+						clancys.BlipID = "Clancys";
+						Log.i("creating", clancys.BlipID);
+						clancys.ObjectData = "Clancys Is Here!";
+						clancys.isFacingSprite=true;
 						
+						//set bertines and toms place
+						ARBlip OurPlace = new ARBlip();
+						OurPlace.x = 51.558493;
+						OurPlace.y = 5.077505;
+						OurPlace.z = 40;
+						OurPlace.BlipID = "OurPlace";
+						Log.i("creating", clancys.BlipID);
+						OurPlace.ObjectData = "Our Place!";
+						OurPlace.isFacingSprite=true;
+						
+						try {
+							arView.addBlip(clancys);
+							arView.addBlip(OurPlace);
+							
+						} catch (IOException e) {							
+							// addBlip can cause an error if it has a malformed url, or other problem loading a remote 3d file
+							e.printStackTrace();
+						}
+						*/
 					} else {
 						//Log.d("load", "not ready for blips");
 					}
@@ -1298,8 +1365,13 @@ int status, Bundle extras)
 		if (arView.CurrentMode==arView.EDIT_MODE){
 		return;
 	     }
+		
+		
 		//different menus for different situations
 		if (v==arView){			
+			
+			arView.isOnContextMenu = true;
+			
 			
 			if (arView.CurrentMode==arView.EDIT_END_FLAG){
 			
@@ -1311,6 +1383,11 @@ int status, Bundle extras)
 				
 				//if theres an existing blip to edit
 				if (arView.CurrentObject!=null){
+					
+
+					//set as being on the menu
+					
+					
 					menu.add(0, MENU_EDIT_BLIP, 0, R.string.arView_editBlip );	
 					menu.add(0, MENU_DELETE_BLIP, 0, R.string.arView_deleteBlip);	
 				}
@@ -1331,6 +1408,10 @@ int status, Bundle extras)
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
+		
+		//we know its now off the context menu
+		arView.isOnContextMenu = false;
+		
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
 		switch (item.getItemId()) {
@@ -1365,7 +1446,7 @@ int status, Bundle extras)
 			return true;
 
 		case ADD_ARBLIP_ID:
-
+			  
 			//not used at the moment (blips created from ar view)
 			
 			//Intent i = new Intent(this, ARBlipAddingView.class);
@@ -1397,11 +1478,14 @@ int status, Bundle extras)
 			return true;
 			
 		case ADD_ARBLIPFROMARVIEW_ID:
+
 			
 			arView.createBlipInFrontOfCamera();			
 			return true;
 		
 		case MENU_CONFIRM_BLIP:
+			
+			
 			arView.confirmObjectCreation();
 			return true;
 			
@@ -1413,8 +1497,7 @@ int status, Bundle extras)
 			
 			if ((arView.CurrentMode==arView.EDIT_MODE)||(arView.CurrentMode==arView.EDIT_END_FLAG)){
 			arView.cancelObjectCreation();
-			}
-			
+			} 
 			return true;
 		
 		}

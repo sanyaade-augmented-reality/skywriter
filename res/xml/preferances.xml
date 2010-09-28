@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    
+   <PreferenceCategory android:title="3D Scene options">
+        <CheckBoxPreference android:title="Scenary On" android:defaultValue="true" android:key="Scenary_On" android:summary="(Turn the grass/tree's on/off)"></CheckBoxPreference>
+
+                
+    
+<ListPreference android:title="BillBoard Scaleing" android:key="BillBoard_Scaleing" android:entryValues="@array/BillboardScaleingKeys" android:entries="@array/BillboardScaleing" android:summary="Options for how billboards scale with distance." android:enabled="false"></ListPreference>
+</PreferenceCategory>
+    
+    <PreferenceCategory android:title="Wave Options">
+    
+     Password<PreferenceScreen android:title="Advanced Options">
+     
+        Password<CheckBoxPreference
+                android:key="Advanced_Option"
+                android:title="Advanced Option"
+                android:defaultValue="true"
+                android:summary="SUMMARY_Advanced_Option"/>
+                
+     </PreferenceScreen>           
+
+           
+        <EditTextPreference  android:key="LoginName" android:defaultValue="demo" android:title="Login Name" android:summary="You can set a default login name here" android:dialogMessage="Please type your login name;" android:dialogTitle="Default Login"/><EditTextPreference android:key="LoginPassword" android:title="Login Password" android:defaultValue="no password support yet" android:summary="You can set a default pass here" android:dialogMessage="(passwords not supported yet)" android:dialogTitle="Default Password"/>      
+                             
+                              
+                                                              
+    <EditTextPreference android:key="DefaultServer" android:summary="You can set a default server here" android:title="Default Server" android:defaultValue="atresica.nl" android:dialogMessage="Please type the default FedOne server" android:dialogTitle="Default Server"/></PreferenceCategory>
+  
+  
+</PreferenceScreen>
