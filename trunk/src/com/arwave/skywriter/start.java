@@ -946,6 +946,8 @@ int status, Bundle extras)
 			testblip.ObjectData = "http://www.atresica.nl/images/largebuilding/building.3DS";
 			testblip.MIMEtype = "application/x-3ds";
 			 		
+			Log.i("3ds", "serialised="+testblip.serialise());
+			
 			ARBlip testblip2 = new ARBlip();
 			testblip2.x = 51.558393;
 			testblip2.y = 5.077996;
