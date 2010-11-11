@@ -7,7 +7,7 @@
 <string name="username">Username :</string>
 <string name="Server">Server :</string>
 <string name="defaultServer">atresica.nl</string>
-<string name="defaultUsername">demo@atresica.nl</string>
+<string name="defaultUsername">demo_atresica.nl</string>
 <string name="defaultPassword">temppassword</string>
 <string name="messages">What happens goes here</string>
 <string name="latitudeText">Latitude: </string>
@@ -28,4 +28,7 @@
 <string name="arView_ConfirmBlipPlacement">Confirm Blip</string>
 <string name="arView_CancelBlipPlacement">Cancel Blip</string>
 <string name="arView_ContinueBlipPlacement">Continue Editing</string>
+<string name="createWave">Create New Wave</string>
+
+
 </resources>
