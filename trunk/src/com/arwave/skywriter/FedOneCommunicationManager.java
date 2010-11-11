@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.waveprotocol.wave.examples.fedone.common.DocumentConstants;
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
@@ -33,6 +34,8 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 
 import android.util.Log;
 import android.widget.Toast;
+
+import org.waveprotocol.wave.examples.fedone.util.BlockingSuccessFailCallback;
 import org.waveprotocol.wave.examples.fedone.util.SuccessFailCallback;
 /**
  * @author Davide
@@ -55,6 +58,14 @@ public class FedOneCommunicationManager implements
 	
 	FedOneCommunicationManager( start s ) {
 		mainWindow = s;
+	}
+	
+	
+	/*
+	 * check if the client is actually connected
+	 */
+	public boolean isConnected() {
+		return backend != null;
 	}
 	
 	
@@ -177,8 +188,10 @@ public class FedOneCommunicationManager implements
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#createWave(java.lang.String)
 	 */
 	public void createWave(String waveTitle) {
-		// TODO Auto-generated method stub
-
+		BlockingSuccessFailCallback<ProtocolSubmitResponse, String> callback =
+				BlockingSuccessFailCallback.create();
+		backend.createConversationWave(callback);
+		callback.await(60, TimeUnit.SECONDS ); //one minute
 	}
 
 	/* (non-Javadoc)

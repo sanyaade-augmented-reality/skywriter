@@ -140,6 +140,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_OVERHEAD = 5;
 	private static final int MENU_ADDSPINNINGTHING =6;
 	private static final int MENU_PREFERANCES =7;
+	private static final int MENU_NEW_WAVE =8;
 	
 	// Matrix tempR = new Matrix();
 	float RTmp[] = new float[9];
@@ -382,8 +383,8 @@ public class start extends MapActivity implements SensorEventListener,
 		SharedPreferences prefs = PreferenceManager
 	                    .getDefaultSharedPreferences(getBaseContext());
 	    	    
-		username.setText(prefs.getString("LoginName","demo"));
-		serverAddress.setText(prefs.getString("DefaultServer","atresica.nl"));
+		username.setText(prefs.getString("LoginName","demo@arwave.org"));
+		serverAddress.setText(prefs.getString("DefaultServer","192.168.1.104"));
 		
 		//scenary on/off
 		Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);		
@@ -908,7 +909,7 @@ int status, Bundle extras)
 		menu.add(0, MENU_ADDTEST3DS,0,  "Test3DSLoad");
 		menu.add(0, MENU_REMOVESCENE,0, "ToggleScenary");
 		menu.add(0, MENU_OVERHEAD, 0, "Set Overhead");
-		
+		menu.add(0, MENU_NEW_WAVE, 0, "Create a new wave");
 		menu.add(0,MENU_PREFERANCES,0,"Preferances");
 		
 		if (adminmode){
@@ -1150,6 +1151,18 @@ int status, Bundle extras)
 		
 					blah.schedule(meep, 0, 500);
 					
+			
+			return true;
+			
+		case MENU_NEW_WAVE:
+			
+			if( acm.isConnected() ) {
+				acm.createWave(""); //title is not used so far
+			}
+			else {
+				//popup an error toast
+				Toast.makeText(getApplicationContext(), " You need to be connected in order to create a new wave. Log in first and then retry ", Toast.LENGTH_LONG).show();
+			}
 			
 			return true;
 		}

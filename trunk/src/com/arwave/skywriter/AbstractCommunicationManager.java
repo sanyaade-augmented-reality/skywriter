@@ -16,5 +16,6 @@ public interface AbstractCommunicationManager {
 	public void ARBlipUpdated();
 	public void ARBlipInserted();
 	public ArrayList<Blip> getBlips(String waveID);
+	public boolean isConnected();
 	
 }
