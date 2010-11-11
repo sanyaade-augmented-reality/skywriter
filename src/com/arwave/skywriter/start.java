@@ -47,6 +47,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -346,7 +347,7 @@ public class start extends MapActivity implements SensorEventListener,
 		// if the user doesn't login we only display the already cached data?
 
 		// setup the page with the wave list
-		FrameLayout wavesListPage = (FrameLayout) findViewById(R.id.WavePage);
+	    LinearLayout wavesListPage = (LinearLayout) findViewById(R.id.WaveListBox);
 
 		waveListViewBox = new WaveListView(this);
 
@@ -371,6 +372,29 @@ public class start extends MapActivity implements SensorEventListener,
 		 * });
 		 */
 
+		//create wave button
+		Button CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton);
+		CreateWaveButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				//create a new wave if logged in
+				if( acm.isConnected() ) {
+					acm.createWave(""); //title is not used so far
+				}
+				else {
+					//popup an error toast
+					Toast.makeText(getApplicationContext(), " You need to be connected in order to create a new wave. Log in first and then retry ", Toast.LENGTH_LONG).show();
+				}
+				
+			}
+
+		});
+		
+		/*
+		Location tempLocation = new Location("");
+		tempLocation.setLatitude(50.0000);
+		tempLocation.setLatitude(5.000);		
+		useLocation(tempLocation);
+		*/
 		
 		// add a context menu to the list of waves
 		registerForContextMenu(waveListViewBox);
@@ -909,7 +933,7 @@ int status, Bundle extras)
 		menu.add(0, MENU_ADDTEST3DS,0,  "Test3DSLoad");
 		menu.add(0, MENU_REMOVESCENE,0, "ToggleScenary");
 		menu.add(0, MENU_OVERHEAD, 0, "Set Overhead");
-		menu.add(0, MENU_NEW_WAVE, 0, "Create a new wave");
+		//menu.add(0, MENU_NEW_WAVE, 0, "Create a new wave");
 		menu.add(0,MENU_PREFERANCES,0,"Preferances");
 		
 		if (adminmode){
@@ -1010,8 +1034,7 @@ int status, Bundle extras)
 	                	 
 	         			
 	                	 //update	                	 
-	                		try {
-								
+	                		try {								
 	                			arView.addBlip(testblip);
 								
 							} catch (IOException e) {
@@ -1154,17 +1177,6 @@ int status, Bundle extras)
 			
 			return true;
 			
-		case MENU_NEW_WAVE:
-			
-			if( acm.isConnected() ) {
-				acm.createWave(""); //title is not used so far
-			}
-			else {
-				//popup an error toast
-				Toast.makeText(getApplicationContext(), " You need to be connected in order to create a new wave. Log in first and then retry ", Toast.LENGTH_LONG).show();
-			}
-			
-			return true;
 		}
 			
 			
