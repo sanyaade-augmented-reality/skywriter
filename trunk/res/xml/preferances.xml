@@ -8,6 +8,7 @@
                 
     
 <ListPreference android:title="BillBoard Scaleing" android:key="BillBoard_Scaleing" android:entryValues="@array/BillboardScaleingKeys" android:entries="@array/BillboardScaleing" android:summary="Options for how billboards scale with distance." android:enabled="false"></ListPreference>
+<CheckBoxPreference android:summary="This might fix camera rotation problems on some phones" android:key="Portrait_Camera" android:defaultValue="false" android:title="Portrait Mode Camera"></CheckBoxPreference>
 </PreferenceCategory>
     
     <PreferenceCategory android:title="Wave Options">
