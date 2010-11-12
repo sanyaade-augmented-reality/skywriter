@@ -54,6 +54,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TabHost;
+import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -222,7 +223,15 @@ public class start extends MapActivity implements SensorEventListener,
 				res.getDrawable(R.drawable.eye)).setContent(
 				R.id.add_arblip_layout);
 
+		
 		tabHost.addTab(spec);
+		
+		tabHost.getTabWidget().getChildTabViewAt(1).setEnabled(false);
+		tabHost.getTabWidget().getChildTabViewAt(1).setVisibility(TabWidget.INVISIBLE);
+		tabHost.getTabWidget().getChildTabViewAt(3).setEnabled(false);
+		tabHost.getTabWidget().getChildTabViewAt(3).setVisibility(TabWidget.INVISIBLE);
+		
+		
 
 		// size height
 		// tabHost.getTabWidget().getLayoutParams().height=60;
@@ -343,6 +352,13 @@ public class start extends MapActivity implements SensorEventListener,
 				// (EditText)findViewById(R.id.serverPortEdit);
 				acm.login(serverAddress.getText().toString(), 9876, username
 						.getText().toString(), new String(""));
+				
+				//enable wave list
+				tabHost.getTabWidget().getChildTabViewAt(1).setEnabled(true);
+				tabHost.getTabWidget().getChildTabViewAt(1).setVisibility(TabWidget.VISIBLE);
+				tabHost.getTabWidget().getChildTabViewAt(3).setEnabled(true);
+				tabHost.getTabWidget().getChildTabViewAt(3).setVisibility(TabWidget.VISIBLE);
+				
 				tabHost.setCurrentTab(2);
 			}
 
@@ -760,7 +776,7 @@ int status, Bundle extras)
 				Camera.Parameters parameters = camera.getParameters();
 		       // parameters.setPictureFormat(PixelFormat.JPEG); 
 		       parameters.set("orientation", "portrait");
-		       // parameters.setRotation(cameraRotationCorrection);
+		       parameters.setRotation(cameraRotationCorrection);
 		        camera.setParameters(parameters);
 				}
 				
@@ -1403,7 +1419,12 @@ int status, Bundle extras)
 		for (int i = 0; i < list.length; i++) {
 			Log.i("wavelist", list[i]);
 			// usersWavesList.add(i+"_"+list[i]);
+			
+			//only add if it doesnt start with index wave
+			if (!(list[i].startsWith("indexwave!"))){
 			usersWavesList.add(list[i]);
+			}
+			
 		}
 
 		// request the update to the list
