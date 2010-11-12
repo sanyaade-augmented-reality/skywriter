@@ -19,6 +19,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -231,7 +236,9 @@ public class start extends MapActivity implements SensorEventListener,
 
 		
 		
-		cameraView = new CameraView(this);		
+		cameraView = new CameraView(this);	
+		//cameraView.cameraRotationCorrection = 90;
+		
 		arView = new ARBlipView(getApplication());
 
 		mapView = new StaticMapFetcher(this,"0Dp54Hi6UDERButbqe8rGJ5LDYZdpHi_dAGsDGQ");
@@ -414,6 +421,12 @@ public class start extends MapActivity implements SensorEventListener,
 		Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);		
 		if (backgroundScenaryOn!=null){
 		arView.backgroundScenaryVisible = backgroundScenaryOn;
+		}
+		
+		//camera portrate mode on/off
+		Boolean cameraPortraiteMode = prefs.getBoolean("Portrait_Camera", false);		
+		if (backgroundScenaryOn!=null){
+		cameraView.PortrateCameraMode = cameraPortraiteMode;
 		}
 	}
 
@@ -633,8 +646,7 @@ int status, Bundle extras)
 	}
 
 	/** turns to the addblip page with the location set so the user can simply enter text
-	 * and create a new blip. 
-	 * In future this should also auto-set the rotation **/
+	 * and create a new blip.  **/
 	public static void sendToAddBlipPage(ARBlip newblip){
 		
 		String id ="0";
@@ -697,10 +709,15 @@ int status, Bundle extras)
 	
 	class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
+		public boolean PortrateCameraMode = false;
+		
 		// ARExplorer app;
 		SurfaceHolder holder;
 		private android.hardware.Camera camera;
-
+		private int cameraRotationCorrection = 90;
+		
+		private Matrix mForward = new Matrix(); 
+		
 		CameraView(Context context) {
 			super(context);
 
@@ -710,11 +727,17 @@ int status, Bundle extras)
 				holder = getHolder();
 				holder.addCallback(this);
 				holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+				
+				
 			} catch (Exception ex) {
 
 			}
+					
 		}
-
+		
+		 
+		 
+		 
 		public void surfaceCreated(SurfaceHolder holder) {
 			try {
 				if (camera != null) {
@@ -731,7 +754,19 @@ int status, Bundle extras)
 
 				camera = android.hardware.Camera.open();
 				
+				
+				
+				if (PortrateCameraMode){
+				Camera.Parameters parameters = camera.getParameters();
+		       // parameters.setPictureFormat(PixelFormat.JPEG); 
+		       parameters.set("orientation", "portrait");
+		       // parameters.setRotation(cameraRotationCorrection);
+		        camera.setParameters(parameters);
+				}
+				
+				//2.2 only;
 				//camera.setDisplayOrientation(90);
+							
 				
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
@@ -751,7 +786,10 @@ int status, Bundle extras)
 
 				}
 			}
+			
 		}
+		
+
 
 		public void surfaceDestroyed(SurfaceHolder holder) {
 			try {
@@ -771,6 +809,8 @@ int status, Bundle extras)
 			}
 		}
 
+		
+		
 		public void surfaceChanged(SurfaceHolder holder, int format, int w,
 				int h) {
 			try {
