@@ -28,6 +28,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -316,14 +317,22 @@ public class start extends MapActivity implements SensorEventListener,
 		
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		if (loc == null) {
+			  // Fall back to coarse location.
+			  loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		}
+
 		useLocation(loc);
 		
 		
 		locListener = new LocListener();				
 		
-		
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_COARSE);  // Faster, no GPS fix.
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);  // More accurate, GPS fix.
+
 //		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 500.0f, locListener);
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
+		lm.requestLocationUpdates(lm.getBestProvider(criteria, true), 0, 0, locListener);
 		
 	
 		
@@ -540,7 +549,11 @@ int status, Bundle extras)
 
 		sensorMgr.registerListener(this, sensorOri, SENSOR_DELAY_FASTEST);
 		
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_COARSE);  // Faster, no GPS fix.
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);  // More accurate, GPS fix.
+
+		lm.requestLocationUpdates(lm.getBestProvider(criteria, true), 0, 0, locListener);
 
 	}
 
@@ -781,7 +794,7 @@ int status, Bundle extras)
 				}
 				
 				//2.2 only;
-				//camera.setDisplayOrientation(90);
+				camera.setDisplayOrientation(90);
 							
 				
 				camera.setPreviewDisplay(holder);
