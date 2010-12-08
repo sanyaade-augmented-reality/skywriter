@@ -175,7 +175,7 @@ public class start extends MapActivity implements SensorEventListener,
 	static int screenheight = 400;
 	
 	//admin mode (used for debuging)
-	private boolean adminmode = false;
+	private boolean adminmode =  true; //false;
 	
 	// Need handler for callbacks to the UI thread
     final public static Handler mHandler = new Handler();
@@ -351,7 +351,7 @@ public class start extends MapActivity implements SensorEventListener,
 				// try to log the user in
 				
 				
-				if (username.getText().toString().equalsIgnoreCase("darkflame"))
+				if (username.getText().toString().equalsIgnoreCase("demo"))
 						{
 					         adminmode = true;
 					         
@@ -659,12 +659,13 @@ int status, Bundle extras)
 	public void addTestBlip() {
 
 		ARBlip testblip = new ARBlip();
-		testblip.x = (Math.random() * 500);
-		testblip.y = (Math.random() * 500);
-		testblip.z = -100;
-		testblip.BlipID = "TestBlip";
+		testblip.x = 51.560286+(Math.random() * 0.0001);
+		testblip.y = 5.078049+(Math.random() * 0.0001);		
+		testblip.z = 10;
+		testblip.BlipID = "TestBlip"+ (int) (Math.random() * 10);
 		testblip.ObjectData = "Test-" + (int) (Math.random() * 10);
-
+		testblip.isFacingSprite=true;
+		
 		try {
 			arView.addBlip(testblip);
 		} catch (IOException e) {
@@ -794,7 +795,7 @@ int status, Bundle extras)
 				}
 				
 				//2.2 only;
-				camera.setDisplayOrientation(90);
+				//camera.setDisplayOrientation(90);
 							
 				
 				camera.setPreviewDisplay(holder);
@@ -1195,14 +1196,28 @@ int status, Bundle extras)
 		
 		case MENU_ADDSPINNINGTHING:
 			
+		//	this.addTestBlip();
 			
-			//add a bouncing cone at the current location.
+			//add a spinning christmass tree	
 			
+			/*
+			ARBlip testcone = new ARBlip();
+			testcone.x =  currentLocation.getLatitude();			
+			testcone.y = currentLocation.getLongitude();
+			testcone.z = 10+(int)(Math.random() * 10);
+			testcone.BlipID = "conetest";
+			testcone.ObjectData = "Test - meep meep";
+			testcone.MIMEtype = "Primative_Bounceing_Cone";
+			testcone.isFacingSprite=true;
 			
-				
-				
-
-				Timer blah = new Timer();
+			try {
+				arView.addBlip(testcone);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				Log.e("adding test",e.getMessage()); 
+			}
+		*/
+			Timer blah = new Timer();
 		
 				TimerTask meep = new TimerTask(){
 					int angle = 15;
@@ -1210,40 +1225,45 @@ int status, Bundle extras)
 					@Override
 					public void run() {
 						
-						angle=angle+25;
+						angle=angle+20;
 						if (angle>360){
 							angle = angle-360;
 						}
 						
-						height = (int) (60.0+(Math.sin(Math.toRadians(angle))*20));
+						//height = (int) (60.0+(Math.sin(Math.toRadians(angle))*20));
 												
 						ARBlip testblip1 = new ARBlip();
 						testblip1.x =  currentLocation.getLatitude();
 						testblip1.y =  currentLocation.getLongitude();
-						testblip1.z =  height;
-						testblip1.roll = 180;
+						testblip1.z =  10;
+						testblip1.baring  = angle;
 						testblip1.BlipID = "_BOUNCEINGTHING_";
 						
 						Log.i("add","creating bouncing thing "+testblip1.BlipID);
 						
 						testblip1.ObjectData = "_FIXEDID_TEMP_SOLUTION_"; //ugly, need a real blip ID from submitted blips
 						
-						testblip1.MIMEtype = "Primative_Bounceing_Cone";
+						testblip1.MIMEtype = "Primative_Bounceing_Cube";
 						
 						//delete old
+						try {
+							arView.addBlip(testblip1);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						
 						arView.deleteBlip("_FIXEDID_TEMP_SOLUTION_");
 						
 						//acm.deleteARBlip(testblip1.serialise());
 						//post it again (we hope)
-						acm.addARBlip(testblip1.serialise());
+					//	acm.addARBlip(testblip1.serialise()); // if this was a real addblip function, the server would be updated with this function
 						
 						
 					}};
 		
 					blah.schedule(meep, 0, 500);
 					
-			
 			return true;
 			
 		}
