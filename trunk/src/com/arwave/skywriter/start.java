@@ -48,17 +48,20 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.OnTabChangeListener;
 
 import com.google.android.maps.MapActivity;
@@ -91,7 +94,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static AbstractCommunicationManager acm;
 
 	// screen views
-	static ARBlipView arView;
+	static ARWaveView arView;
 	CameraView cameraView;
 	
 	FrameLayout arBackground;
@@ -227,8 +230,8 @@ public class start extends MapActivity implements SensorEventListener,
 		
 		tabHost.addTab(spec);
 		
-		tabHost.getTabWidget().getChildTabViewAt(1).setEnabled(false);
-		tabHost.getTabWidget().getChildTabViewAt(1).setVisibility(TabWidget.INVISIBLE);
+		//tabHost.getTabWidget().getChildTabViewAt(1).setEnabled(false);
+		//tabHost.getTabWidget().getChildTabViewAt(1).setVisibility(TabWidget.INVISIBLE);
 		tabHost.getTabWidget().getChildTabViewAt(3).setEnabled(false);
 		tabHost.getTabWidget().getChildTabViewAt(3).setVisibility(TabWidget.INVISIBLE);
 		
@@ -249,7 +252,7 @@ public class start extends MapActivity implements SensorEventListener,
 		cameraView = new CameraView(this);	
 		//cameraView.cameraRotationCorrection = 90;
 		
-		arView = new ARBlipView(getApplication());
+		arView = new ARWaveView(getApplication());
 
 		mapView = new StaticMapFetcher(this,"0Dp54Hi6UDERButbqe8rGJ5LDYZdpHi_dAGsDGQ");
 	//	mapView.setBackgroundColor(Color.GREEN);
@@ -380,9 +383,11 @@ public class start extends MapActivity implements SensorEventListener,
 
 		// setup the page with the wave list
 	    LinearLayout wavesListPage = (LinearLayout) findViewById(R.id.WaveListBox);
-
+	     
 		waveListViewBox = new WaveListView(this);
-
+		waveListViewBox.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		waveListViewBox.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+		
 		// wavesListPage.removeAllViews();
 		wavesListPage.addView(waveListViewBox);
 
@@ -390,9 +395,35 @@ public class start extends MapActivity implements SensorEventListener,
 		usersWavesList = new ArrayList<String>();
 		// usersWavesList.add("wave list not updated");
 		usersWaveListAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, usersWavesList);
+				android.R.layout.simple_list_item_multiple_choice, usersWavesList);
+		
 		waveListViewBox.setAdapter(usersWaveListAdapter);
-
+		usersWavesList.add("Background"); //default background wave
+		waveListViewBox.invalidate();
+		waveListViewBox.setItemChecked(0, true);
+		waveListViewBox.setOnItemClickListener(new OnItemClickListener(){
+			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+					long arg3) {
+				
+				//one of the wave check boxs has changed,so find out which
+				String WaveID = waveListViewBox.getItemAtPosition(arg2).toString(); //<---This really needs to be improved, the waveID should be stored somehow so we can use proper labels
+				Log.i("wavelist","changing wave:"+WaveID);
+								
+				//set boolean to its checked state
+				Boolean isVisible = waveListViewBox.isItemChecked(arg2);
+				
+				//toggle visibility (only has effect if wave is already open)
+				arView.setWaveVisiblity(WaveID, isVisible);
+				
+				
+				
+				//else we load it, setting it also as the current wave
+				
+				
+			}
+			
+		});
+		
 		/*
 		 * /add a listener for user selection
 		 * waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
@@ -1250,7 +1281,7 @@ int status, Bundle extras)
 							arView.addBlip(testblip1);
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
-							e.printStackTrace();
+							Log.e("error", e.getMessage());
 						}
 						
 						arView.deleteBlip("_FIXEDID_TEMP_SOLUTION_");

@@ -15,7 +15,14 @@ public class ARBlipObject {
 		this.object3d = object3d;
 		
 	}
-	
+	/** *Creates a Object3D with no real/specified ARBlip...this is used for internal creation (background elements etc)*/
+	public ARBlipObject(Object3D object3d){
+		
+		this.arblip = new ARBlip();
+		this.arblip.BlipID = object3d.getName();
+		this.object3d = object3d;
+		
+	}
 	
 	
 }
