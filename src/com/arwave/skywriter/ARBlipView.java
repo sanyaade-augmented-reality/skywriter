@@ -49,9 +49,9 @@ import com.threed.jpct.World;
 public class ARBlipView extends GLSurfaceView {
 
 	// The Real Location of the device when this surface was loaded
-	public Location startingLocation;
+	static public Location startingLocation;
 	// the current real location of the camera
-	public Location currentRealLocation;
+	static public Location currentRealLocation;
 
 	// our world, to which we add stuff
 	private World world = null;
@@ -68,12 +68,24 @@ public class ARBlipView extends GLSurfaceView {
 	// renderer
 	MyRenderer renderer = null;
 
-	private FrameBuffer fb = null;
+	private static FrameBuffer fb = null;
 
 	// internal list of ARBlip objects
-	ArrayList<ARBlip> scenesBlips = new ArrayList<ARBlip>();
-	ArrayList<Object3D> scenesObjects = new ArrayList<Object3D>();
-
+	
+	// (the following two have been combined to thye ARBlipObject format)
+	//ArrayList<ARBlip> scenesBlips = new ArrayList<ARBlip>();
+	//ArrayList<Object3D> scenesObjects = new ArrayList<Object3D>();
+	
+	// The scenes current list of ARBlipObjects
+	// This changes based on what wave is open. 
+	
+	// THIS SHOULD BE REPLACED WITH THE CURRENTACTIVELAYERS blip list	
+	//ArrayList<ARBlipObject> scenesARBlipObjects = new ArrayList<ARBlipObject>();
+	
+	//Array containing all the layers open (hidden or not)
+	static ArrayList<ARWaveLayer> AllLayersOpen = new ArrayList<ARWaveLayer>();
+	static ARWaveLayer CurrentActiveLayer;
+	
 	// generic font
 	private GLFont glFont;
 	static final Paint paint = new Paint();
@@ -171,6 +183,12 @@ public class ARBlipView extends GLSurfaceView {
 		paint.setTextSize(16);
 		glFont = new GLFont(paint);
 
+		//set up default layer
+		CurrentActiveLayer = new ARWaveLayer(); //we start with a default blank layer untill one is selected
+		CurrentActiveLayer.ARWaveLayerName = "DefaultLayer"; //The default layer contains the default landscape, and other test and interface objects not tied to "real" waves on a server
+		AllLayersOpen.add(CurrentActiveLayer);
+		
+		
 	}
 
 	/*
@@ -615,7 +633,6 @@ public class ARBlipView extends GLSurfaceView {
 	public void deleteBlip(String BlipsID) {
 
 		Log.d("deleteing", "deleteing blips2");
-
 		// ensure it exists and isn't already in delete queue
 		if (this.isBlipInScene(BlipsID) == true
 				&& (!deleteQueue.contains(deleteQueue))) {
@@ -627,21 +644,20 @@ public class ARBlipView extends GLSurfaceView {
 
 			// remove it from storage
 
-			Iterator<ARBlip> it = scenesBlips.iterator();
+			Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects.iterator();
 			while (it.hasNext()) {
-				ARBlip currentBlip = it.next();
+				ARBlip currentBlip = it.next().arblip;
 				if (currentBlip.BlipID.equals(BlipsID)) {
 
-					scenesBlips.remove(currentBlip);
-
+					//deletes object from storage
+					//scenesARBlipObjects.remove(currentBlip);
+					CurrentActiveLayer.LayersObjects.remove(currentBlip);
 				}
 
 			}
 
-			Log.d("deleteing", "deleteing blips3");
-
-			// remove from scene objects
-			scenesObjects.remove(object);
+						// remove from scene objects
+			//scenesObjects.remove(object); //(not need anymore)
 
 			Log.d("deleteing", "deleteing blips4");
 
@@ -670,9 +686,6 @@ public class ARBlipView extends GLSurfaceView {
 
 
 			Object3D meep = world.getObjectByName(BlipsID);
-
-
-
 			deleteQueue.add(meep);// <--causes a crash later :-/
 
 
@@ -847,7 +860,8 @@ public class ARBlipView extends GLSurfaceView {
 
 	}
 
-	/** adds a new ARBlip to the scene **/
+	/** adds a new ARBlip to the currently active ARWaveLayer 
+	 *  (currently there is only one ARWaveLayer) **/
 	/**
 	 * @throws IOException
 	 **/
@@ -1006,6 +1020,14 @@ public class ARBlipView extends GLSurfaceView {
 				// rotate it io
 				//newmarker.rotateX(-(float) Math.PI / 2);
 
+			} else if (newblip.MIMEtype.equalsIgnoreCase("Primative_Bounceing_Cube")) {
+
+				// load 3d model
+
+				newmarker = Primitives.getCube(5);
+				// rotate it io
+				//newmarker.rotateX(-(float) Math.PI / 2);
+
 			} else {
 				// if no recognised type, then we assume its a billboard with
 				// text
@@ -1103,12 +1125,13 @@ public class ARBlipView extends GLSurfaceView {
 			// add object+blip to internal lists (was going to use the built in
 			// getObjectByName, but seems to crash)
 
-			scenesBlips.add(newblip);
-			scenesObjects.add(newmarker);
-			// (Note these two should never go out of sycn! If a blip is in the
-			// scene, then so should its object.
+			CurrentActiveLayer.LayersObjects.add(new ARBlipObject(newblip,newmarker));
+			//scenesBlips.add(newblip);
+			//scenesObjects.add(newmarker);			
+		
 			// Later when we introduce layers we might need to change this
 			// system to something better.
+			
 		}
 
 	}
@@ -1155,7 +1178,7 @@ public class ARBlipView extends GLSurfaceView {
 	}
 
 	/** updates a texture to a bit of text **/
-	private void updatedTexture(String Texturename, String text) {
+	public static void updatedTexture(String Texturename, String text) {
 
 		Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
 
@@ -1211,7 +1234,7 @@ public class ARBlipView extends GLSurfaceView {
 	 * returns the closest power of two that is equal or greater than given
 	 * number (good for textures!
 	 */
-	private int closestTwoPower(int i) {
+	private static int closestTwoPower(int i) {
 		int power = 1;
 		while (power < i) {
 			power <<= 1;
@@ -1270,11 +1293,11 @@ public class ARBlipView extends GLSurfaceView {
 
 	public boolean isBlipInScene(String BlipsID) {
 
-		Log.i("blip","checking for "+BlipsID+" in scene");
+		Log.i("blip","checking for "+BlipsID+" in current active layer");
 
-		Iterator<ARBlip> it = scenesBlips.iterator();
+		Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects.iterator();
 		while (it.hasNext()) {
-			String currentID = it.next().BlipID;
+			String currentID = it.next().arblip.BlipID;
 			Log.i("check","checking for "+BlipsID+" against "+currentID);
 
 			if (currentID.equals(BlipsID)) {
@@ -1288,11 +1311,11 @@ public class ARBlipView extends GLSurfaceView {
 	/** returns a blip from a blipID **/
 	public ARBlip getBlipFromScene(String BlipsID) {
 
-		Log.i("blip","checking for "+BlipsID+" in scene");
+		Log.i("blip","checking for "+BlipsID+" in current active layer");
 
-		Iterator<ARBlip> it = scenesBlips.iterator();
+		Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects.iterator();
 		while (it.hasNext()) {
-			ARBlip currentblip = it.next();
+			ARBlip currentblip = it.next().arblip;
 			String currentID = currentblip.BlipID;
 			Log.i("check","checking for "+BlipsID+" against "+currentID);
 
@@ -1338,6 +1361,8 @@ public class ARBlipView extends GLSurfaceView {
 
 	public void setBackgroundScenary(Boolean backgroundScenaryVisible){
 
+		AllLayersOpen.get(0).setVisible(backgroundScenaryVisible); // zero is always the local background scenary
+		
 		groundPlane.setVisibility(backgroundScenaryVisible);
 		rock.setVisibility(backgroundScenaryVisible);
 		tree1.setVisibility(backgroundScenaryVisible);

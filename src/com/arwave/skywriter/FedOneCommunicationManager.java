@@ -364,6 +364,11 @@ public class FedOneCommunicationManager implements
 	protected void renderDocument(BufferedDocOp document, final StringBuilder blipsText, final String BlipsID) {
 		//final StringBuilder blipText = new StringBuilder();
 		
+		//quick check for null (empty) document.
+		if (document==null){
+			return;
+		}
+		
 	
 		document.apply(new InitializationCursorAdapter(
 		        new DocInitializationCursor() {
