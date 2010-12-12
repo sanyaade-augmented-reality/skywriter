@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.waveprotocol.wave.examples.fedone.common.DocumentConstants;
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
+import org.waveprotocol.wave.examples.fedone.util.BlockingSuccessFailCallback;
+import org.waveprotocol.wave.examples.fedone.util.SuccessFailCallback;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientBackend;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientUtils;
 import org.waveprotocol.wave.examples.fedone.waveclient.common.ClientWaveView;
@@ -35,8 +37,6 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.waveprotocol.wave.examples.fedone.util.BlockingSuccessFailCallback;
-import org.waveprotocol.wave.examples.fedone.util.SuccessFailCallback;
 /**
  * @author Davide
  *

@@ -3,7 +3,7 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
     
    <PreferenceCategory android:title="3D Scene options">
-        <CheckBoxPreference android:title="Scenary On" android:defaultValue="true" android:key="Scenary_On" android:summary="(Turn the grass/tree's on/off)"></CheckBoxPreference>
+        <CheckBoxPreference android:defaultValue="true" android:key="Scenary_On" android:summary="(Turn the grass/tree's on/off)" android:title="Scenary on by default"></CheckBoxPreference>
 
                 
     

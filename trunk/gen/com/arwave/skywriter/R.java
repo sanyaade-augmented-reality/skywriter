@@ -56,21 +56,26 @@ public final class R {
         public static final int main=0x7f030003;
     }
     public static final class raw {
-        public static final int grass=0x7f050000;
-        public static final int grassy=0x7f050001;
-        public static final int numbers=0x7f050002;
-        public static final int planetex=0x7f050003;
-        public static final int rock=0x7f050004;
-        public static final int rocky=0x7f050005;
-        public static final int sergrass=0x7f050006;
-        public static final int serplane=0x7f050007;
-        public static final int serrock=0x7f050008;
-        public static final int sertree1=0x7f050009;
-        public static final int sertree2=0x7f05000a;
-        public static final int tree2=0x7f05000b;
-        public static final int tree2y=0x7f05000c;
-        public static final int tree3=0x7f05000d;
-        public static final int tree3y=0x7f05000e;
+        public static final int atmosphere=0x7f050000;
+        public static final int atmosphere2=0x7f050001;
+        public static final int cmtree=0x7f050002;
+        public static final int ct=0x7f050003;
+        public static final int grass=0x7f050004;
+        public static final int grassy=0x7f050005;
+        public static final int numbers=0x7f050006;
+        public static final int planetex=0x7f050007;
+        public static final int rock=0x7f050008;
+        public static final int rocky=0x7f050009;
+        public static final int sergrass=0x7f05000a;
+        public static final int serplane=0x7f05000b;
+        public static final int serrock=0x7f05000c;
+        public static final int sertree1=0x7f05000d;
+        public static final int sertree2=0x7f05000e;
+        public static final int snw=0x7f05000f;
+        public static final int tree2=0x7f050010;
+        public static final int tree2y=0x7f050011;
+        public static final int tree3=0x7f050012;
+        public static final int tree3y=0x7f050013;
     }
     public static final class string {
         public static final int Server=0x7f070005;
