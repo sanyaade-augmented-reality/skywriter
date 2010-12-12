@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.util.Log;
 
 import com.threed.jpct.Loader;
@@ -16,6 +19,7 @@ import com.threed.jpct.Matrix;
 import com.threed.jpct.Object3D;
 import com.threed.jpct.Primitives;
 import com.threed.jpct.SimpleVector;
+import com.threed.jpct.Texture;
 import com.threed.jpct.TextureManager;
 
 public class ARWaveLayer {
@@ -45,12 +49,16 @@ public class ARWaveLayer {
 	
 	public void setVisible(boolean visible){
 		
+		Log.i("wave", "setting to"+visible);
+		
 		//iterates over its contents and sets its visibility		
 		Iterator<ARBlipObject> objects = LayersObjects.iterator();
+		Log.i("wave", "total objects to set="+LayersObjects.size());
 		
 		while (objects.hasNext()){			
 			ARBlipObject object = objects.next();
 			object.object3d.setVisibility(visible);
+			
 		}
 		
 	}
@@ -101,15 +109,7 @@ public class ARWaveLayer {
 			// texture
 			if (newblip.isOcculisionMask) {
 
-				// Bitmap.Config config = Bitmap.Config.ARGB_8888;
-				// Bitmap charImage = Bitmap.createBitmap(16, 16, config);
-				// Canvas canvas = new Canvas(charImage);
-				// canvas.drawColor(Color.BLACK);
-				// TextureManager tm = TextureManager.getInstance();
-				// Texture newmaxtexture = new Texture(charImage,false);
-				// tm.addTexture("occlusion", newmaxtexture);
-
-				// newmarker.setTexture("occlusion");
+				newmarker.setTexture("occlusion");
 
 				return newmarker;
 			}

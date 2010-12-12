@@ -10,6 +10,9 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -57,12 +60,8 @@ public class ARWaveView extends GLSurfaceView {
 	private World world = null;
 
 	private Light sun = null;
-	// scenary
+	// ground
 	private Object3D groundPlane = null;
-	private Object3D tree2 = null;
-	private Object3D tree1 = null;
-	private Object3D grass = null;
-	private Object3D rock = null;
 
 	public boolean backgroundScenaryVisible = true;
 	// renderer
@@ -70,23 +69,14 @@ public class ARWaveView extends GLSurfaceView {
 
 	private static FrameBuffer fb = null;
 
-	// internal list of ARBlip objects
-	
-	// (the following two have been combined to thye ARBlipObject format)
-	//ArrayList<ARBlip> scenesBlips = new ArrayList<ARBlip>();
-	//ArrayList<Object3D> scenesObjects = new ArrayList<Object3D>();
-	
-	// The scenes current list of ARBlipObjects
-	// This changes based on what wave is open. 
-	
-	// THIS SHOULD BE REPLACED WITH THE CURRENTACTIVELAYERS blip list	
-	//ArrayList<ARBlipObject> scenesARBlipObjects = new ArrayList<ARBlipObject>();
-	
 	//Array containing all the layers open (hidden or not)
 	static ArrayList<ARWaveLayer> AllLayersOpen = new ArrayList<ARWaveLayer>();
+	// The scenes current list of ARBlipObjects
+	// This changes based on what wave is open. 
 	static ARWaveLayer CurrentActiveLayer;
 	//background layer (for scenary and other gui elements local to the device and not linked to a real wave)
 	static final ARWaveLayer LocalBackgroundScenaryLayer = new ARWaveLayer();
+	static final ARWaveLayer SpecialChristmassScenaryLayer = new ARWaveLayer();
 	
 	// generic font
 	private GLFont glFont;
@@ -153,22 +143,6 @@ public class ARWaveView extends GLSurfaceView {
 
 		this.setZOrderMediaOverlay(true);
 
-		// mGLView.setBackgroundColor(Color.TRANSPARENT);
-		// mGLView.setBackgroundDrawable(null);
-
-		// getWindow().setFormat(PixelFormat.TRANSLUCENT);
-
-		/*
-		 * mGLView.setEGLConfigChooser(new GLSurfaceView.EGLConfigChooser() {
-		 * public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) { //
-		 * Ensure that we get a 16bit framebuffer. Otherwise, we'll fall // back
-		 * to Pixelflinger on some device (read: Samsung I7500) int[] attributes
-		 * = new int[] { EGL10.EGL_DEPTH_SIZE, 16, EGL10.EGL_NONE }; EGLConfig[]
-		 * configs = new EGLConfig[1]; int[] result = new int[1];
-		 * egl.eglChooseConfig(display, attributes, configs, 1, result); return
-		 * configs[0]; } });
-		 */
-
 		this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 		Log.e("render", "setting render");
 
@@ -190,36 +164,12 @@ public class ARWaveView extends GLSurfaceView {
 		LocalBackgroundScenaryLayer.ARWaveLayerID = "Background"; //The default layer contains the default landscape, and other test and interface objects not tied to "real" waves on a server
 		AllLayersOpen.add(CurrentActiveLayer);
 		
-		
+		//set up Christmas layer
+		SpecialChristmassScenaryLayer.ARWaveLayerID = "CMLayer";
+		AllLayersOpen.add(SpecialChristmassScenaryLayer);
 	}
 
-	/*
-	 * @Override public void onCreateContextMenu(menu) {
-	 * 
-	 * 
-	 * menu.add(0, MENU_ADD_NOTE, 0, "Add Note"); menu.add(0, MENY_DUMMY, 0,
-	 * "dummy");
-	 * 
-	 * 
-	 * }
-	 * 
-	 * 
-	 * public boolean onContextItemSelected(MenuItem item) {
-	 * AdapterContextMenuInfo info = (AdapterContextMenuInfo)
-	 * item.getMenuInfo(); switch (item.getItemId()) { case MENU_ADD_NOTE:
-	 * editNote(info.id); return true; case MENY_DUMMY: deleteNote(info.id);
-	 * return true; default: return super.setOnCreateContextMenuListener(l) } }
-	 * 
-	 * 
-	 * User clicks
-	 * 
-	 * Option Menu
-	 * 
-	 * AddBillboard
-	 * 
-	 * - Place at current GPS + x meters away from camera in direction its
-	 * facing - vol can then move it back/forward.
-	 */
+	
 
 	/** handels screen interactions **/
 	public boolean onTouchEvent(MotionEvent event) {
@@ -914,8 +864,8 @@ public class ARWaveView extends GLSurfaceView {
 		// of 10
 
 		TextureManager tm = TextureManager.getInstance();
-
-		Texture testtext = new Texture(charImage, true); // the true specifys
+		Texture testtext = new Texture(charImage, true); // the true specify
+		
 		// the texture has
 		// its own alpha. If
 		// not, black is
@@ -964,10 +914,14 @@ public class ARWaveView extends GLSurfaceView {
 		while (OpenWaves.hasNext()){			
 			ARWaveLayer Wave = OpenWaves.next();
 			if (Wave.ARWaveLayerID.equals(WaveID)){
-				Log.i("wave", "setting wave:"+Wave.ARWaveLayerID+"");
+				Log.i("wave", "setting wave2:"+Wave.ARWaveLayerID+"");
 				Wave.setVisible(Visible);
 			}			
 		}
+		
+		//if not already open, then we open it
+		
+		// (insert code here) 
 		
 		
 		
@@ -1092,11 +1046,13 @@ public class ARWaveView extends GLSurfaceView {
 
 		backgroundScenaryVisible = !backgroundScenaryVisible;
 		this.setBackgroundScenary(backgroundScenaryVisible);
-
+		LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);
+		
 	}
 
 	public void setBackgroundScenary(Boolean backgroundScenaryVisible){
 
+		this.backgroundScenaryVisible = backgroundScenaryVisible;
 		LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible); 
 
 	}
@@ -1166,6 +1122,11 @@ public class ARWaveView extends GLSurfaceView {
 
 		private Texture numberFont = null;
 
+		Object3D cmtree = null;
+		Object3D cmtree2 = null;
+		Object3D cmtree3 = null;
+		Object3D atmos = null;
+		Object3D atmos2 = null;
 		//
 		private int fps = 0;
 		private int lfps = 0;
@@ -1201,12 +1162,32 @@ public class ARWaveView extends GLSurfaceView {
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 			TextureManager.getInstance().flush();
 			world = new World();
+			
+
+			Object3D tree2 = null;
+			Object3D tree1 = null;
+			Object3D grass = null;
+			Object3D rock = null;
+			
 			Resources res = getResources();
 
 			TextureManager tm = TextureManager.getInstance();
 
+			//set up default textures
+
+			//Occulsion texture, for making things mask out the enviroment and show the camera view
+			Bitmap charImage = Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888 );
+			Canvas canvas = new Canvas(charImage);
+			canvas.drawColor(Color.TRANSPARENT);			
+			Texture occlusion = new Texture(charImage, true); // the true specify
+			tm.addTexture("occlusion", occlusion);
+			//-------------------
+			
 			// set up pre-made landscape
 			Texture grass2 = new Texture(res.openRawResource(R.raw.grassy));
+			Texture cmtreetexture =  new Texture(res.openRawResource(R.raw.cmtree));
+			Texture snow =  new Texture(res.openRawResource(R.raw.snw));
+			
 			Texture leaves = new Texture(res.openRawResource(R.raw.tree2y));
 			Texture leaves2 = new Texture(res.openRawResource(R.raw.tree3y));
 			Texture rocky = new Texture(res.openRawResource(R.raw.rocky));
@@ -1216,28 +1197,37 @@ public class ARWaveView extends GLSurfaceView {
 			numberFont = new Texture(res.openRawResource(R.raw.numbers));
 
 			tm.addTexture("grass2", grass2);
+			tm.addTexture("cmtree", cmtreetexture);
 			tm.addTexture("leaves", leaves);
 			tm.addTexture("leaves2", leaves2);
 			tm.addTexture("rock", rocky);
 			tm.addTexture("grassy", planetex);
-
+			tm.addTexture("snow",snow);
+			
 			if (!deSer) {
 				// Use the normal loaders...
 				groundPlane = Primitives.getPlane(1, 378);
 				grass = Loader.load3DS(res.openRawResource(R.raw.grass), 5)[0];
-				rock = Loader.load3DS(res.openRawResource(R.raw.rock), 15f)[0];
+				rock = Loader.load3DS(res.openRawResource(R.raw.rock), 15f)[0];				
 				tree1 = Loader.load3DS(res.openRawResource(R.raw.tree2), 2)[0];
 				tree2 = Loader.load3DS(res.openRawResource(R.raw.tree3), 6)[0];
-
+				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
+				cmtree2 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
+				cmtree3 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
+				
 				groundPlane.setTexture("grassy");
 				rock.setTexture("rock");
-				grass.setTexture("grass2");
+				grass.setTexture("grass2");				
 				tree1.setTexture("leaves");
 				tree2.setTexture("leaves2");
 
-				// plane.getMesh().setVertexController(new Mod(), false);
-				// plane.getMesh().applyVertexController();
-				// plane.getMesh().removeVertexController();
+				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];				
+				cmtree.setTexture("cmtree");
+				atmos = Loader.load3DS(res.openRawResource(R.raw.atmosphere), 2)[0];				
+				atmos.setTexture("snow");
+				atmos2= Loader.load3DS(res.openRawResource(R.raw.atmosphere2), 2)[0];				
+				atmos2.setTexture("snow");
+				
 			} else {
 				// Load the serialized version instead...
 				groundPlane = Primitives.getPlane(1, 378);
@@ -1246,16 +1236,48 @@ public class ARWaveView extends GLSurfaceView {
 				// Loader.loadSerializedObject(res.openRawResource(R.raw.serplane));
 				rock = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.serrock));
+				
+				//cmtree = Loader.loadSerializedObject(res
+				//		.openRawResource(R.raw.sertree1));
+				
 				tree1 = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.sertree1));
 				tree2 = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.sertree2));
 				grass = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.sergrass));
+			
+				//these should be seralised to speed up loading
+				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];				
+				cmtree.setTexture("cmtree");
+				cmtree2 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
+				cmtree2.setTexture("cmtree");
+				cmtree3 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
+				cmtree3.setTexture("cmtree");
+				atmos = Loader.load3DS(res.openRawResource(R.raw.atmosphere), 2)[0];				
+				atmos.setTexture("snow");
+				atmos2= Loader.load3DS(res.openRawResource(R.raw.atmosphere2), 2)[0];				
+				atmos2.setTexture("snow");
+			
 			}
 
 			grass.translate(-90, -34, -100);
 			grass.rotateZ((float) Math.PI);
+			
+			cmtree.translate(-30, -15, 25);
+			cmtree.rotateX(-(float) Math.PI /2);
+			cmtree2.translate(0, -15, -50);
+			cmtree2.rotateX(-(float) Math.PI /2);
+			cmtree3.translate(85, -15, 45);
+			cmtree3.rotateX(-(float) Math.PI /2);
+			
+			atmos.rotateX(-(float) Math.PI /2);
+			atmos2.rotateX(-(float) Math.PI /2);
+			atmos.setCulling(Object3D.CULLING_DISABLED);
+			atmos2.setCulling(Object3D.CULLING_DISABLED);
+			atmos.setTransparency(30);
+			atmos2.setTransparency(30);
+			
 			rock.translate(0, 0, 0);
 			rock.rotateX(-(float) Math.PI / 2);
 			tree1.translate(-189, -34, 0);
@@ -1269,6 +1291,7 @@ public class ARWaveView extends GLSurfaceView {
 			tree1.setName("tree1");
 			// tree2.setName("tree2");
 			grass.setName("grass");
+			cmtree.setName("cmtree");
 			rock.setName("rock");
 
 			rock.scale(0.1f);
@@ -1276,32 +1299,59 @@ public class ARWaveView extends GLSurfaceView {
 			// note the rock is at 0,0,0 to mark the center point.
 			// the tree is at -200,-180,0
 			// tree2 is at 0,-190,200)
-
 			world.addObject(groundPlane);
 			world.addObject(tree1);
+			world.addObject(cmtree);
+			world.addObject(cmtree2);
+			world.addObject(cmtree3);
+			world.addObject(atmos);
+			world.addObject(atmos2);
 			world.addObject(tree2);
 			world.addObject(grass);
 			world.addObject(rock);
 
-			groundPlane.setVisibility(backgroundScenaryVisible);
-			rock.setVisibility(backgroundScenaryVisible);
-			tree1.setVisibility(backgroundScenaryVisible);
-			tree2.setVisibility(backgroundScenaryVisible);
-			grass.setVisibility(backgroundScenaryVisible);
-
 			RGBColor dark = new RGBColor(100, 100, 100);
-
-
-
 
 			grass.setTransparency(10);
 			tree1.setTransparency(0);
 			tree2.setTransparency(0);
-
+			
+			
+			
+			
 			tree1.setAdditionalColor(dark);
 			tree2.setAdditionalColor(dark);
 			grass.setAdditionalColor(dark);
-
+			//cmtree.setAdditionalColor(dark);
+			atmos.setAdditionalColor(RGBColor.WHITE);
+			atmos2.setAdditionalColor(RGBColor.WHITE);
+			//set up atmos animation
+			Timer atmosTimer = new Timer();
+			
+			TimerTask atmosphereAnimation = new TimerTask() {
+				int h=-130;
+				int h2=-130;
+				@Override
+				public void run() {					
+					h=h+1;
+					if (h>120){
+						h=-130;		
+						}
+					h2=h2+4;
+					if (h2>120){
+						h2=-130;		
+						}
+					
+					atmos.setTranslationMatrix(new Matrix());
+					atmos.translate(0, h, 0);
+					
+					atmos2.setTranslationMatrix(new Matrix());
+					atmos2.translate(0, h2-30, 0);
+					
+				}				
+			};
+			atmosTimer.scheduleAtFixedRate(atmosphereAnimation, 500, 100);
+			
 			world.setAmbientLight(20, 20, 20);
 			world.buildAllObjects();
 
@@ -1310,9 +1360,14 @@ public class ARWaveView extends GLSurfaceView {
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree1));
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree2));
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(rock));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane));			
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane));	
+			LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);			
 			//-----
-			
+			// This can be removed when not in season....
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos2));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree));	
+			//-----
 			
 			
 			
