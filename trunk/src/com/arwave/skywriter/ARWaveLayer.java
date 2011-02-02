@@ -32,6 +32,13 @@ public class ARWaveLayer {
 
 	String ARWaveLayerID = "";
 	
+	//not implemented yet; billboard scaleing modes;
+	private static final int  BILLBOARDMODE_REAL = 0; //default
+	private static final int  BILLBOARDMODE_LINEAR = 1; //linear sizeing (falls of in size linearly with distance rather then exponetialy)
+	private static final int  BILLBOARDMODE_FIXED = 2; //fixed size relative to the viewport
+	static final int BillboardMode = BILLBOARDMODE_REAL; // default to real
+	//----
+	
 	
 	public ARWaveLayer(){
 		

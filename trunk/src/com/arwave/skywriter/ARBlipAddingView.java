@@ -15,7 +15,7 @@ public class ARBlipAddingView extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		//set up the layout
-		setContentView(R.layout.add_arblip);
+		setContentView(R.layout.add_arblip_page);
 		
 		Log.i("wave", "adding blip_on view");
 		

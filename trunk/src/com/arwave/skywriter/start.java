@@ -774,7 +774,12 @@ public class start extends MapActivity implements SensorEventListener,
 
 				holder = getHolder();
 				holder.addCallback(this);
+				
 				holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+				
+				//for rotation to work this must be set instead;
+				//holder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
+				
 
 			} catch (Exception ex) {
 
