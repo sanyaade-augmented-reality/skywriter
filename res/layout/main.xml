@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-				
+
 <TabHost xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/tabhost" android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
@@ -13,130 +13,13 @@
 			android:layout_width="fill_parent" android:layout_height="fill_parent"
 			android:padding="5dp">
 
-			<FrameLayout android:layout_width="wrap_content"
-				android:layout_height="wrap_content" android:id="@+id/ARViewPage">
-			</FrameLayout>
+			<include layout="@layout/arview_page" />
 
-			<FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent" android:id="@+id/WavePage">
-					
-					
-				<LinearLayout android:orientation="vertical" android:id="@+id/WaveListBox"
-					android:layout_width="fill_parent" android:layout_height="fill_parent"
-					android:layout_gravity="center_horizontal">		
-					
-						<TextView android:text="@+id/TextView01" android:id="@+id/list_item"
-							android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
-		
-			
-						<Button android:layout_width="wrap_content"
-							android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
-							android:id="@+id/CreateWaveButton" android:text="@string/createWave" />
-										
-				</LinearLayout>	
-				</FrameLayout>
+			<include layout="@layout/wave_page" />
 
+			<include layout="@layout/main_login_page" />
 
-
-			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-				android:orientation="vertical" android:id="@+id/MainLoginPage"
-				android:layout_height="wrap_content" android:layout_width="wrap_content"
-				android:layout_gravity="center_vertical|center_horizontal">
-
-				<LinearLayout android:id="@+id/LinearLayout02"
-					android:layout_width="wrap_content" android:layout_height="wrap_content"
-					android:layout_gravity="center_horizontal">
-					<TextView android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:id="@+id/UsernameBox"
-						android:text="@string/username" />
-					<EditText android:text="@string/defaultUsername"
-						android:id="@+id/EditText02" android:layout_width="wrap_content"
-						android:layout_height="wrap_content" />
-				</LinearLayout>
-
-				<LinearLayout android:id="@+id/LinearLayout03"
-					android:layout_width="wrap_content" android:layout_height="wrap_content"
-					android:layout_gravity="center_horizontal">
-					<TextView android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:id="@+id/PasswordBox"
-						android:text="@string/password" />
-					<EditText android:text="@string/defaultPassword"
-						android:id="@+id/EditText01" android:layout_width="wrap_content"
-						android:layout_height="wrap_content" />
-				</LinearLayout>
-
-				<LinearLayout android:id="@+id/LinearLayout03"
-					android:layout_height="wrap_content" android:layout_gravity="left"
-					android:layout_width="fill_parent">
-					<TextView android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:id="@+id/ServerBox"
-						android:text="@string/Server" />
-					<EditText android:text="@string/defaultServer" android:id="@+id/EditText03"
-						android:layout_width="wrap_content" android:layout_height="wrap_content"
-						android:layout_gravity="right" />
-				</LinearLayout>
-
-				<Button android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
-					android:id="@+id/LoginButton" android:text="@string/login" />
-
-				<TextView android:id="@+id/messages" android:text="@string/messages"
-					android:layout_width="wrap_content" android:layout_height="wrap_content"
-					android:layout_gravity="center_horizontal" />
-
-			</LinearLayout>
-
-			<LinearLayout 
-			      android:orientation="vertical"
-   			      android:layout_width="fill_parent"
-   				  android:layout_height="wrap_content"			
-				  android:id="@+id/add_arblip_layout">
-				
-				<TextView android:text="@string/latitudeText"
-					android:textSize="8pt" android:layout_width="fill_parent"
-					android:layout_height="wrap_content" android:layout_weight="1" />
-				<EditText android:id="@+id/latitude" android:text="@string/latitudeValue"
-					android:layout_width="fill_parent" android:layout_height="wrap_content"
-					android:background="@android:drawable/editbox_background" />
-
-				<TextView android:text="@string/longitudeText"
-					android:textSize="8pt" android:layout_width="fill_parent"
-					android:layout_height="wrap_content" android:layout_weight="1" />
-				<EditText android:id="@+id/longitude" android:text="@string/longitudeValue"
-					android:layout_width="fill_parent" android:layout_height="wrap_content"
-					android:background="@android:drawable/editbox_background" />
-
-				<TextView android:text="@string/altitudeText"
-					android:textSize="8pt" android:layout_width="fill_parent"
-					android:layout_height="wrap_content" android:layout_weight="1" />
-				<EditText android:id="@+id/altitude" android:text="@string/altitudeValue"
-					android:layout_width="fill_parent" android:layout_height="wrap_content"
-					android:background="@android:drawable/editbox_background" />
-
-				<TextView android:text="@string/arblipContentText"
-					android:textSize="8pt" android:layout_width="fill_parent"
-					android:layout_height="wrap_content" android:layout_weight="1" />
-				<EditText android:id="@+id/arblipContent" android:text="@string/arblipContentValue"
-					android:layout_width="fill_parent" android:layout_height="wrap_content"
-					android:background="@android:drawable/editbox_background" />
-
-				<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-					android:orientation="horizontal" android:layout_width="fill_parent"
-					android:layout_height="wrap_content" android:id="@+id/add_arblip_buttons_layout">
-
-					<Button android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:layout_gravity="right"
-						android:id="@+id/cancelButton" android:text="@string/cancelButton" />
-
-					<Button android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:layout_gravity="right"
-						android:id="@+id/addButton" android:text="@string/addButton" />
-				</LinearLayout>
-				<CheckBox android:text="@string/autoSeLocationText" android:id="@+id/AutoSetLocation" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
-				
-			</LinearLayout>
-			
-			
-			
+			<include layout="@layout/add_arblip_page" />
 
 		</FrameLayout>
 

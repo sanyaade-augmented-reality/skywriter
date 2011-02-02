@@ -47,6 +47,7 @@ import com.threed.jpct.SimpleVector;
 import com.threed.jpct.Texture;
 import com.threed.jpct.TextureManager;
 import com.threed.jpct.World;
+import com.threed.jpct.util.LensFlare;
 
 /** This is our GLSurface view extended with ARBlip specific functions **/
 public class ARWaveView extends GLSurfaceView {
@@ -60,6 +61,11 @@ public class ARWaveView extends GLSurfaceView {
 	private World world = null;
 
 	private Light sun = null;
+	
+	//lens flare on/off
+	private boolean LensFlareOn = true;
+	LensFlare SceneLensFlare;
+	
 	// ground
 	private Object3D groundPlane = null;
 
@@ -71,16 +77,19 @@ public class ARWaveView extends GLSurfaceView {
 
 	//Array containing all the layers open (hidden or not)
 	static ArrayList<ARWaveLayer> AllLayersOpen = new ArrayList<ARWaveLayer>();
+	
 	// The scenes current list of ARBlipObjects
-	// This changes based on what wave is open. 
+	// This changes based on what wave is open. 	
 	static ARWaveLayer CurrentActiveLayer;
-	//background layer (for scenary and other gui elements local to the device and not linked to a real wave)
+	
+	//background layer (for scenery and other gui elements local to the device and not linked to a real wave)
 	static final ARWaveLayer LocalBackgroundScenaryLayer = new ARWaveLayer();
 	static final ARWaveLayer SpecialChristmassScenaryLayer = new ARWaveLayer();
 	
 	// generic font
 	private GLFont glFont;
 	static final Paint paint = new Paint();
+	
 	// World setup flag
 	boolean worldReadyToGo = false;
 
@@ -151,8 +160,9 @@ public class ARWaveView extends GLSurfaceView {
 
 		this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
+		
+		
 		// set up generic font
-
 		paint.setAntiAlias(true);
 		paint.setTypeface(Typeface.create((String) null, Typeface.BOLD));
 
@@ -169,7 +179,24 @@ public class ARWaveView extends GLSurfaceView {
 		AllLayersOpen.add(SpecialChristmassScenaryLayer);
 	}
 
-	
+	public void onResume(){
+		
+		Log.i("_______", "_______resumeing.....");
+		
+
+		this.setZOrderMediaOverlay(true);
+
+		this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+		Log.e("render", "setting render");
+
+		renderer = new MyRenderer();
+		this.setRenderer(renderer);
+
+		this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+
+		super.onResume();
+		
+	}
 
 	/** handels screen interactions **/
 	public boolean onTouchEvent(MotionEvent event) {
@@ -1391,6 +1418,21 @@ public class ARWaveView extends GLSurfaceView {
 			sun.setPosition(sv);
 
 
+			
+			//set up lensflare
+			if (LensFlareOn)
+		    {   //set up textures
+				Texture flare_maintexture = new Texture(res.openRawResource(R.raw.mainflare2));
+                tm.addTexture("flare_maintexture", flare_maintexture);
+				
+                //for a more pretty flare, we can use different textures for each halo.
+				SceneLensFlare = new LensFlare(sun.getPosition(),"flare_maintexture", "flare_maintexture", "flare_maintexture","flare_maintexture");
+				SceneLensFlare.setMaximumDistance(1000);
+				SceneLensFlare.setTransparency(7);
+				
+		    
+		    }
+			
 
 
 		}
@@ -1494,7 +1536,18 @@ public class ARWaveView extends GLSurfaceView {
 						// world.getCamera().setBack(CameraMatrix);
 
 						fb.clear();
+						
+						
+						
 						world.renderScene(fb);
+						
+						if (LensFlareOn){
+							
+							SceneLensFlare.update(fb, world);
+							SceneLensFlare.render(fb);
+							
+							}
+						
 						world.draw(fb);
 
 						blitNumber(lfps, 5, 5);
