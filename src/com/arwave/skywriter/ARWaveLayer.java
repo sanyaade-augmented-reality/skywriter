@@ -14,6 +14,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.arwave.skywriter.ARBlipObject.ObjectType;
 import com.threed.jpct.Loader;
 import com.threed.jpct.Matrix;
 import com.threed.jpct.Object3D;
@@ -31,6 +32,7 @@ public class ARWaveLayer {
 	ArrayList<ARBlipObject> LayersObjects = new ArrayList<ARBlipObject>();
 
 	String ARWaveLayerID = "";
+
 	
 	//not implemented yet; billboard scaleing modes;
 	private static final int  BILLBOARDMODE_REAL = 0; //default
@@ -74,11 +76,15 @@ public class ARWaveLayer {
 	public Object3D createNewBlipObject(ARBlip newblip) throws IOException {
 		// new object dummy
 		Object3D newmarker = Object3D.createDummyObj();
-
+		//variable holding the object type;
+		ObjectType object3dtype; //this must be set before the object is loaded
+		
 		// if blip type is specified
 		// load 3d object from url
 		if (newblip.MIMEtype.equalsIgnoreCase("application/x-3ds")) {
-
+			//its a 3ds file , so a mesh
+			object3dtype = ARBlipObject.ObjectType.MESH_OBJECT;	
+			
 			HashSet<String> Namesbefore = TextureManager.getInstance()
 			.getNames();
 			int SizeBefore = Namesbefore.size();
@@ -147,6 +153,10 @@ public class ARWaveLayer {
 
 		} else if (newblip.MIMEtype.equalsIgnoreCase("application/x-obj")) {
 
+			//its a obj , so a mesh
+			object3dtype = ARBlipObject.ObjectType.MESH_OBJECT;	
+			
+			
 			HashSet<String> Namesbefore = TextureManager.getInstance()
 			.getNames();
 			int SizeBefore = Namesbefore.size();
@@ -217,44 +227,33 @@ public class ARWaveLayer {
 			}
 
 		} else if (newblip.MIMEtype.equalsIgnoreCase("Primative_Bounceing_Cone")) {
-
-			// load 3d model
-
+			
+			//its a cone , so a primitive
+			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_OBJECT;	
+			
 			newmarker = Primitives.getCone(5);
-			// rotate it io
-			//newmarker.rotateX(-(float) Math.PI / 2);
 
 		} else if (newblip.MIMEtype.equalsIgnoreCase("Primative_Bounceing_Cube")) {
 
-			// load 3d model
+			//its a cube, so a primitive
+			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_OBJECT;			
 
 			newmarker = Primitives.getCube(5);
-			// rotate it io
-			//newmarker.rotateX(-(float) Math.PI / 2);
 
 		} else {
 			// if no recognised type, then we assume its a billboard with
 			// text
-			// if not,create a new arblip placemark
-			// newmarker = Primitives.getPyramide(2, 8);
-
-			// newmarker.setName(newblip.BlipID);
-			// newmarker.setTexture("rock");
-			// newmarker.setAdditionalColor(RGBColor.BLACK);
-
-			// billboard bit at top
-			// Object3D newplane = Primitives.getPlane(1, 60);
-			// newplane = new Rectangle(1,8,3);
-
-			// newplane.setAdditionalColor(RGBColor.WHITE);
-			// newplane.setBillboarding(true);
-
-			// simplifed (no stand for billboard now)
-			newmarker = new SkywriterBillboard();
-			newmarker.setName(newblip.BlipID);
+			object3dtype = ARBlipObject.ObjectType.BILLBOARD_OBJECT;
+			
 			// set texture
 			String text = newblip.ObjectData;
-			ARWaveView.updatedTexture(newblip.BlipID, text);
+			
+			newmarker = new SkywriterBillboard(text,7,10);
+			
+			newmarker.setName(newblip.BlipID);
+		
+			((SkywriterBillboard) newmarker).updatedTexture(newblip.BlipID, text);
+			
 			// newplane.setOrigin(new SimpleVector(0,-15,0));(used to move
 			// it upwards for when it was on a stand)
 			newmarker.setTexture(newblip.BlipID);
@@ -264,14 +263,6 @@ public class ARWaveLayer {
 				newmarker.setBillboarding(true);
 			}
 
-			//newmarker = newplane;
-
-			// newplane.setBillboarding(true);
-			// link objects together
-			// newplane.addParent(newmarker);
-
-			// merge the plane and
-			// newmarker = newplane.mergeObjects(newplane, newmarker);
 		}
 
 		newmarker.setName(newblip.BlipID);
@@ -318,7 +309,7 @@ public class ARWaveLayer {
 			newmarker.setCollisionMode(Object3D.COLLISION_CHECK_OTHERS);
 		}
 		Log.i("3ds", "adding " + newblip.BlipID + " to layers storage");			
-		this.addObject(new ARBlipObject(newblip,newmarker));
+		this.addObject(new ARBlipObject(newblip,newmarker, object3dtype));
 		
 		return newmarker;
 	}
@@ -369,10 +360,14 @@ public class ARWaveLayer {
 		updateThisObject.rotateY((float) Math.toRadians(newblipdata.baring));
 		updateThisObject.rotateZ((float) Math.toRadians(newblipdata.elevation));
 
-		// update textures
-		String text = newblipdata.ObjectData;
-		ARWaveView.updatedTexture(newblipdata.BlipID, text);
-
+		// update textures if its a billboard
+		if (updateThis.Object3DType == ARBlipObject.ObjectType.BILLBOARD_OBJECT){
+		
+			String text = newblipdata.ObjectData;
+			((SkywriterBillboard) updateThis.object3d).updatedTexture(newblipdata.BlipID, text);
+		
+		}
+		
 		// update other stuff
 
 	}

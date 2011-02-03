@@ -11,7 +11,7 @@ public class ARBlipUtilitys {
 	{
 //float results[] = new float[3];
 		
-		//location to comare too
+		//location to compare too
 		Location blipLoc = new Location("");
 		blipLoc.setLatitude(X);
 		blipLoc.setLongitude(loc.getLongitude());
