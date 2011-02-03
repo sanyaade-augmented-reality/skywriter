@@ -183,17 +183,6 @@ public class ARWaveView extends GLSurfaceView {
 		
 		Log.i("_______", "_______resumeing.....");
 		
-
-		this.setZOrderMediaOverlay(true);
-
-		this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-		Log.e("render", "setting render");
-
-		renderer = new MyRenderer();
-		this.setRenderer(renderer);
-
-		this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-
 		super.onResume();
 		
 	}
@@ -1184,9 +1173,27 @@ public class ARWaveView extends GLSurfaceView {
 				fb.dispose();
 			}
 			fb = new FrameBuffer(gl, w, h);
+			
+			if (start.surface_activity_master == null) {	
+				
+				setupWorld();
+				Log.i("____","_______________saving surface data");
+				
+				start.surface_activity_master = ARWaveView.this;
+				
+				//start.saveMaster();
+				
+			}
 		}
 
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		//	setupWorld();
+			
+
+
+		}
+
+		private void setupWorld() {
 			TextureManager.getInstance().flush();
 			world = new World();
 			
@@ -1432,9 +1439,6 @@ public class ARWaveView extends GLSurfaceView {
 				
 		    
 		    }
-			
-
-
 		}
 
 		public void onDrawFrame(GL10 gl) {
