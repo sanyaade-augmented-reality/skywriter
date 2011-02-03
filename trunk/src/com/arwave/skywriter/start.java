@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
+import java.lang.reflect.Field;
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
@@ -66,6 +68,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.OnTabChangeListener;
 
 import com.google.android.maps.MapActivity;
+import com.threed.jpct.Logger;
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
 
@@ -80,6 +83,15 @@ import com.threed.jpct.SimpleVector;
 public class start extends MapActivity implements SensorEventListener,
 		LocationListener, OnTabChangeListener {
 
+	
+	// Used to handle pause and resume...
+	static ARWaveView surface_activity_master = null;
+	static MapActivity main_activity_master = null;
+	
+	
+	// ----------------
+	
+	
 	private static final int OPEN_WAVE_ID = 0;
 	private static final int ADD_ARBLIP_ID = 1;
 
@@ -187,6 +199,12 @@ public class start extends MapActivity implements SensorEventListener,
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		Log.i("_____", "onCreate");		
+		//used to handel pause/resume
+		if (surface_activity_master != null && main_activity_master != null) {
+			copy(surface_activity_master,main_activity_master);
+		}
+		
 		super.onCreate(savedInstanceState);
 
 		Resources res = getResources();
@@ -466,7 +484,32 @@ public class start extends MapActivity implements SensorEventListener,
 		registerForContextMenu(arView);
 
 	}
-
+	
+	private void copy(Object src,Object src2 ) {
+		try {
+			Log.i("___","_________Copying data from surface Activity!");
+			Field[] fs = src.getClass().getDeclaredFields();
+			for (Field f : fs) {
+				f.setAccessible(true);
+				f.set(arView, f.get(src));
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		
+		try {
+			Log.i("___","_________Copying data from master Activity!");
+			Field[] fs = src2.getClass().getDeclaredFields();
+			for (Field f : fs) {
+				f.setAccessible(true);
+				f.set(this, f.get(src2));
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private void setUpPreferances(final EditText username,
 			final EditText serverAddress) {
 		SharedPreferences prefs = PreferenceManager
@@ -528,6 +571,7 @@ public class start extends MapActivity implements SensorEventListener,
 		paused = true;
 		super.onPause();
 		arView.onPause();
+		
 		arView.worldReadyToGo = false;
 
 		if (sensorMgr != null) {
@@ -537,7 +581,7 @@ public class start extends MapActivity implements SensorEventListener,
 		}
 
 		lm.removeUpdates(locListener);
-
+		main_activity_master = start.this;
 	}
 
 	@Override
@@ -545,6 +589,12 @@ public class start extends MapActivity implements SensorEventListener,
 		paused = false;
 		super.onResume();
 		arView.onResume();
+		
+		if (surface_activity_master != null && main_activity_master != null) {
+			copy(surface_activity_master,main_activity_master);
+		}
+
+		//arView.worldReadyToGo = true;
 
 		sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -878,6 +928,9 @@ public class start extends MapActivity implements SensorEventListener,
 
 	public void onSensorChanged(SensorEvent s_ev) {
 
+		
+		
+		
 		// if (true) return;
 
 		switch (s_ev.sensor.getType()) {
@@ -1688,5 +1741,7 @@ public class start extends MapActivity implements SensorEventListener,
 		// Log.i("add","newID end");
 
 	}
+
+
 
 }
