@@ -70,6 +70,8 @@ import android.widget.TabHost.OnTabChangeListener;
 import com.google.android.maps.MapActivity;
 import com.threed.jpct.Logger;
 import com.threed.jpct.Matrix;
+import com.threed.jpct.Object3D;
+import com.threed.jpct.Primitives;
 import com.threed.jpct.SimpleVector;
 
 /**
@@ -85,9 +87,9 @@ public class start extends MapActivity implements SensorEventListener,
 
 	
 	// Used to handle pause and resume...
+	// These two variables store everything when the app is paused
 	static ARWaveView surface_activity_master = null;
-	static MapActivity main_activity_master = null;
-	
+	static MapActivity main_activity_master = null;	
 	
 	// ----------------
 	
@@ -589,6 +591,7 @@ public class start extends MapActivity implements SensorEventListener,
 		paused = false;
 		super.onResume();
 		arView.onResume();
+
 		
 		if (surface_activity_master != null && main_activity_master != null) {
 			copy(surface_activity_master,main_activity_master);
@@ -1343,51 +1346,28 @@ public class start extends MapActivity implements SensorEventListener,
 					this.cancel();
 					Log.d("loading", "loading blips");
 
-					// A list of sample markers down a street in tilburg!
-					// (please change if you wish to test more localy to you)
-					/*
-					 * double blipDataX[] = {
-					 * 51.560071,51.559150,51.558890,51.55839
-					 * ,51.55759,51.559230}; double blipDataY[] = {
-					 * 5.07822,5.07792,5.07785,5.07774,5.07765,5.07974 };
-					 * 
-					 * for (int i = 0; i < blipDataX.length;) {
-					 * 
-					 * // we can now load up some sample blips ARBlip testblip1
-					 * = new ARBlip(); testblip1.x = blipDataX[i]; // 51.558348
-					 * //51.558325 testblip1.y = blipDataY[i]; testblip1.z = 0;
-					 * testblip1.BlipID = "NewTestBlip" + i; Log.i("creating",
-					 * testblip1.BlipID); testblip1.ObjectData = "" + i;
-					 * testblip1.isFacingSprite=true;
-					 * 
-					 * try { arView.addBlip(testblip1); } catch (IOException e)
-					 * { // addBlip can cause an error if it has a malformed
-					 * url, or other problem loading a remote 3d file
-					 * e.printStackTrace(); } i++; }
-					 */
-					// now remove one
+					
+					// Old test to remove a object;
 					// Log.d("deleteing", "deleteing blips");
 					// arView.deleteBlip("NewTestBlip4");
-					/*
-					 * 
-					 * //set clancys ARBlip clancys = new ARBlip(); clancys.x =
-					 * 51.557146; clancys.y = 5.092139; clancys.z = 40;
-					 * clancys.BlipID = "Clancys"; Log.i("creating",
-					 * clancys.BlipID); clancys.ObjectData = "Clancys Is Here!";
-					 * clancys.isFacingSprite=true;
-					 * 
-					 * //set bertines and toms place ARBlip OurPlace = new
-					 * ARBlip(); OurPlace.x = 51.558493; OurPlace.y = 5.077505;
-					 * OurPlace.z = 40; OurPlace.BlipID = "OurPlace";
-					 * Log.i("creating", clancys.BlipID); OurPlace.ObjectData =
-					 * "Our Place!"; OurPlace.isFacingSprite=true;
-					 * 
-					 * try { arView.addBlip(clancys); arView.addBlip(OurPlace);
-					 * 
-					 * } catch (IOException e) { // addBlip can cause an error
-					 * if it has a malformed url, or other problem loading a
-					 * remote 3d file e.printStackTrace(); }
-					 */
+										
+					//set clancys bar
+					ARBlip Clancys = new ClancysTilburg(); 
+					
+					//set bertines and toms place
+					ARBlip OurPlace = new ThomasAndBertinesPlace(); 
+				
+					
+					
+					try {
+						arView.addBlip(OurPlace);
+						arView.addBlip(Clancys);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						Log.i("test","cant add billboard");
+					}
+					
+					 
 				} else {
 					// Log.d("load", "not ready for blips");
 				}
@@ -1731,7 +1711,7 @@ public class start extends MapActivity implements SensorEventListener,
 
 	/**
 	 * updates a blip to have a new id should only be used for when a new blip
-	 * returns its true ID
+	 * returns its true ID < --- ignore this, not how wave works
 	 * **/
 	public static void updateBlipID(String OldID, String NewID, String waveID) {
 

@@ -73,7 +73,7 @@ public class ARWaveView extends GLSurfaceView {
 	// renderer
 	MyRenderer renderer = null;
 
-	private static FrameBuffer fb = null;
+	static FrameBuffer fb = null;
 
 	//Array containing all the layers open (hidden or not)
 	static ArrayList<ARWaveLayer> AllLayersOpen = new ArrayList<ARWaveLayer>();
@@ -166,7 +166,7 @@ public class ARWaveView extends GLSurfaceView {
 		paint.setAntiAlias(true);
 		paint.setTypeface(Typeface.create((String) null, Typeface.BOLD));
 
-		paint.setTextSize(16);
+		paint.setTextSize(14);
 		glFont = new GLFont(paint);
 
 		//set up default layer
@@ -857,6 +857,7 @@ public class ARWaveView extends GLSurfaceView {
 	}
 
 	/** updates a texture to a bit of text **/
+	/*
 	public static void updatedTexture(String Texturename, String text) {
 
 		Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
@@ -871,12 +872,21 @@ public class ARWaveView extends GLSurfaceView {
 		int height = fontMetrics.bottom - fontMetrics.top;
 
 		// have to add multiline support here
-		Bitmap charImage = Bitmap.createBitmap(closestTwoPower((int) paint
-				.measureText(text) + 10), 32, config);
-
+		//Bitmap charImage = Bitmap.createBitmap(closestTwoPower((int) paint
+		//		.measureText(text) + 10), 32, config);
+		
+		Bitmap charImage = Bitmap.createBitmap(closestTwoPower(110), closestTwoPower(40), config);
+		
 		Canvas canvas = new Canvas(charImage);
 		canvas.drawColor(Color.WHITE);
-		canvas.drawText(text, 10, baseline, paint); // draw text with a margin
+		
+		String[] lines = text.split("\r\n|\r|\n");
+		int linenumber = 0;
+		for (String line : lines) { 			
+			canvas.drawText(line, 5, baseline+(linenumber*10), paint); // draw text with a margin
+			linenumber++;
+		}
+		
 		// of 10
 
 		TextureManager tm = TextureManager.getInstance();
@@ -908,18 +918,8 @@ public class ARWaveView extends GLSurfaceView {
 		}
 
 	}
-
-	/**
-	 * returns the closest power of two that is equal or greater than given
-	 * number (good for textures!
-	 */
-	private static int closestTwoPower(int i) {
-		int power = 1;
-		while (power < i) {
-			power <<= 1;
-		}
-		return power;
-	}
+*/
+	
 
 	/** if a wave with the specified ID is open already, we set its visibility **/
 	public void setWaveVisiblity(String WaveID, boolean Visible){
@@ -1352,7 +1352,6 @@ public class ARWaveView extends GLSurfaceView {
 			
 			
 			
-			
 			tree1.setAdditionalColor(dark);
 			tree2.setAdditionalColor(dark);
 			grass.setAdditionalColor(dark);
@@ -1390,17 +1389,17 @@ public class ARWaveView extends GLSurfaceView {
 			world.buildAllObjects();
 
 			//add objects to default layer
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(grass));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree1));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree2));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(rock));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane));	
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(grass,ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree1, ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree2,ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(rock,ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,ARBlipObject.ObjectType.MESH_OBJECT));	
 			LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);			
 			//-----
 			// This can be removed when not in season....
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos));
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos2));
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree));	
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,ARBlipObject.ObjectType.MESH_OBJECT));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos2,ARBlipObject.ObjectType.MESH_OBJECT));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree,ARBlipObject.ObjectType.MESH_OBJECT));	
 			//-----
 			
 			
