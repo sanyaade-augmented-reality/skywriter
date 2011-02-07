@@ -12,5 +12,6 @@
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="C:/TomsProjects/Android/fedone-android-client-api-0.2.jar"/>
 	<classpathentry kind="lib" path="C:/TomsProjects/Android/jPCTAEAPI/jpct_ae.jar"/>
+	<classpathentry kind="lib" path="C:/TomsProjects/Android/solarpositioning-0.0.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -20,11 +20,12 @@ public class SkywriterBillboard extends Rectangle {
 	int TextScaleX = 10;
 	int TextScaleY = 10;
 	
+	int DistanceScaleMultiplier = 1;
 	
 	public SkywriterBillboard(String TextString, int TextScaleX,int TextScaleY) {
 		
 		super(1, getWidthFromText(TextString)*TextScaleX, getHeightFromText(TextString)*TextScaleY); // fixed, but in future these should vary based on the size of the text?
-		
+				
 		this.TextScaleX= TextScaleX;
 		this.TextScaleY= TextScaleY;
 		
@@ -144,5 +145,10 @@ public class SkywriterBillboard extends Rectangle {
 		return height;
 		
 		
+	}
+	
+	public void scale(int Scale){
+		DistanceScaleMultiplier = Scale;
+		this.scale(DistanceScaleMultiplier);
 	}
 }

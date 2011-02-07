@@ -20,12 +20,8 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -68,10 +64,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.OnTabChangeListener;
 
 import com.google.android.maps.MapActivity;
-import com.threed.jpct.Logger;
 import com.threed.jpct.Matrix;
-import com.threed.jpct.Object3D;
-import com.threed.jpct.Primitives;
 import com.threed.jpct.SimpleVector;
 
 /**
@@ -93,9 +86,14 @@ public class start extends MapActivity implements SensorEventListener,
 	
 	// ----------------
 	
+	//default wave prefs;
+	 static boolean backgroundScenaryOn = false;
+	static boolean CMScenaryOn = false;
+	 //
+	 
 	
 	private static final int OPEN_WAVE_ID = 0;
-	private static final int ADD_ARBLIP_ID = 1;
+	private static final int SET_WAVE_PREFS = 1;
 
 	// ar view context menu
 	private static final int ADD_ARBLIPFROMARVIEW_ID = 2;
@@ -188,6 +186,10 @@ public class start extends MapActivity implements SensorEventListener,
 
 	// admin mode (used for debuging)
 	private boolean adminmode = true; // false;
+	
+
+	
+	
 
 	// Need handler for callbacks to the UI thread
 	final public static Handler mHandler = new Handler();
@@ -408,19 +410,34 @@ public class start extends MapActivity implements SensorEventListener,
 		
 		usersWavesList.add("CMLayer");    // Christmass layer
 
+		
+		//SharedPreferences prefs = PreferenceManager
+	//	.getDefaultSharedPreferences(getBaseContext());
+		
+
+		//get pref for background wave
+		SharedPreferences BackgroundPrefs = getBaseContext().getSharedPreferences("waveID_Background", Context.MODE_PRIVATE);
+		backgroundScenaryOn = BackgroundPrefs.getBoolean("ShowByDefault", true);
+		waveListViewBox.setItemChecked(0, backgroundScenaryOn);
+		
+		
+		
+		//get and Christmas wave
+		SharedPreferences CMLayerPrefs = getBaseContext().getSharedPreferences("waveID_CMLayer", Context.MODE_PRIVATE);
+		CMScenaryOn = CMLayerPrefs.getBoolean("ShowByDefault", true);
+		waveListViewBox.setItemChecked(1, CMScenaryOn);
+		
 		waveListViewBox.invalidate();
 		
-		SharedPreferences prefs = PreferenceManager
-		.getDefaultSharedPreferences(getBaseContext());
-		Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);
-		
+		/*
 		if (backgroundScenaryOn!=null){
 		waveListViewBox.setItemChecked(0, backgroundScenaryOn);
 		} else {
 		waveListViewBox.setItemChecked(0, true);	
 		}
 		waveListViewBox.setItemChecked(1, true);
-
+*/
+		
 		waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
@@ -430,11 +447,13 @@ public class start extends MapActivity implements SensorEventListener,
 						.toString(); // <---This really needs to be improved,
 										// the waveID should be stored somehow
 										// so we can use proper labels
+				
 				Log.i("wavelist", "changing wave:" + WaveID);
 
 				// set boolean to its checked state
 				Boolean isVisible = waveListViewBox.isItemChecked(arg2);
-
+				Log.i("wavelist", "to " + isVisible);
+				
 				// toggle visibility (only has effect if wave is already open)
 				arView.setWaveVisiblity(WaveID, isVisible);
 
@@ -488,6 +507,9 @@ public class start extends MapActivity implements SensorEventListener,
 	}
 	
 	private void copy(Object src,Object src2 ) {
+		
+		
+		
 		try {
 			Log.i("___","_________Copying data from surface Activity!");
 			Field[] fs = src.getClass().getDeclaredFields();
@@ -514,23 +536,27 @@ public class start extends MapActivity implements SensorEventListener,
 	
 	private void setUpPreferances(final EditText username,
 			final EditText serverAddress) {
+		
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(getBaseContext());
-
+		
+	//	Editor test = prefs.edit();
+		//test.putBoolean("WaveID_DefaultOn",true);
+		
 		username.setText(prefs.getString("LoginName", "demo@arwave.org"));
 		serverAddress.setText(prefs.getString("DefaultServer", "192.168.1.104"));
 
-		// scenary on/off
-		Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);
-		if (backgroundScenaryOn != null) {
-			arView.backgroundScenaryVisible = backgroundScenaryOn;
+		// Scenery on/off
+		//Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);
+		//if (backgroundScenaryOn != null) {
+		//	arView.backgroundScenaryVisible = backgroundScenaryOn;
 			
-		}
+		//}
 
-		// camera portrate mode on/off
+		// camera portrait mode on/off
 		Boolean cameraPortraiteMode = prefs
 				.getBoolean("Portrait_Camera", false);
-		if (backgroundScenaryOn != null) {
+		if (cameraPortraiteMode != null) {
 			cameraView.PortrateCameraMode = cameraPortraiteMode;
 		}
 	}
@@ -1079,13 +1105,14 @@ public class start extends MapActivity implements SensorEventListener,
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
+		
 		switch (item.getItemId()) {
 
 		case MENU_PREFERANCES:
 
 			Log.i("MENU", "loading preferances");
 
-			Intent i = new Intent(this, MyPreferenceActivity.class);
+			Intent i = new Intent(this, SkywriterAppPreferances.class);
 			i.putExtra("key", "value"); // FIXME: this really isn't needed
 
 			startActivity(i);
@@ -1529,8 +1556,9 @@ public class start extends MapActivity implements SensorEventListener,
 			}
 
 		} else {
+			Log.i("wave", "adding options to menu");			
 			menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
-			// menu.add(0, ADD_ARBLIP_ID, 0, R.string.addARblipText);
+			menu.add(0, SET_WAVE_PREFS, 0, R.string.setWavePrefsText);
 		}
 
 	}
@@ -1544,6 +1572,17 @@ public class start extends MapActivity implements SensorEventListener,
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
 		switch (item.getItemId()) {
+		case SET_WAVE_PREFS:
+			// demo code; parse's blips into arblips and displays them
+			String wavetosetid = ((TextView) info.targetView).getText()
+					.toString();
+			Log.i("MENU", "setting preferances for "+wavetosetid);
+
+			Intent i = new Intent(this, WavePreferances.class);
+			i.putExtra("waveID", wavetosetid);
+
+			startActivity(i);
+			return true;
 		case OPEN_WAVE_ID:
 
 			// first we check we have gps working and the scene loaded, if not
@@ -1709,19 +1748,7 @@ public class start extends MapActivity implements SensorEventListener,
 
 	}
 
-	/**
-	 * updates a blip to have a new id should only be used for when a new blip
-	 * returns its true ID < --- ignore this, not how wave works
-	 * **/
-	public static void updateBlipID(String OldID, String NewID, String waveID) {
-
-		// Log.i("add","new ID:"+NewID);
-
-		// acm.updateARBlip(NewID,waveID, "ITWORKEDYESSSSSSSSSSSSSSSSS");
-		// Log.i("add","newID end");
-
-	}
-
+	
 
 
 }

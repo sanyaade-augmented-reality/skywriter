@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    
+   <PreferenceCategory android:title="Wave Options">
+       <CheckBoxPreference android:summary="Show Layer By Default" android:title="Show By Default" android:enabled="true" android:key="ShowByDefault"></CheckBoxPreference>
+    
+     Password</PreferenceCategory><PreferenceCategory android:title="Layer Style Options">
+
+                
+    
+<ListPreference android:title="BillBoard Scaleing" android:entryValues="@array/BillboardScaleingKeys" android:entries="@array/BillboardScaleing" android:summary="Options for how billboards scale with distance." android:enabled="true" android:key="BillBoard_Scaleing"></ListPreference>
+</PreferenceCategory>
+    
+    
+  
+  
+</PreferenceScreen>

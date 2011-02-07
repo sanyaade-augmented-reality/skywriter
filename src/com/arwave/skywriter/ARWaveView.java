@@ -17,6 +17,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -28,6 +30,8 @@ import android.graphics.Typeface;
 import android.graphics.Paint.FontMetricsInt;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.util.FloatMath;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -58,13 +62,12 @@ public class ARWaveView extends GLSurfaceView {
 	static public Location currentRealLocation;
 
 	// our world, to which we add stuff
-	private World world = null;
+	static public World world = null;
 
-	private Light sun = null;
+	private SunObject sun = null;
 	
 	//lens flare on/off
 	private boolean LensFlareOn = true;
-	LensFlare SceneLensFlare;
 	
 	// ground
 	private Object3D groundPlane = null;
@@ -245,7 +248,7 @@ public class ARWaveView extends GLSurfaceView {
 
 			if (res[1]!=null){
 
-				//If its canceling;				
+				//If its cancelling;				
 
 				if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
 					//Dont cancel is on the menu!
@@ -755,6 +758,13 @@ public class ARWaveView extends GLSurfaceView {
 		// update camera location
 		Camera cam = world.getCamera();
 		cam.setPosition(x, cameraHeight, z); // we might want to animate this at
+		
+		//update billboards if needed
+		for (ARWaveLayer layer: AllLayersOpen){
+			Log.i("test", "updating billboards");			
+			layer.scaleBillboards();
+		}
+		
 		// some point
 
 		// if map showing, then update it (or try to)
@@ -776,12 +786,37 @@ public class ARWaveView extends GLSurfaceView {
 	}
 
 	/** Supposed to set the subs rotation **/
-	public void setSunRotation(SimpleVector degrees) {
+	public void setSunRotation() {
 
 		// arg, this works relatively..no clue how to fix this
-		degrees = new SimpleVector(0, 0.05f, 0);
+		//degrees = new SimpleVector(0, 0.05f, 0);
 
-		sun.rotate(degrees, groundPlane.getTransformedCenter());
+		//sun.rotate(degrees, groundPlane.getTransformedCenter());
+		
+		//new, set direction by time
+		sun.setSunPosition(0,currentRealLocation);
+		
+		//testing rotation
+		Timer setRotation = new Timer();
+		
+		TimerTask sunAnimation = new TimerTask() {
+			int t=0;
+			@Override
+			public void run() {	
+				
+				
+				sun.setSunPosition(t,currentRealLocation);
+				t=t+1;
+				
+				if(t>24){
+					t=0;
+				}
+				
+			}				
+		};
+		
+		setRotation.scheduleAtFixedRate(sunAnimation, 10, 6500);
+		
 
 	}
 
@@ -944,13 +979,13 @@ public class ARWaveView extends GLSurfaceView {
 	}
 	
 	/**
-	 * updates an existing blip in the specified scene crashs if blip/object doesnt exist
+	 * updates an existing blip in the specified layer crashes if blip/object doesn't exist
 	 **/
 
-	public void updateBlip(ARWaveLayer scene, ARBlip newblipdata) {
+	public void updateBlip(ARWaveLayer layer, ARBlip newblipdata) {
 		
 		Log.i("3ds", "updating1");
-		scene.updateBlip(newblipdata);
+		layer.updateBlip(newblipdata);
 		
 		/*
 		Object3D updateThis = world.getObjectByName(newblipdata.BlipID);
@@ -1136,6 +1171,9 @@ public class ARWaveView extends GLSurfaceView {
 
 	class MyRenderer implements GLSurfaceView.Renderer {
 
+
+		Resources res = getResources();
+		
 		private Texture numberFont = null;
 
 		Object3D cmtree = null;
@@ -1203,7 +1241,6 @@ public class ARWaveView extends GLSurfaceView {
 			Object3D grass = null;
 			Object3D rock = null;
 			
-			Resources res = getResources();
 
 			TextureManager tm = TextureManager.getInstance();
 
@@ -1400,13 +1437,26 @@ public class ARWaveView extends GLSurfaceView {
 			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,ARBlipObject.ObjectType.MESH_OBJECT));
 			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos2,ARBlipObject.ObjectType.MESH_OBJECT));
 			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree,ARBlipObject.ObjectType.MESH_OBJECT));	
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree2,ARBlipObject.ObjectType.MESH_OBJECT));	
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree3,ARBlipObject.ObjectType.MESH_OBJECT));	
+			
 			//-----
+			//set there prefs
+
+			
+			//get pref for background wave
+			SpecialChristmassScenaryLayer.setVisible(start.backgroundScenaryOn);
+			
+			//get and Christmas wave
+			LocalBackgroundScenaryLayer.setVisible(start.CMScenaryOn);
 			
 			
 			
 			
 			
-			sun = new Light(world);
+			
+			//create a new sun and position it relative to the ground plane
+			sun = new SunObject(world,0,res);
 
 			Camera cam = world.getCamera();
 			cam.moveCamera(Camera.CAMERA_MOVEUP, 100);
@@ -1414,30 +1464,23 @@ public class ARWaveView extends GLSurfaceView {
 
 			cam.setFOV(0.5f); // used to be 1.5, 0.5 seemed closer to my phones
 			// camera -thomas
-			sun.setIntensity(250, 250, 250);
-
-			SimpleVector sv = new SimpleVector();
-			sv.set(groundPlane.getTransformedCenter());
-			sv.y -= 300;
-			sv.x -= 100;
-			sv.z += 200;
-			sun.setPosition(sv);
-
-
+			
+			
 			
 			//set up lensflare
 			if (LensFlareOn)
 		    {   //set up textures
-				Texture flare_maintexture = new Texture(res.openRawResource(R.raw.mainflare2));
-                tm.addTexture("flare_maintexture", flare_maintexture);
-				
+				//Texture flare_maintexture = new Texture(res.openRawResource(R.raw.mainflare2));
+                //tm.addTexture("flare_maintexture", flare_maintexture);				
                 //for a more pretty flare, we can use different textures for each halo.
-				SceneLensFlare = new LensFlare(sun.getPosition(),"flare_maintexture", "flare_maintexture", "flare_maintexture","flare_maintexture");
-				SceneLensFlare.setMaximumDistance(1000);
-				SceneLensFlare.setTransparency(7);
+				//SceneLensFlare = new LensFlare(sun.getPosition(),"flare_maintexture", "flare_maintexture", "flare_maintexture","flare_maintexture");
+				//SceneLensFlare.setMaximumDistance(1000);
+				//SceneLensFlare.setTransparency(7);
 				
-		    
+		       sun.setLensFlareOn(true);
 		    }
+			
+			setSunRotation();
 		}
 
 		public void onDrawFrame(GL10 gl) {
@@ -1541,15 +1584,10 @@ public class ARWaveView extends GLSurfaceView {
 						fb.clear();
 						
 						
-						
+						sun.updatedAndRender(fb);
 						world.renderScene(fb);
 						
-						if (LensFlareOn){
-							
-							SceneLensFlare.update(fb, world);
-							SceneLensFlare.render(fb);
-							
-							}
+					
 						
 						world.draw(fb);
 
@@ -1591,14 +1629,7 @@ public class ARWaveView extends GLSurfaceView {
 							world.getCamera().rotateCameraAxis(Y_AXIS,
 									newCameraY);
 
-							// worldcam.rotateCameraAxis(new
-							// SimpleVector(0,1,0), -Z);
-							// worldcam.rotateCameraAxis(new
-							// SimpleVector(1,0,0), X);
-							// worldcam.rotateCameraAxis(new
-							// SimpleVector(0,0,1), -Y);
 
-							// first we bleet a random number to help diagnoise
 							/*
 							 * if (showDebugInfo){
 							 * 
@@ -1606,27 +1637,7 @@ public class ARWaveView extends GLSurfaceView {
 							 * 
 							 * blitNumber(TestVar, 200, 25);
 							 * 
-							 * 
-							 * blitNumber(Math.round(CameraMatrix.getXAxis().x*1000
-							 * ), 5, 25);
-							 * blitNumber(Math.round(CameraMatrix.getXAxis
-							 * ().y*1000), 55, 25);
-							 * blitNumber(Math.round(CameraMatrix
-							 * .getXAxis().z*1000), 105, 25);
-							 * blitNumber(Math.round
-							 * (CameraMatrix.getYAxis().x*1000), 5, 45);
-							 * blitNumber
-							 * (Math.round(CameraMatrix.getYAxis().y*1000), 55,
-							 * 45);
-							 * blitNumber(Math.round(CameraMatrix.getYAxis()
-							 * .z*1000), 105, 45);
-							 * blitNumber(Math.round(CameraMatrix
-							 * .getZAxis().x*1000), 5, 65);
-							 * blitNumber(Math.round
-							 * (CameraMatrix.getZAxis().y*1000), 55, 65);
-							 * blitNumber
-							 * (Math.round(CameraMatrix.getZAxis().z*1000), 105,
-							 * 65); }
+							 * }
 							 */
 
 						}
@@ -1662,24 +1673,6 @@ public class ARWaveView extends GLSurfaceView {
 
 		}
 
-		// Seems to be for making the hilly groundplane...probably not needed by
-		// us, but
-		// usefull as a referance for vectex manipulation.
-		private class Mod extends GenericVertexController {
-			private static final long serialVersionUID = 1L;
-
-			public void apply() {
-				SimpleVector[] s = getSourceMesh();
-				SimpleVector[] d = getDestinationMesh();
-				for (int i = 0; i < s.length; i++) {
-					d[i].z = s[i].z
-					- (10f * (FloatMath.sin(s[i].x / 50f) + FloatMath
-							.cos(s[i].y / 50f)));
-					d[i].x = s[i].x;
-					d[i].y = s[i].y;
-				}
-			}
-		}
 
 		// seems to be for picking numbers from a texture and displaying them
 		// for the framerate

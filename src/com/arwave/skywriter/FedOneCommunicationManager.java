@@ -148,10 +148,6 @@ public class FedOneCommunicationManager implements
 					}
 					*/
 					
-					// WHERE DO I GET THE NEW ID?!?!?!
-					
-					//update the last submitted blip
-					start.updateBlipID("_NEWBLIPTEMP_",newDocId,wave.getWaveId().serialise());
 					
 					//turn the page back to the 3d view
 					start.mHandler.post(start.goBackToWorldView);
