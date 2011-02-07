@@ -29,6 +29,7 @@
 <string name="arView_CancelBlipPlacement">Cancel Blip</string>
 <string name="arView_ContinueBlipPlacement">Continue Editing</string>
 <string name="createWave">Create New Wave</string>
+<string name="setWavePrefsText">Set Wave Preferances</string>
 
 
 </resources>

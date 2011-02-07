@@ -34,16 +34,24 @@ public class ARWaveLayer {
 	String ARWaveLayerID = "";
 
 	
-	//not implemented yet; billboard scaleing modes;
-	private static final int  BILLBOARDMODE_REAL = 0; //default
-	private static final int  BILLBOARDMODE_LINEAR = 1; //linear sizeing (falls of in size linearly with distance rather then exponetialy)
-	private static final int  BILLBOARDMODE_FIXED = 2; //fixed size relative to the viewport
-	static final int BillboardMode = BILLBOARDMODE_REAL; // default to real
+	//Billboard scaling modes;
+
+	 public enum ScaleType {
+		 BILLBOARDMODE_REAL, //real scaling 
+		 BILLBOARDMODE_LINEAR, ///linear sizing (falls of in size linearly with distance rather then exponetialy)
+		 BILLBOARDMODE_FIXED //fixed size relative to the viewport WHATS THE FORMULA FOR THIS?!?!
+			
+		}
 	//----
-	
+	 ScaleType BillboardMode = ScaleType.BILLBOARDMODE_LINEAR; // default to linear
+		
 	
 	public ARWaveLayer(){
 		
+	}
+	
+	public void setBillBoardScaleingMode(ScaleType mode){
+		BillboardMode = mode;
 	}
 	
 	public void addObject(ARBlipObject newArBlipObject){		
@@ -66,8 +74,7 @@ public class ARWaveLayer {
 		
 		while (objects.hasNext()){			
 			ARBlipObject object = objects.next();
-			object.object3d.setVisibility(visible);
-			
+			object.object3d.setVisibility(visible);			
 		}
 		
 	}
@@ -403,7 +410,57 @@ public class ARWaveLayer {
 	}
 
 		
-	
+	public void scaleBillboards(){
+		
+		//no scale needed as layer is set to real  mode
+		if (BillboardMode == ScaleType.BILLBOARDMODE_REAL){
+			return;
+		} else {
+			
+			//else we scale based on scaling type
+			
+			//loop for each object 
+			Iterator<ARBlipObject> objects = LayersObjects.iterator();
+			
+			while (objects.hasNext()){			
+				ARBlipObject object = objects.next();			
+				if (object.Object3DType == ObjectType.BILLBOARD_OBJECT){
+					//if its a billboard..
+					Log.i("test", "scaleing billboard "+object.arblip.BlipID);
+
+					Object3D scaleThisObject = object.object3d;
+					
+					//get its distance to world camera...
+					float dist = object.object3d.getTransformedCenter().calcSub(ARWaveView.world.getCamera().getPosition()).length();
+					Log.i("test", "distance to camera = "+dist);
+
+					//get field of view
+					float fov = ARWaveView.world.getCamera().getFOV();
+					Log.i("test", "camera fov = "+fov);
+					
+					//and scale by it!					
+					
+					float ScaleFactor = 0.003f; //trail and error guess
+					float Scale = ScaleFactor  * dist;
+					
+					Log.i("test", "scale = "+Scale);
+					
+					scaleThisObject.setScale(1+Scale);
+					// the fov needs to be factored in here somehow.
+					// if fov = 1 then scale = 1
+					
+					
+					
+				}
+			}
+			
+			
+			
+		}
+		
+		
+		
+	}
 	
 	
 }
