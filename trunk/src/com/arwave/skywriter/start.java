@@ -547,6 +547,7 @@ public class start extends MapActivity implements SensorEventListener,
 		serverAddress.setText(prefs.getString("DefaultServer", "192.168.1.104"));
 
 		// Scenery on/off
+		//This is now handled directly by the wave preferances
 		//Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);
 		//if (backgroundScenaryOn != null) {
 		//	arView.backgroundScenaryVisible = backgroundScenaryOn;
@@ -890,13 +891,12 @@ public class start extends MapActivity implements SensorEventListener,
 					camera.setParameters(parameters);
 				}
 
-				/*
 				int SDK_INT = android.os.Build.VERSION.SDK_INT;
 				Log.i("version", " ->"+SDK_INT);
 				if (SDK_INT>=8){
 					// 2.2 only;
 					camera.setDisplayOrientation(90);
-				}*/
+				}
 				
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
@@ -1384,11 +1384,21 @@ public class start extends MapActivity implements SensorEventListener,
 					//set bertines and toms place
 					ARBlip OurPlace = new ThomasAndBertinesPlace(); 
 				
+					//set barcalonia stuff
+					ARBlip Hostle = new SIARHostle();
+					ARBlip SIAR = new SIAR();
+					ARBlip Airport = new BarAirport();
 					
 					
 					try {
-						arView.addBlip(OurPlace);
-						arView.addBlip(Clancys);
+					//	arView.addBlip(OurPlace);
+					//	arView.addBlip(Clancys);
+						
+						arView.addBlip(Hostle);
+						arView.addBlip(SIAR);
+						arView.addBlip(Airport);
+						
+						
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						Log.i("test","cant add billboard");
