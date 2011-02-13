@@ -145,7 +145,7 @@ public class SunObject extends Light {
 		
 		
 		 final GregorianCalendar dateTime = new GregorianCalendar();
-		 dateTime.set(Calendar.HOUR_OF_DAY, HoursPassedNoon);
+		// dateTime.set(Calendar.HOUR_OF_DAY, HoursPassedNoon);  This was used to set the hour manualy
 		 
 		 
 		 
@@ -157,36 +157,16 @@ public class SunObject extends Light {
 		 double alt =position.getZenithAngle();
 		 
 		 
-			Log.i("math", "alt = "+alt);
-			Log.i("math", "az = "+az);
+		Log.i("math", "time = "+dateTime.getTime().toString());
+		Log.i("math", "lat = "+latitude);
+		Log.i("math", "long = "+longitude);
+		Log.i("math", "sun alt = "+alt);
+		Log.i("math", "sun az = "+az);
 			 alt = -(position.getZenithAngle()-90);
 			 
 		setDirection(az,alt);
 	
-		/*
-		//method based on location
-		if (YourHemisphere==Hemisphere.NorthenHemisphere){
-			
-		    //half the time since noon
-			double northdis = HoursPassedNoon / 2;
-			//multiple by 30 to get degree's (as each hour is 30 degree's on a clockface)
-			northdis = northdis * 30;
-			//set the direction
-			setDirection(northdis);
-			
-		}
-		
-		//method based on location
-		if (YourHemisphere==Hemisphere.SouthenHemisphere){
-			
-		    //half the time since noon
-			double northdis = HoursPassedNoon / 2;
-			//multiple by 30 to get degree's (as each hour is 30 degree's on a clockface)
-			northdis = northdis * 30;
-			//set the direction
-			setDirection(-northdis); //note the minus, the displacement goes the other way...I think
-			
-		}*/
+	
 		
 	}
 

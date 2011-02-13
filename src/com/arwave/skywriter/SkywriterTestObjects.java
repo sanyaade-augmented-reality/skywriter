@@ -32,8 +32,47 @@ class ClancysTilburg extends ARBlip
 	};
 }
 
+class SIAR extends ARBlip
+{	
+	public SIAR(){		
+		this.x = 41.398333; 
+		this.y = 2.14168;
+		this.z = 40; 
+		this.BlipID = "ViaAugusta177";
+		Log.i("test_objects", "SIAR"); 
+		this.ObjectData = "Via Augusta 177 (SIAR)"; 
+		this.isFacingSprite=true;		
+	};
+}
+
+class SIARHostle extends ARBlip
+{	
+	public SIARHostle(){		
+		this.x = 41.374059; 
+		this.y = 2.165696;
+		this.z = 40; 
+		this.BlipID = "SIARHostle";
+		Log.i("test_objects", "SIARHostle"); 
+		this.ObjectData = "Our Hostle"; 
+		this.isFacingSprite=true;		
+	};
+}
+class BarAirport extends ARBlip
+{	
+	public BarAirport(){		
+		this.x = 41.30599; 
+		this.y = 2.07547;
+		this.z = 40; 
+		this.BlipID = "BarAirport";
+		Log.i("test_objects", "BarAirport"); 
+		this.ObjectData = "Airport"; 
+		this.isFacingSprite=true;		
+	};
+}
+
+
 //A list of sample markers down a street in tilburg!
-// (please change if you wish to test more localy to you)
+// (please change if you wish to test more locally to you)
 /*
  * double blipDataX[] = {
  * 51.560071,51.559150,51.558890,51.55839

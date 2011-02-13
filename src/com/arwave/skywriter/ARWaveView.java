@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,8 +16,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,20 +24,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
-import android.graphics.Paint.FontMetricsInt;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
-import android.util.FloatMath;
 import android.util.Log;
 import android.view.MotionEvent;
 import com.threed.jpct.Camera;
 import com.threed.jpct.Config;
 import com.threed.jpct.FrameBuffer;
-import com.threed.jpct.GenericVertexController;
 import com.threed.jpct.Interact2D;
-import com.threed.jpct.Light;
 import com.threed.jpct.Loader;
 import com.threed.jpct.Logger;
 import com.threed.jpct.Matrix;
@@ -51,7 +42,6 @@ import com.threed.jpct.SimpleVector;
 import com.threed.jpct.Texture;
 import com.threed.jpct.TextureManager;
 import com.threed.jpct.World;
-import com.threed.jpct.util.LensFlare;
 
 /** This is our GLSurface view extended with ARBlip specific functions **/
 public class ARWaveView extends GLSurfaceView {
@@ -797,6 +787,7 @@ public class ARWaveView extends GLSurfaceView {
 		sun.setSunPosition(0,currentRealLocation);
 		
 		//testing rotation
+		/*
 		Timer setRotation = new Timer();
 		
 		TimerTask sunAnimation = new TimerTask() {
@@ -816,7 +807,7 @@ public class ARWaveView extends GLSurfaceView {
 		};
 		
 		setRotation.scheduleAtFixedRate(sunAnimation, 10, 6500);
-		
+		*/
 
 	}
 
