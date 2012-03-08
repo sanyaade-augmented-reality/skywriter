@@ -29,6 +29,12 @@ public class WavePreferances extends PreferenceActivity {
 
         addPreferencesFromResource(R.xml.wavepreferances);
         
+        
+        //set up invite new user button
+        
+        
+        
+        
        /*
         Bundle extras = getIntent().getExtras(); 
         //get the ID

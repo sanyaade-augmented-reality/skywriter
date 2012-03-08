@@ -9,5 +9,9 @@
 <item>Liner</item>
 <item>Fixed</item>
 </string-array>
+<string-array name="ServerType">
+    <item >XMPPServer</item>
+    <item >WaveServer</item>
+</string-array>
 
 </resources>

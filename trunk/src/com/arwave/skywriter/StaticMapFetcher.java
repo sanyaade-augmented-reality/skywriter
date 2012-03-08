@@ -14,8 +14,8 @@ import android.text.Layout;
 import android.util.Log;
 import android.view.ViewGroup.LayoutParams;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
+//import com.google.android.maps.GeoPoint;
+//import com.google.android.maps.MapView;
 
 public class StaticMapFetcher {
 	Bitmap mapimage;

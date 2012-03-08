@@ -10,17 +10,16 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 import java.lang.reflect.Field;
 import org.waveprotocol.wave.examples.fedone.common.HashedVersion;
 import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.hardware.Camera;
 import android.hardware.Sensor;
@@ -48,13 +47,14 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
@@ -63,7 +63,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.OnTabChangeListener;
 
-import com.google.android.maps.MapActivity;
+//import com.google.android.maps.MapActivity;
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
 
@@ -75,23 +75,24 @@ import com.threed.jpct.SimpleVector;
  * @author EgonOlsen
  * 
  */
-public class start extends MapActivity implements SensorEventListener,
+public class start extends Activity implements SensorEventListener,
 		LocationListener, OnTabChangeListener {
+	static start maincontext = null;
 
-	
 	// Used to handle pause and resume...
 	// These two variables store everything when the app is paused
 	static ARWaveView surface_activity_master = null;
-	static MapActivity main_activity_master = null;	
-	
+	// static MapActivity main_activity_master = null;
+
+	static Activity main_activity_master = null;
+
 	// ----------------
-	
-	//default wave prefs;
-	 static boolean backgroundScenaryOn = false;
+
+	// default wave prefs;
+	static boolean backgroundScenaryOn = false;
 	static boolean CMScenaryOn = false;
-	 //
-	 
-	
+	//
+
 	private static final int OPEN_WAVE_ID = 0;
 	private static final int SET_WAVE_PREFS = 1;
 
@@ -102,6 +103,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_CANCEL_BLIP = 5;
 	private static final int MENU_EDIT_BLIP = 6;
 	private static final int MENU_DELETE_BLIP = 7;
+	private static final int REMOVE_WAVE = 8;
 
 	private static AbstractCommunicationManager acm;
 
@@ -133,8 +135,14 @@ public class start extends MapActivity implements SensorEventListener,
 	static EditText AddBlipLong;
 	static EditText AddBlipText;
 	static EditText AddBlipAlt;
+	static TextView AddBlipBlipID;
+	static TextView AddBlipWaveID;
+
+	private static Button CreateWaveButton;
+	private static Button joinWaveButton;
 
 	boolean overheadmode = false;
+	boolean fixedlocationmode = false;
 
 	// Camera Orientation Related
 	static SensorHelper sensorfunctions = new SensorHelper();
@@ -162,6 +170,7 @@ public class start extends MapActivity implements SensorEventListener,
 	private static final int MENU_OVERHEAD = 5;
 	private static final int MENU_ADDSPINNINGTHING = 6;
 	private static final int MENU_PREFERANCES = 7;
+	private static final int MENU_FREEZECAMLOC = 8;
 
 	// Matrix tempR = new Matrix();
 	float RTmp[] = new float[9];
@@ -173,8 +182,9 @@ public class start extends MapActivity implements SensorEventListener,
 	static TabHost tabHost;
 
 	private ArrayAdapter<String> usersWaveListAdapter;
-	private List<String> usersWavesList;
-	private WaveListView waveListViewBox;
+	static List<String> usersWavesList;
+
+	private static WaveListView waveListViewBox;
 
 	private LocationManager lm;
 	private LocationListener locListener;
@@ -184,12 +194,12 @@ public class start extends MapActivity implements SensorEventListener,
 	static int screenwidth = 300;
 	static int screenheight = 400;
 
+	//
+
 	// admin mode (used for debuging)
 	private boolean adminmode = true; // false;
-	
 
-	
-	
+	private static Spinner activewavelist;
 
 	// Need handler for callbacks to the UI thread
 	final public static Handler mHandler = new Handler();
@@ -201,19 +211,52 @@ public class start extends MapActivity implements SensorEventListener,
 		}
 	};
 
+	// Not sure onNewIntent is neededfor this
+	@Override
+	protected void onNewIntent(Intent intent) {
+		Log.i("___", "new intent");
+
+		// get data and display it:
+
+		String value = intent.getDataString() + "   "
+				+ this.getIntent().getScheme();
+
+		Log.i("___", "start string2=" + value);
+
+		TextView out = (TextView) findViewById(R.id.messages);
+		out.setText("=" + value);
+
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.i("_____", "onCreate");		
-		//used to handel pause/resume
+		Log.i("_____", "onCreate");
+		maincontext = this;
+
+		// getData().getQueryParameter("X");
+
+		// used to handle pause/resume
 		if (surface_activity_master != null && main_activity_master != null) {
-			copy(surface_activity_master,main_activity_master);
+
+			copy(surface_activity_master, main_activity_master);
+			Log.i("__", "data copied.");
+
 		}
-		
+
 		super.onCreate(savedInstanceState);
 
 		Resources res = getResources();
 		setContentView(R.layout.main);
 
+		// get startup data if any
+		String startUpValues = this.getIntent().getStringExtra("||");
+		
+		
+		if (startUpValues != null) {
+			Log.i("_____", "start string=" + startUpValues);
+			this.addMessage("Auto Join AfterLogin:" + startUpValues);
+		}
+		
 		// set up screen stats
 		final DisplayMetrics dm = new DisplayMetrics();
 		screenwidth = dm.widthPixels;
@@ -227,30 +270,33 @@ public class start extends MapActivity implements SensorEventListener,
 		tabHost.setup();
 
 		// Initialize a TabSpec for each tab and add it to the TabHost
-		spec = tabHost.newTabSpec("LoginTab").setIndicator("Login",
-				res.getDrawable(R.drawable.eye)).setContent(R.id.MainLoginPage);
+		spec = tabHost.newTabSpec("LoginTab")
+				.setIndicator("Login", res.getDrawable(R.drawable.eye))
+				.setContent(R.id.MainLoginPage);
 		tabHost.addTab(spec);
 
-		spec = tabHost.newTabSpec("WavesTab").setIndicator("Waves",
-				res.getDrawable(R.drawable.ship)).setContent(R.id.WavePage);
+		spec = tabHost.newTabSpec("WavesTab")
+				.setIndicator("Waves", res.getDrawable(R.drawable.ship))
+				.setContent(R.id.WavePage);
 		tabHost.addTab(spec);
 
-		spec = tabHost.newTabSpec("WorldTab").setIndicator("World",
-				res.getDrawable(R.drawable.eye)).setContent(R.id.ARViewPage);
+		spec = tabHost.newTabSpec("WorldTab")
+				.setIndicator("World", res.getDrawable(R.drawable.earth))
+				.setContent(R.id.ARViewPage);
 
 		tabHost.addTab(spec);
 
-		spec = tabHost.newTabSpec("AddBlipTab").setIndicator("AddBlip",
-				res.getDrawable(R.drawable.eye)).setContent(
-				R.id.add_arblip_layout);
+		spec = tabHost.newTabSpec("AddBlipTab")
+				.setIndicator("AddBlip", res.getDrawable(R.drawable.eye))
+				.setContent(R.id.add_arblip_layout);
 
 		tabHost.addTab(spec);
 
 		// tabHost.getTabWidget().getChildTabViewAt(1).setEnabled(false);
 		// tabHost.getTabWidget().getChildTabViewAt(1).setVisibility(TabWidget.INVISIBLE);
 		tabHost.getTabWidget().getChildTabViewAt(3).setEnabled(false);
-		tabHost.getTabWidget().getChildTabViewAt(3).setVisibility(
-				TabWidget.INVISIBLE);
+		tabHost.getTabWidget().getChildTabViewAt(3)
+				.setVisibility(View.INVISIBLE);
 
 		// size height
 		// tabHost.getTabWidget().getLayoutParams().height=60;
@@ -281,16 +327,60 @@ public class start extends MapActivity implements SensorEventListener,
 		// for adding blips
 		Button cancelButton = (Button) findViewById(R.id.cancelButton);
 
+		Log.i("setup", "setting wave list view");
+		activewavelist = (Spinner) findViewById(R.id.activewaveselectlist);
+
+		// add selection click listener
+		activewavelist.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+
+				// select wave name
+				String name = (((TextView) arg1)).getText().toString();
+				Log.i("wave", "selected active wave name:" + name);
+
+				// get the id
+				String waveID = WaveList.getWaveIDFromNick(name);
+
+				Log.i("wave", "setting active wave too:" + waveID);
+
+				// set current wave to selected one
+				acm.setActiveWave(waveID);
+
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
+
+
+		//assign interface
+		
+		//assign WaveList page buttons
+		joinWaveButton = (Button) findViewById(R.id.OpenJoinWaveButton);
+		joinWaveButton.setEnabled(false);
+		
+		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
+		CreateWaveButton.setEnabled(false);
+		
+		
+		//assign AR Blip adding page
 		Log.i("setup", "setting addblips");
 		AutoSetLocation = (CheckBox) findViewById(R.id.AutoSetLocation);
 		AddBlipLat = (EditText) findViewById(R.id.latitude);
 		AddBlipLong = (EditText) findViewById(R.id.longitude);
 		AddBlipAlt = (EditText) findViewById(R.id.altitude);
 		AddBlipText = (EditText) findViewById(R.id.arblipContent);
+		AddBlipBlipID = (TextView) findViewById(R.id.BlipIDLabel);
+		AddBlipWaveID = (TextView) findViewById(R.id.Waveidlabel);
 
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				//	
+				//
 				tabHost.setCurrentTab(2);
 				// arView.cancelObjectCreation();
 			}
@@ -307,7 +397,9 @@ public class start extends MapActivity implements SensorEventListener,
 				newtemp.y = Double
 						.parseDouble(AddBlipLong.getText().toString());
 				newtemp.z = Double.parseDouble(AddBlipAlt.getText().toString());
+
 				newtemp.ObjectData = AddBlipText.getText().toString();
+				newtemp.BlipID = AddBlipBlipID.getText().toString();
 
 				String tempdata = newtemp.serialise();
 
@@ -322,7 +414,7 @@ public class start extends MapActivity implements SensorEventListener,
 		// findViewById(R.id.add_arblip_layout);
 
 		// ,
-		//        	
+		//
 		// listen for gps
 
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -348,9 +440,48 @@ public class start extends MapActivity implements SensorEventListener,
 		Log.i("setup", "setting buttons");
 
 		// initialize the communication manager
-		acm = new FedOneCommunicationManager(this);
+		// acm = new FedOneCommunicationManager(this);
+		final XMPPCommunicationManager xmppacm = new XMPPCommunicationManager(
+				this);
+		final FedOneCommunicationManager wfpacm = new FedOneCommunicationManager(
+				this);
+
+		acm = xmppacm;
+
+		final EditText password = (EditText) findViewById(R.id.PasswordBox);
 		final EditText username = (EditText) findViewById(R.id.EditText02);
 		final EditText serverAddress = (EditText) findViewById(R.id.EditText03);
+		final Spinner serverSelect = (Spinner) findViewById(R.id.ServerSelect);
+
+		serverSelect.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long rowid) {
+				if (rowid == 0) {
+
+					serverAddress.setText("talk.google.com");
+
+					acm = xmppacm;
+
+				}
+				if (rowid == 1) {
+
+					password.setText("");
+					username.setText("demo");
+					serverAddress.setText("Atresica.nl");
+
+					acm = wfpacm;
+
+				}
+
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
 
 		// prompt for a login
 		Button button = (Button) findViewById(R.id.LoginButton);
@@ -366,33 +497,43 @@ public class start extends MapActivity implements SensorEventListener,
 				// EditText serverPort =
 				// (EditText)findViewById(R.id.serverPortEdit);
 				acm.login(serverAddress.getText().toString(), 9876, username
-						.getText().toString(), new String(""));
+						.getText().toString(), password.getText().toString());
 
-				// enable wave list
-				tabHost.getTabWidget().getChildTabViewAt(1).setEnabled(true);
-				tabHost.getTabWidget().getChildTabViewAt(1).setVisibility(
-						TabWidget.VISIBLE);
-				tabHost.getTabWidget().getChildTabViewAt(3).setEnabled(true);
-				tabHost.getTabWidget().getChildTabViewAt(3).setVisibility(
-						TabWidget.VISIBLE);
+				// enable wave list if login successfull
+				if (acm.isConnected()) {
+					tabHost.getTabWidget().getChildTabViewAt(1)
+							.setEnabled(true);
+					tabHost.getTabWidget().getChildTabViewAt(1)
+							.setVisibility(View.VISIBLE);
+					tabHost.getTabWidget().getChildTabViewAt(3)
+							.setEnabled(true);
+					tabHost.getTabWidget().getChildTabViewAt(3)
+							.setVisibility(View.VISIBLE);
 
-				tabHost.setCurrentTab(2);
+					tabHost.setCurrentTab(1);
+
+					CreateWaveButton.setEnabled(true);
+					joinWaveButton.setEnabled(true);
+
+				}
 			}
 
 		});
 
 		// Get the user preferences
-		setUpPreferances(username, serverAddress);
+		setUpPreferances(username, password, serverAddress, serverSelect);
 
 		// if the user doesn't login we only display the already cached data?
 
 		// setup the page with the wave list
-		LinearLayout wavesListPage = (LinearLayout) findViewById(R.id.WaveListBox);
+		FrameLayout wavesListPage = (FrameLayout) findViewById(R.id.wavelistframe);
 
 		waveListViewBox = new WaveListView(this);
 		waveListViewBox.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		waveListViewBox.setLayoutParams(new LayoutParams(
-				LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+		// waveListViewBox.setVerticalScrollBarEnabled(true);
 
 		// wavesListPage.removeAllViews();
 		wavesListPage.addView(waveListViewBox);
@@ -407,53 +548,53 @@ public class start extends MapActivity implements SensorEventListener,
 		waveListViewBox.setAdapter(usersWaveListAdapter);
 
 		usersWavesList.add("Background"); // default background wave
-		
-		usersWavesList.add("CMLayer");    // Christmass layer
 
-		
-		//SharedPreferences prefs = PreferenceManager
-	//	.getDefaultSharedPreferences(getBaseContext());
-		
+		usersWavesList.add("Background_CM"); // Christmas layer
 
-		//get pref for background wave
-		SharedPreferences BackgroundPrefs = getBaseContext().getSharedPreferences("waveID_Background", Context.MODE_PRIVATE);
+		// SharedPreferences prefs = PreferenceManager
+		// .getDefaultSharedPreferences(getBaseContext());
+
+		// get pref for background wave
+		SharedPreferences BackgroundPrefs = getBaseContext()
+				.getSharedPreferences("waveID_Background", Context.MODE_PRIVATE);
 		backgroundScenaryOn = BackgroundPrefs.getBoolean("ShowByDefault", true);
 		waveListViewBox.setItemChecked(0, backgroundScenaryOn);
-		
-		
-		
-		//get and Christmas wave
-		SharedPreferences CMLayerPrefs = getBaseContext().getSharedPreferences("waveID_CMLayer", Context.MODE_PRIVATE);
+
+		// get and Christmas wave
+		SharedPreferences CMLayerPrefs = getBaseContext().getSharedPreferences(
+				"waveID_CMLayer", Context.MODE_PRIVATE);
 		CMScenaryOn = CMLayerPrefs.getBoolean("ShowByDefault", true);
 		waveListViewBox.setItemChecked(1, CMScenaryOn);
-		
+
 		waveListViewBox.invalidate();
-		
+
 		/*
-		if (backgroundScenaryOn!=null){
-		waveListViewBox.setItemChecked(0, backgroundScenaryOn);
-		} else {
-		waveListViewBox.setItemChecked(0, true);	
-		}
-		waveListViewBox.setItemChecked(1, true);
-*/
-		
+		 * if (backgroundScenaryOn!=null){ waveListViewBox.setItemChecked(0,
+		 * backgroundScenaryOn); } else { waveListViewBox.setItemChecked(0,
+		 * true); } waveListViewBox.setItemChecked(1, true);
+		 */
+
 		waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
 
 				// one of the wave check boxs has changed,so find out which
-				String WaveID = waveListViewBox.getItemAtPosition(arg2)
+				String WaveName = waveListViewBox.getItemAtPosition(arg2)
 						.toString(); // <---This really needs to be improved,
 										// the waveID should be stored somehow
 										// so we can use proper labels
-				
-				Log.i("wavelist", "changing wave:" + WaveID);
+
+				Log.i("wavelist", "changing wave name:" + WaveName);
+
+				// get the id
+				String WaveID = WaveList.getWaveIDFromNick(WaveName);
+
+				Log.i("wavelist", "changing wave id:" + WaveID);
 
 				// set boolean to its checked state
 				Boolean isVisible = waveListViewBox.isItemChecked(arg2);
 				Log.i("wavelist", "to " + isVisible);
-				
+
 				// toggle visibility (only has effect if wave is already open)
 				arView.setWaveVisiblity(WaveID, isVisible);
 
@@ -475,19 +616,55 @@ public class start extends MapActivity implements SensorEventListener,
 		 */
 
 		// create wave button
-		Button CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton);
+		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
+		CreateWaveButton.setEnabled(false);
+
 		CreateWaveButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				// create a new wave if logged in
+
 				if (acm.isConnected()) {
-					acm.createWave(""); // title is not used so far
+
+					Intent i = new Intent(maincontext, CreateWaveActivity.class);
+					// any extra data needed? probably not...
+					// i.putExtra("key", "value"); // FIXME: this really isn't
+					// needed
+
+					startActivity(i);
+
 				} else {
 					// popup an error toast
-					Toast
-							.makeText(
-									getApplicationContext(),
-									" You need to be connected in order to create a new wave. Log in first and then retry ",
-									Toast.LENGTH_LONG).show();
+					Toast.makeText(
+							getApplicationContext(),
+							" You need to be connected in order to create a new wave. Log in first and then retry ",
+							Toast.LENGTH_LONG).show();
+				}
+
+			}
+
+		});
+
+		// join wave button
+		joinWaveButton = (Button) findViewById(R.id.OpenJoinWaveButton);
+		joinWaveButton.setEnabled(false);
+
+		joinWaveButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+
+				if (acm.isConnected()) {
+
+					Intent i = new Intent(maincontext, JoinWaveActivity.class);
+					// any extra data needed? probably not...
+					// i.putExtra("key", "value"); // FIXME: this really isn't
+					// needed
+
+					startActivity(i);
+
+				} else {
+					// popup an error toast
+					Toast.makeText(
+							getApplicationContext(),
+							" You need to be connected in order to join a new wave. Log in first and then retry ",
+							Toast.LENGTH_LONG).show();
 				}
 
 			}
@@ -505,13 +682,11 @@ public class start extends MapActivity implements SensorEventListener,
 		registerForContextMenu(arView);
 
 	}
-	
-	private void copy(Object src,Object src2 ) {
-		
-		
-		
+
+	private void copy(Object src, Object src2) {
+
 		try {
-			Log.i("___","_________Copying data from surface Activity!");
+			Log.i("___", "_________Copying data from surface Activity!");
 			Field[] fs = src.getClass().getDeclaredFields();
 			for (Field f : fs) {
 				f.setAccessible(true);
@@ -520,10 +695,9 @@ public class start extends MapActivity implements SensorEventListener,
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		
-		
+
 		try {
-			Log.i("___","_________Copying data from master Activity!");
+			Log.i("___", "_________Copying data from master Activity!");
 			Field[] fs = src2.getClass().getDeclaredFields();
 			for (Field f : fs) {
 				f.setAccessible(true);
@@ -533,26 +707,31 @@ public class start extends MapActivity implements SensorEventListener,
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private void setUpPreferances(final EditText username,
-			final EditText serverAddress) {
-		
+			final EditText password, EditText serverAddress,
+			Spinner serverSelect) {
+
 		SharedPreferences prefs = PreferenceManager
 				.getDefaultSharedPreferences(getBaseContext());
-		
-	//	Editor test = prefs.edit();
-		//test.putBoolean("WaveID_DefaultOn",true);
-		
+
+		// Editor test = prefs.edit();
+		// test.putBoolean("WaveID_DefaultOn",true);
+
 		username.setText(prefs.getString("LoginName", "demo@arwave.org"));
-		serverAddress.setText(prefs.getString("DefaultServer", "192.168.1.104"));
+
+		serverAddress
+				.setText(prefs.getString("DefaultServer", "192.168.1.104"));
+
+		password.setText(prefs.getString("LoginPassword", ""));
 
 		// Scenery on/off
-		//This is now handled directly by the wave preferances
-		//Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);
-		//if (backgroundScenaryOn != null) {
-		//	arView.backgroundScenaryVisible = backgroundScenaryOn;
-			
-		//}
+		// This is now handled directly by the wave preferances
+		// Boolean backgroundScenaryOn = prefs.getBoolean("Scenary_On", true);
+		// if (backgroundScenaryOn != null) {
+		// arView.backgroundScenaryVisible = backgroundScenaryOn;
+
+		// }
 
 		// camera portrait mode on/off
 		Boolean cameraPortraiteMode = prefs
@@ -600,7 +779,7 @@ public class start extends MapActivity implements SensorEventListener,
 		paused = true;
 		super.onPause();
 		arView.onPause();
-		
+
 		arView.worldReadyToGo = false;
 
 		if (sensorMgr != null) {
@@ -610,21 +789,25 @@ public class start extends MapActivity implements SensorEventListener,
 		}
 
 		lm.removeUpdates(locListener);
-		main_activity_master = start.this;
+		// main_activity_master = start.this;
 	}
 
 	@Override
 	protected void onResume() {
+
+		Log.i("__", "resuming...");
+
 		paused = false;
 		super.onResume();
 		arView.onResume();
 
-		
 		if (surface_activity_master != null && main_activity_master != null) {
-			copy(surface_activity_master,main_activity_master);
+			copy(surface_activity_master, main_activity_master);
+			Log.i("__", "data copied");
+
 		}
 
-		//arView.worldReadyToGo = true;
+		// arView.worldReadyToGo = true;
 
 		sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -773,9 +956,42 @@ public class start extends MapActivity implements SensorEventListener,
 		} catch (IOException e) {
 			// addBlip can cause an error if it has a malformed url, or other
 			// problem loading a remote 3d file
-			e.printStackTrace();
+			Log.i("add", "error adding:" + e.getMessage());
+
 		}
 
+	}
+
+	public void addBlip(ARBlip newblip, String WaveToAddToo) {
+		try {
+			Log.e("add", "adding blips");
+
+			arView.addBlip(newblip, WaveToAddToo);
+
+		} catch (IOException e) {
+			// addBlip can cause an error if it has a malformed url, or other
+			// problem loading a remote 3d file
+
+			Log.i("add", "error adding:");
+			e.printStackTrace();
+		}
+	}
+
+	public static void sendToLoginScreen() {
+		tabHost.setCurrentTab(0);
+
+	}
+	
+	/** Disables all interface that only works when logged in, and sends
+	 * the user back to the login screen **/
+	public static void ProcessLogout(){
+
+		//logout of wave screen
+
+		CreateWaveButton.setEnabled(false);
+		joinWaveButton.setEnabled(false);
+		
+		sendToLoginScreen();
 	}
 
 	/**
@@ -784,7 +1000,7 @@ public class start extends MapActivity implements SensorEventListener,
 	 **/
 	public static void sendToAddBlipPage(ARBlip newblip) {
 
-		String id = "0";
+		// String id = "0";
 
 		// open add blip page with correct values
 		AutoSetLocation.setChecked(false);
@@ -792,6 +1008,11 @@ public class start extends MapActivity implements SensorEventListener,
 		AddBlipLong.setText("" + newblip.y);
 		AddBlipAlt.setText("" + newblip.z);
 		AddBlipText.setText("" + newblip.ObjectData);
+		AddBlipBlipID.setText("" + newblip.BlipID);
+
+		// set to current active wave
+		AddBlipWaveID.setText("" + acm.getCurrentWaveID());
+
 		// bring add blip page to front
 		tabHost.setCurrentTab(3);
 
@@ -854,12 +1075,11 @@ public class start extends MapActivity implements SensorEventListener,
 
 				holder = getHolder();
 				holder.addCallback(this);
-				
+
 				holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-				
-				//for rotation to work this must be set instead;
-				//holder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
-				
+
+				// for rotation to work this must be set instead;
+				// holder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
 
 			} catch (Exception ex) {
 
@@ -892,12 +1112,12 @@ public class start extends MapActivity implements SensorEventListener,
 				}
 
 				int SDK_INT = android.os.Build.VERSION.SDK_INT;
-				Log.i("version", " ->"+SDK_INT);
-				if (SDK_INT>=8){
+				Log.i("version", " ->" + SDK_INT);
+				if (SDK_INT >= 8) {
 					// 2.2 only;
 					camera.setDisplayOrientation(90);
 				}
-				
+
 				camera.setPreviewDisplay(holder);
 			} catch (Exception ex) {
 				try {
@@ -957,9 +1177,6 @@ public class start extends MapActivity implements SensorEventListener,
 
 	public void onSensorChanged(SensorEvent s_ev) {
 
-		
-		
-		
 		// if (true) return;
 
 		switch (s_ev.sensor.getType()) {
@@ -1016,6 +1233,7 @@ public class start extends MapActivity implements SensorEventListener,
 	float xArray[] = new float[10];
 	float yArray[] = new float[10];
 	float zArray[] = new float[10];
+	private Menu OptionMenu;
 
 	private float smoothZ(float f) {
 
@@ -1086,16 +1304,19 @@ public class start extends MapActivity implements SensorEventListener,
 	/* Creates the menu items */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+
+		OptionMenu = menu;
+
 		menu.add(0, MENU_TOGGLE_MAP, 0, "Toggle Map");
 		// menu.add(0, MENU_BLITSENSOR, 0, "Bit Sensor");
-		menu.add(0, MENU_ADDTEST3DS, 0, "Test3DSLoad");
+		menu.add(0, MENU_FREEZECAMLOC, 0, "Freeze Cam");
 		// menu.add(0, MENU_REMOVESCENE,0, "ToggleScenary");
 		menu.add(0, MENU_OVERHEAD, 0, "Set Overhead");
 		// menu.add(0, MENU_NEW_WAVE, 0, "Create a new wave");
 		menu.add(0, MENU_PREFERANCES, 0, "Preferances");
 
 		if (adminmode) {
-			//menu.add(0, MENU_ADDSPINNINGTHING, 0, "Add BouncingThing");
+			// menu.add(0, MENU_ADDSPINNINGTHING, 0, "Add BouncingThing");
 		}
 
 		return true;
@@ -1105,7 +1326,6 @@ public class start extends MapActivity implements SensorEventListener,
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
-		
 		switch (item.getItemId()) {
 
 		case MENU_PREFERANCES:
@@ -1196,7 +1416,7 @@ public class start extends MapActivity implements SensorEventListener,
 							arView.addBlip(testblip);
 
 						} catch (IOException e) {
-
+							Log.e("error", e.getMessage());
 							e.printStackTrace();
 						}
 
@@ -1224,6 +1444,7 @@ public class start extends MapActivity implements SensorEventListener,
 					arPage.addView(cameraView, 0);
 					arView.setMapMode(false, null);
 					mapModeIsOn = false;
+
 				} else {
 					// turn Camera view off
 					// arPage.removeView(cameraView);
@@ -1231,11 +1452,13 @@ public class start extends MapActivity implements SensorEventListener,
 					try {
 						LocatedMapBundle currentmap = StaticMapFetcher
 								.getMap(currentLocation);
+
 						if (currentmap != null) {
 							arPage.removeView(cameraView);
 							arView.setMapMode(true, currentmap);
 							mapModeIsOn = true;
 						}
+
 					} catch (MalformedURLException e) {
 
 					} catch (IOException e) {
@@ -1259,6 +1482,23 @@ public class start extends MapActivity implements SensorEventListener,
 			// toggle the screen blitting
 			arView.showDebugInfo = !arView.showDebugInfo;
 			Log.i("debug", "_" + arView.showDebugInfo);
+
+			return true;
+
+		case MENU_FREEZECAMLOC:
+
+			fixedlocationmode = !fixedlocationmode;
+
+			if (fixedlocationmode) {
+
+				// menu.add(0, MENU_FREEZECAMLOC, 0, "Freeze Cam");
+				OptionMenu.getItem(1).setTitle("Unfreeze Cam");
+
+			} else {
+
+				OptionMenu.getItem(1).setTitle("Freeze Cam");
+
+			}
 
 			return true;
 
@@ -1373,38 +1613,34 @@ public class start extends MapActivity implements SensorEventListener,
 					this.cancel();
 					Log.d("loading", "loading blips");
 
-					
 					// Old test to remove a object;
 					// Log.d("deleteing", "deleteing blips");
 					// arView.deleteBlip("NewTestBlip4");
-										
-					//set clancys bar
-					ARBlip Clancys = new ClancysTilburg(); 
-					
-					//set bertines and toms place
-					ARBlip OurPlace = new ThomasAndBertinesPlace(); 
-				
-					//set barcalonia stuff
-					ARBlip Hostle = new SIARHostle();
-					ARBlip SIAR = new SIAR();
-					ARBlip Airport = new BarAirport();
-					
-					
-					try {
-					//	arView.addBlip(OurPlace);
-					//	arView.addBlip(Clancys);
-						
-						arView.addBlip(Hostle);
-						arView.addBlip(SIAR);
-						arView.addBlip(Airport);
-						
-						
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						Log.i("test","cant add billboard");
-					}
-					
-					 
+
+					// set clancys bar
+					// ARBlip Clancys = new ClancysTilburg();
+
+					// set bertines and toms place
+					// ARBlip OurPlace = new ThomasAndBertinesPlace();
+
+					// set barcalonia stuff
+					// / ARBlip Hostle = new SIARHostle();
+					// ARBlip SIAR = new SIAR();
+
+					// ARBlip Airport = new BarAirport();
+
+					// try {
+					// arView.addBlip(OurPlace);
+					// arView.addBlip(Clancys);
+
+					// arView.addBlip(Hostle);
+					// arView.addBlip(SIAR);
+					// arView.addBlip(Airport);
+
+					// } catch (IOException e) {
+					// Log.i("test", "cant add billboard");
+					// }
+
 				} else {
 					// Log.d("load", "not ready for blips");
 				}
@@ -1414,7 +1650,7 @@ public class start extends MapActivity implements SensorEventListener,
 
 		// if its not set, then set the starting location for the arView
 		if (!OriginalLocationSet) {
-			arView.startingLocation = location;
+			ARWaveView.startingLocation = location;
 			Log.i("loading", "setting location..........");
 			OriginalLocationSet = true;
 			blah.schedule(meep, 100, 100);
@@ -1424,8 +1660,11 @@ public class start extends MapActivity implements SensorEventListener,
 			// set current location
 			Log.i("loc", "location changed");
 			currentLocation = location;
-			arView.currentRealLocation = currentLocation;
-			arView.updateLocation(currentLocation);
+
+			if (!fixedlocationmode) {
+				ARWaveView.currentRealLocation = currentLocation;
+				arView.updateLocation(currentLocation);
+			}
 		}
 
 		currentLocation = location;
@@ -1446,7 +1685,7 @@ public class start extends MapActivity implements SensorEventListener,
 		}
 
 		arView.TestVar = arView.TestVar + 1;
-		arView.currentRealLocation = currentLocation;
+		ARWaveView.currentRealLocation = currentLocation;
 	}
 
 	public void noOp(String arg0, WaveletData arg1) {
@@ -1483,10 +1722,10 @@ public class start extends MapActivity implements SensorEventListener,
 	}
 
 	public void addMessage(String message) {
-		// TextView out = (TextView)findViewById(R.id.messages);
-		// out.setText(message);
+		TextView out = (TextView) findViewById(R.id.messages);
+		out.setText(message);
 		Log.i("state", message);
-		usersWaveListAdapter.add("test");
+		// usersWaveListAdapter.add("test");
 	}
 
 	public void showWaveList(String[] list) {
@@ -1508,6 +1747,7 @@ public class start extends MapActivity implements SensorEventListener,
 
 		// request the update to the list
 		Log.i("wavelist", "posting invalidate");
+
 		waveListViewBox.setDataUpdated();
 		waveListViewBox.postInvalidate();
 	}
@@ -1554,9 +1794,7 @@ public class start extends MapActivity implements SensorEventListener,
 					// set as being on the menu
 
 					menu.add(0, MENU_EDIT_BLIP, 0, R.string.arView_editBlip);
-					menu
-							.add(0, MENU_DELETE_BLIP, 0,
-									R.string.arView_deleteBlip);
+					menu.add(0, MENU_DELETE_BLIP, 0, R.string.arView_deleteBlip);
 				}
 
 				menu.add(0, ADD_ARBLIPFROMARVIEW_ID, 0, R.string.addARblipText);
@@ -1566,9 +1804,12 @@ public class start extends MapActivity implements SensorEventListener,
 			}
 
 		} else {
-			Log.i("wave", "adding options to menu");			
+			Log.i("wave", "adding options to menu");
 			menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
 			menu.add(0, SET_WAVE_PREFS, 0, R.string.setWavePrefsText);
+			menu.add(0, REMOVE_WAVE, 0, R.string.removeWave);
+
+			// REMOVE_WAVE
 		}
 
 	}
@@ -1582,17 +1823,29 @@ public class start extends MapActivity implements SensorEventListener,
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
 		switch (item.getItemId()) {
+
+		case REMOVE_WAVE:
+
+			String WaveName = ((TextView) info.targetView).getText().toString();
+
+			// get wave from name
+			// String WaveID = WaveList.getWaveIDFromNick(WaveName);
+
+			// code to remove the selected wave
+
 		case SET_WAVE_PREFS:
 			// demo code; parse's blips into arblips and displays them
 			String wavetosetid = ((TextView) info.targetView).getText()
 					.toString();
-			Log.i("MENU", "setting preferances for "+wavetosetid);
+
+			Log.i("MENU", "setting preferances for " + wavetosetid);
 
 			Intent i = new Intent(this, WavePreferances.class);
 			i.putExtra("waveID", wavetosetid);
 
 			startActivity(i);
 			return true;
+
 		case OPEN_WAVE_ID:
 
 			// first we check we have gps working and the scene loaded, if not
@@ -1609,14 +1862,14 @@ public class start extends MapActivity implements SensorEventListener,
 
 				// open view
 				tabHost.setCurrentTab(2);
+
 			} else {
 
 				// temp message to warn if gps is not connected
-				Toast
-						.makeText(
-								getApplicationContext(),
-								" Can't Open Wave...please check your GPS connection is working and the world scene is loaded ",
-								Toast.LENGTH_LONG).show();
+				Toast.makeText(
+						getApplicationContext(),
+						" Can't Open Wave...please check your GPS connection is working and the world scene is loaded ",
+						Toast.LENGTH_LONG).show();
 
 				if (currentLocation == null) {
 					Log.e("connection", "current location is null");
@@ -1629,7 +1882,6 @@ public class start extends MapActivity implements SensorEventListener,
 
 			return true;
 
-	
 		case MENU_DELETE_BLIP:
 
 			return true;
@@ -1713,9 +1965,11 @@ public class start extends MapActivity implements SensorEventListener,
 				newblip.ParentWaveID = currentblip.BlipsParentWaveID;
 
 				try {
-					arView.addBlip(newblip);
+					arView.addBlip(newblip, waveid);
 				} catch (IOException e) {
+					Log.i("uwave", "error adding3:");
 					e.printStackTrace();
+
 				}
 
 			}
@@ -1733,10 +1987,9 @@ public class start extends MapActivity implements SensorEventListener,
 
 	}
 
-	@Override
-	protected boolean isRouteDisplayed() {
-		return false;
-	}
+	// protected boolean isRouteDisplayed() {
+	// return false;
+	// }
 
 	public void onLocationChanged(Location location) {
 		// TODO Auto-generated method stub
@@ -1758,7 +2011,69 @@ public class start extends MapActivity implements SensorEventListener,
 
 	}
 
-	
+	public static void joinWave(String name) {
+		// look up wave by ID??
+	}
 
+	public static void createANewWave(String name) {
+
+		if (acm.isConnected()) {
+
+			String wid = acm.createWave(name); // title is not used so
+												// far
+
+			// temp test;
+			acm.getParticipantList("");
+
+			// create the arwavelayer
+			ARWaveView.createLayerAndSetAsActive(wid);
+
+			// add wave and nick to internal store
+			WaveList.putWaveInfo(name, wid);
+
+			// used name in future
+			usersWavesList.add(name);
+
+			// update the active wave list (all real wave layers, ignore
+			// background/inbuilt ones)
+			List<String> activatableWaves = new ArrayList<String>();
+
+			Iterator<String> wavenames = start.usersWavesList.iterator();
+			while (wavenames.hasNext()) {
+
+				String string = wavenames.next();
+
+				// if not background, add it
+				if (!string.startsWith("Background")) {
+					activatableWaves.add(string);
+				}
+
+			}
+
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+					activewavelist.getContext(),
+					android.R.layout.simple_dropdown_item_1line,
+					activatableWaves);
+
+			activewavelist.setAdapter(adapter);
+
+			waveListViewBox.setDataUpdated();
+			waveListViewBox.postInvalidate();
+
+			waveListViewBox.setItemChecked(waveListViewBox.getChildCount() - 1,
+					true);
+
+			// set it active by default
+			activewavelist.setSelection(activewavelist.getChildCount() - 1);
+
+		} else {
+
+			// popup an error toast
+			Toast.makeText(
+					maincontext.getApplicationContext(),
+					" You need to be connected in order to create a new wave. Log in first and then retry ",
+					Toast.LENGTH_LONG).show();
+		}
+	}
 
 }

@@ -4,6 +4,7 @@
     
    <PreferenceCategory android:title="Wave Options">
        <CheckBoxPreference android:summary="Show Layer By Default" android:title="Show By Default" android:enabled="true" android:key="ShowByDefault"></CheckBoxPreference>
+       <Preference android:layout="@layout/participant_list"/>
     
      Password</PreferenceCategory><PreferenceCategory android:title="Layer Style Options">
 
