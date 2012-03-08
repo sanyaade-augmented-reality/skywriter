@@ -1,37 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.arwave.skywriter"
-      android:versionCode="1"
-      android:versionName="1.0">
-      
-      
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.CAMERA" />
+    package="com.arwave.skywriter"
+    android:versionCode="1"
+    android:versionName="Moya" >
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    
-    
-    <application android:icon="@drawable/icon" android:label="@string/app_name">
-    <uses-library android:name="com.google.android.maps" />
-    
-        <activity android:name=".start"
-                  android:label="@string/app_name" android:screenOrientation="portrait">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <application
+        android:icon="@drawable/icon"
+        android:label="@string/app_name" >
+        <uses-library android:name="com.google.android.maps" />
+
+        <activity
+            android:name=".start"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+
+                <data android:scheme="arwave" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" >
+                </action>
+
+                <category android:name="android.intent.category.DEFAULT" >
+                </category>
+                <category android:name="android.intent.category.BROWSABLE" >
+                </category>
+
+                <data android:scheme="arwave" />
             </intent-filter>
         </activity>
+        <activity android:name=".ARBlipAddingView" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
-		<activity android:name=".ARBlipAddingView">
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.OPENABLE" />
-			</intent-filter>
-		</activity>
-<activity android:name="SkywriterAppPreferances" android:screenOrientation="portrait"></activity>
-<activity android:name="WavePreferances" android:screenOrientation="portrait"></activity>
-</application>
+                <category android:name="android.intent.category.OPENABLE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="SkywriterAppPreferances"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="WavePreferances"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity android:name="CreateWaveActivity" >
+        </activity>
+        <activity android:name="JoinWaveActivity" >
+        </activity>
+    </application>
 
+    <uses-sdk
+        android:minSdkVersion="4"
+        android:targetSdkVersion="7" >
+    </uses-sdk>
 
-<uses-sdk android:targetSdkVersion="7" android:minSdkVersion="4"></uses-sdk>
-</manifest> 
+</manifest>

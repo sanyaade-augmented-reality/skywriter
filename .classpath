@@ -10,8 +10,10 @@
 			<accessrule kind="accessible" pattern="*"/>
 		</accessrules>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="C:/TomsProjects/Android/fedone-android-client-api-0.2.jar"/>
-	<classpathentry kind="lib" path="C:/TomsProjects/Android/jPCTAEAPI/jpct_ae.jar"/>
+	<classpathentry kind="lib" path="C:/TomsProjects/Android/fedone-android-client-api-0.2.jar"/>
 	<classpathentry kind="lib" path="C:/TomsProjects/Android/solarpositioning-0.0.4.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="lib" path="C:/TomsProjects/Android/asmack-android-7.jar"/>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="C:/TomsProjects/Android/jpct_ae.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

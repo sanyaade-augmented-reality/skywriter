@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,10 +56,10 @@ public class ARWaveView extends GLSurfaceView {
 	static public World world = null;
 
 	private SunObject sun = null;
-	
-	//lens flare on/off
+
+	// lens flare on/off
 	private boolean LensFlareOn = true;
-	
+
 	// ground
 	private Object3D groundPlane = null;
 
@@ -68,21 +69,26 @@ public class ARWaveView extends GLSurfaceView {
 
 	static FrameBuffer fb = null;
 
-	//Array containing all the layers open (hidden or not)
+	// Array containing all the layers open (hidden or not)
 	static ArrayList<ARWaveLayer> AllLayersOpen = new ArrayList<ARWaveLayer>();
-	
+
+	// hashmap to quickly get a wave from its ID
+	static HashMap<String, ARWaveLayer> AllLayersOpenMap = new HashMap<String, ARWaveLayer>();
+
 	// The scenes current list of ARBlipObjects
-	// This changes based on what wave is open. 	
+	// This changes based on what wave is open.
 	static ARWaveLayer CurrentActiveLayer;
-	
-	//background layer (for scenery and other gui elements local to the device and not linked to a real wave)
-	static final ARWaveLayer LocalBackgroundScenaryLayer = new ARWaveLayer();
-	static final ARWaveLayer SpecialChristmassScenaryLayer = new ARWaveLayer();
+
+	// background layer (for scenery and other gui elements local to the device
+	// and not linked to a real wave)
+	static final ARWaveLayer LocalBackgroundScenaryLayer = new ARWaveLayer("Background");
+	static final ARWaveLayer SpecialChristmassScenaryLayer = new ARWaveLayer("Background_CM");
+
 	
 	// generic font
 	private GLFont glFont;
 	static final Paint paint = new Paint();
-	
+
 	// World setup flag
 	boolean worldReadyToGo = false;
 
@@ -91,8 +97,8 @@ public class ARWaveView extends GLSurfaceView {
 
 	// purely for testing
 	// timer
-	//private TimerTask mTimerTask = null;
-	//private Timer mTimer = null;
+	// private TimerTask mTimerTask = null;
+	// private Timer mTimer = null;
 	Object3D rotateingcube;
 	int pos = 0;
 	boolean paused = false;
@@ -129,16 +135,15 @@ public class ARWaveView extends GLSurfaceView {
 	// after the last key is pressed.
 	int newobject_distance = 25;
 
-
 	// modes
 	int VIEWING_MODE = 0;
 	int EDIT_MODE = 1;
-	int EDIT_END_FLAG = 2; //used when the edit mode has requested to end (lets the context menu appear again);
-	//used for when the user is on the context menu.
+	int EDIT_END_FLAG = 2; // used when the edit mode has requested to end (lets
+							// the context menu appear again);
+	// used for when the user is on the context menu.
 
 	int CurrentMode;
 	public boolean isOnContextMenu = false;
-	
 
 	public ARWaveView(Context context) {
 		super(context);
@@ -153,8 +158,6 @@ public class ARWaveView extends GLSurfaceView {
 
 		this.getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
-		
-		
 		// set up generic font
 		paint.setAntiAlias(true);
 		paint.setTypeface(Typeface.create((String) null, Typeface.BOLD));
@@ -162,152 +165,194 @@ public class ARWaveView extends GLSurfaceView {
 		paint.setTextSize(14);
 		glFont = new GLFont(paint);
 
-		//set up default layer
-		CurrentActiveLayer = LocalBackgroundScenaryLayer; //we start with a default blank layer untill one is selected
-		LocalBackgroundScenaryLayer.ARWaveLayerID = "Background"; //The default layer contains the default landscape, and other test and interface objects not tied to "real" waves on a server
-		AllLayersOpen.add(CurrentActiveLayer);
-		
-		//set up Christmas layer
-		SpecialChristmassScenaryLayer.ARWaveLayerID = "CMLayer";
+		// set up default layer
+		CurrentActiveLayer = LocalBackgroundScenaryLayer; // we start with a
+															// default blank
+															// layer untill one
+															// is selected
+		LocalBackgroundScenaryLayer.ARWaveLayerID = "Background"; // The default
+																	// layer
+																	// contains
+																	// the
+																	// default
+																	// landscape,
+																	// and other
+																	// test and
+																	// interface
+																	// objects
+																	// not tied
+																	// to "real"
+																	// waves on
+																	// a server
+		AllLayersOpen.add(LocalBackgroundScenaryLayer);
+		AllLayersOpenMap.put("Background", LocalBackgroundScenaryLayer);
+		//add to global wave lists
+		WaveList.putWaveInfo(LocalBackgroundScenaryLayer.ARWaveLayerID, LocalBackgroundScenaryLayer.ARWaveLayerID);
+	
+		// set up Christmas layer
+		SpecialChristmassScenaryLayer.ARWaveLayerID = "Background_CM";
 		AllLayersOpen.add(SpecialChristmassScenaryLayer);
+		AllLayersOpenMap.put(SpecialChristmassScenaryLayer.ARWaveLayerID, SpecialChristmassScenaryLayer);
+
+		//add to global wave lists
+		WaveList.putWaveInfo(SpecialChristmassScenaryLayer.ARWaveLayerID, SpecialChristmassScenaryLayer.ARWaveLayerID);
+		
 	}
 
-	public void onResume(){
+	public static void createLayerAndSetAsActive(String layerName){
+				
+		ARWaveLayer newlayer = new ARWaveLayer(layerName);
 		
-		Log.i("_______", "_______resumeing.....");
+		AllLayersOpen.add(newlayer);
+		AllLayersOpenMap.put(layerName, newlayer);
+		CurrentActiveLayer = newlayer;
+		
+		
+	}
+	public void onResume() {
+
+		Log.i("_____", "_______resumeing.....");
+
+		renderer.resume();
 		
 		super.onResume();
-		
+
 	}
 
 	/** handels screen interactions **/
 	public boolean onTouchEvent(MotionEvent event) {
 
-
 		int touchX = (int) event.getX();
 		int touchY = (int) event.getY();
 
+		// if in edit mode, touch determains distance (like +/- on the volume
+		// controls
+		if ((CurrentMode == EDIT_MODE) || (CurrentMode == EDIT_END_FLAG)) {
 
+			double screenwidth = this.getWidth(); // probably should be screen
+													// width.
+			double screenheight = this.getHeight();
 
+			Log.i("touch", "screenwidth " + screenwidth);
 
-		// if in edit mode, touch determains distance (like +/- on the volume controls
-		if ((CurrentMode==EDIT_MODE)||(CurrentMode==EDIT_END_FLAG)){
+			// resize based on distance from center x
+			int distancefromscreencenterx = Math
+					.abs((int) ((screenwidth / 2) - touchX));
+			int distancefromscreencentery = Math
+					.abs((int) ((screenheight / 2) - touchY));
 
-			double screenwidth = this.getWidth(); //probably should be screen width.
-			double screenheight= this.getHeight();
-
-			Log.i("touch","screenwidth "+screenwidth);
-
-			//resize based on distance from center x
-			int distancefromscreencenterx =  Math.abs((int) ((screenwidth/2)-touchX));
-			int distancefromscreencentery =  Math.abs((int) ((screenwidth/2)-touchY));
-
-			//if its in the center, and its a click, we exit edit more
-			if (event.getAction()==MotionEvent.ACTION_DOWN){				
-				if ((distancefromscreencenterx<30)&&(distancefromscreencentery<40)){
+			// if its in the center, and its a click, we exit edit more
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
+				if ((distancefromscreencenterx < 30)
+						&& (distancefromscreencentery < 40)) {
 					CurrentMode = EDIT_END_FLAG;
 					move = 0;
-				}	else {
+				} else {
 					CurrentMode = EDIT_MODE;
 				}
 			}
-			if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
-				Log.d("action","=cancel movement");
+			if ((event.getAction() == MotionEvent.ACTION_CANCEL)
+					|| (event.getAction() == MotionEvent.ACTION_UP)) {
+				Log.d("action", "=cancel movement");
 				move = 0;
 
 				return false;
 			}
 
+			Log.i("touch", "screen from center= " + distancefromscreencenterx);
 
-			Log.i("touch","screen from center= "+distancefromscreencenterx);
+			move = (int) (((screenheight / 2) - touchY) / 100);
 
-			move = (int)(((screenheight/2)-touchY)/100);
+			Log.i("touch", "move from center= " + (move));
 
-			Log.i("touch","move from center= "+(move));
-
-			//(maybe later we can change this to a funky multi-touch pinch gesture?)
-
-
+			// (maybe later we can change this to a funky multi-touch pinch
+			// gesture?)
 
 		} else {
 			Camera camera = world.getCamera();
 
-			SimpleVector dir=Interact2D.reproject2D3DWS(world.getCamera(), fb,touchX, touchY);
+			if (fb==null){
+				Log.i("__","null frame buffer");
+			}
+			
+			SimpleVector dir = Interact2D.reproject2D3DWS(world.getCamera(),
+					fb, touchX, touchY);
 
-			Object[] res=world.calcMinDistanceAndObject3D(camera.getPosition(), dir, 1000 /*or whatever*/);
+			Object[] res = world.calcMinDistanceAndObject3D(
+					camera.getPosition(), dir, 1000 /* or whatever */);
 
-			if (res[1]!=null){
+			if (res[1] != null) {
 
-				//If its cancelling;				
+				// If its cancelling;
 
-				if ((event.getAction()==MotionEvent.ACTION_CANCEL)||(event.getAction()==MotionEvent.ACTION_UP )){
-					//Dont cancel is on the menu!
-					if (!isOnContextMenu){
-						Log.d("action","cancel movement so clear color and unset object");
+				if ((event.getAction() == MotionEvent.ACTION_CANCEL)
+						|| (event.getAction() == MotionEvent.ACTION_UP)) {
+					// Dont cancel is on the menu!
+					if (!isOnContextMenu) {
+						Log.d("action",
+								"cancel movement so clear color and unset object");
 
-						if (CurrentObject!=null){
+						if (CurrentObject != null) {
 							CurrentObject.clearAdditionalColor();
 							CurrentObject.setSpecularLighting(true);
-						} 				
-						CurrentObject=null;
-						newobject_distance=25;
+						}
+						CurrentObject = null;
+						newobject_distance = 25;
 					}
 
 				} else {
 
 					// else
-					Log.d("action","setting object");
+					Log.d("action", "setting object");
 
-					//get the object number and distance
-					Object3D pickedObject = (Object3D)res[1];	
-					Object distance = (Object)res[0];
-					float dis = ((float)((Float)distance).floatValue());
+					// get the object number and distance
+					Object3D pickedObject = (Object3D) res[1];
+					Object distance = (Object) res[0];
+					float dis = ((float) ((Float) distance).floatValue());
 
+					Log.i("touch", "object=" + pickedObject.getID());
+					Log.i("touch", "distance=" + dis);
 
-					Log.i("touch", "object="+pickedObject.getID());
-					Log.i("touch", "distance="+dis);
-
-					//if theres an old object,reset its color
-					if (CurrentObject!=null){
+					// if theres an old object,reset its color
+					if (CurrentObject != null) {
 						CurrentObject.clearAdditionalColor();
 						CurrentObject.setSpecularLighting(true);
-					} 	
+					}
 
-					//set as current object
+					// set as current object
 					CurrentObject = pickedObject;
 					CurrentObject.setAdditionalColor(RGBColor.RED);
 					CurrentObject.setSpecularLighting(false);
 
-					//set current distance
-					newobject_distance = (int)dis;
+					// set current distance
+					newobject_distance = (int) dis;
 
-					//fill in submission fields to match current objects existing data 
+					// fill in submission fields to match current objects
+					// existing data
 					String BlipsID = CurrentObject.getName();
 					ARBlip currentBlip = this.getBlipFromScene(BlipsID);
-					//set content
+					// set content
 					start.AddBlipText.setText(currentBlip.ObjectData);
-					//set occlusion status
-					//set all other things except position/rot which are set automaticly by placement.
+					// set occlusion status
+					// set all other things except position/rot which are set
+					// automaticly by placement.
 
-					//===
+					// ===
 				}
 			} else {
 
-				if (CurrentObject!=null){
+				if (CurrentObject != null) {
 					CurrentObject.clearAdditionalColor();
 					CurrentObject.setSpecularLighting(true);
-				} 				
-				CurrentObject=null;
-				newobject_distance=25;
+				}
+				CurrentObject = null;
+				newobject_distance = 25;
 			}
-
 
 		}
 
-
 		return super.onTouchEvent(event);
 	}
-
 
 	public void createBlipInFrontOfCamera() {
 
@@ -337,7 +382,7 @@ public class ARWaveView extends GLSurfaceView {
 		// test.scalarMul(5);
 		// temptest.translate(test);
 
-		temptest.setAdditionalColor(RGBColor.BLACK);
+		temptest.setAdditionalColor(RGBColor.RED);
 
 		world.addObject(temptest);
 
@@ -402,11 +447,14 @@ public class ARWaveView extends GLSurfaceView {
 				startingLocation, distance, baring + 90); // baring is 90
 		// degree's off!
 
+		Log.i("add", "new Long = " + newLocation.getLongitude());
+		Log.i("add", "new Lat = " + newLocation.getLatitude());
+
 		// remove tempobject
 		world.removeObject(CurrentObject);
 
 		// int i=0;
-		// while (i<10) {
+		// while (i<10)
 		// i=i+1;
 		// temptest
 		ARBlip newblip = new ARBlip();
@@ -420,17 +468,23 @@ public class ARWaveView extends GLSurfaceView {
 		// newblip.elevation = (int) obj_elevation;
 		// newblip.roll =(int) obj_roll;
 
+		Log.i("add", "new alt = " + newblip.z);
+
 		newblip.isFacingSprite = true;
+		
 		newblip.BlipID = "_NEWBLIP_" + Math.random(); // crude tempID only
-		int randomint = (int) (Math.random()*1000);
-		newblip.ObjectData = "(newly blip:"+randomint+")";
+													  // The blip ID should be unique to the wave
+													  // whats the best system to ensure this?
+		
+		
+		
+		int randomint = (int) (Math.random() * 1000);
+		newblip.ObjectData = "(new blip:" + randomint + ")";
 		/*
-		try {
-			Log.i("add", "creating blip:" + newblip.BlipID);
-			//this.addBlip(newblip);
-		} catch (IOException e) {
-			//Log.i("add", "io exception");
-		}*/
+		 * try { Log.i("add", "creating blip:" + newblip.BlipID);
+		 * //this.addBlip(newblip); } catch (IOException e) { //Log.i("add",
+		 * "io exception"); }
+		 */
 
 		// update blip submit page and bring it to the front so people can fill
 		// in the text
@@ -456,7 +510,6 @@ public class ARWaveView extends GLSurfaceView {
 	/** Made as a test **/
 	public void creatingBouncingCone() {
 
-		
 	}
 
 	public void setCameraOrentation(float x, float y, float z) {
@@ -562,20 +615,21 @@ public class ARWaveView extends GLSurfaceView {
 
 			// remove it from storage
 
-			Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects.iterator();
+			Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects
+					.iterator();
 			while (it.hasNext()) {
 				ARBlip currentBlip = it.next().arblip;
 				if (currentBlip.BlipID.equals(BlipsID)) {
 
-					//deletes object from storage
-					//scenesARBlipObjects.remove(currentBlip);
+					// deletes object from storage
+					// scenesARBlipObjects.remove(currentBlip);
 					CurrentActiveLayer.LayersObjects.remove(currentBlip);
 				}
 
 			}
 
-						// remove from scene objects
-			//scenesObjects.remove(object); //(not need anymore)
+			// remove from scene objects
+			// scenesObjects.remove(object); //(not need anymore)
 
 			Log.d("deleteing", "deleteing blips4");
 
@@ -587,25 +641,21 @@ public class ARWaveView extends GLSurfaceView {
 
 			// world.removeObject(object);
 
-			//test get object
-			//world.getObjectByName("rock");
-			//world.removeObject(rock);
-			//Object3D testob = new SkywriterBillboard();
+			// test get object
+			// world.getObjectByName("rock");
+			// world.removeObject(rock);
+			// Object3D testob = new SkywriterBillboard();
 
-			//testob.setName("__");
+			// testob.setName("__");
 			// set texture
-			//String text = "test test";
-			//updatedTexture("_temp_", text);
+			// String text = "test test";
+			// updatedTexture("_temp_", text);
 			// newplane.setOrigin(new SimpleVector(0,-15,0));(used to move
 			// it upwards for when it was on a stand)
-			//	testob.setTexture("_temp_");
-
-
-
+			// testob.setTexture("_temp_");
 
 			Object3D meep = world.getObjectByName(BlipsID);
 			deleteQueue.add(meep);// <--causes a crash later :-/
-
 
 		}
 
@@ -691,7 +741,7 @@ public class ARWaveView extends GLSurfaceView {
 		// the camera moves, we always messure
 		// relative to the loading location.
 		double worldY = ARBlipUtilitys
-		.getRelativeYLocation(0, startingLocation); // As the world is
+				.getRelativeYLocation(0, startingLocation); // As the world is
 		// set on loading,
 		// and then the
 		// camera moves, we
@@ -721,22 +771,24 @@ public class ARWaveView extends GLSurfaceView {
 	}
 
 	public void updateLocation(Location current) {
-		double worldX = ARBlipUtilitys.getRelativeXLocation(current
-				.getLatitude(), startingLocation); // As the world is set on
+		double worldX = ARBlipUtilitys.getRelativeXLocation(
+				current.getLatitude(), startingLocation); // As the world is set
+															// on
 		// loading, and then the
 		// camera moves, we always
 		// messure relative to the
 		// loading location.
 		double worldY = ARBlipUtilitys
-		.getRelativeYLocation(0, startingLocation); // As the world is
+				.getRelativeYLocation(0, startingLocation); // As the world is
 		// set on loading,
 		// and then the
 		// camera moves, we
 		// always messure
 		// relative to the
 		// loading location.
-		double worldZ = ARBlipUtilitys.getRelativeZLocation(current
-				.getLongitude(), startingLocation); // As the world is set on
+		double worldZ = ARBlipUtilitys.getRelativeZLocation(
+				current.getLongitude(), startingLocation); // As the world is
+															// set on
 		// loading, and then the
 		// camera moves, we always
 		// messure relative to the
@@ -748,29 +800,29 @@ public class ARWaveView extends GLSurfaceView {
 		// update camera location
 		Camera cam = world.getCamera();
 		cam.setPosition(x, cameraHeight, z); // we might want to animate this at
-		
-		//update billboards if needed
-		for (ARWaveLayer layer: AllLayersOpen){
-			Log.i("test", "updating billboards");			
+
+		// update billboards if needed
+		for (ARWaveLayer layer : AllLayersOpen) {
+			Log.i("test", "updating billboards");
 			layer.scaleBillboards();
 		}
-		
+
 		// some point
 
 		// if map showing, then update it (or try to)
 		// if (MapModeSet){
-		//			
+		//
 		// try {
 		// LocatedMapBundle currentmap = StaticMapFetcher.getMap(current);
 		// this.addMapTile(currentmap);
-		//								
+		//
 		// } catch (MalformedURLException e) {
-		//						
+		//
 		// } catch (IOException e) {
 		// // TODO Auto-generated catch block
 		// Log.e("mapE","io exception");
 		// }
-		//			
+		//
 		// }
 
 	}
@@ -779,70 +831,104 @@ public class ARWaveView extends GLSurfaceView {
 	public void setSunRotation() {
 
 		// arg, this works relatively..no clue how to fix this
-		//degrees = new SimpleVector(0, 0.05f, 0);
+		// degrees = new SimpleVector(0, 0.05f, 0);
 
-		//sun.rotate(degrees, groundPlane.getTransformedCenter());
-		
-		//new, set direction by time
-		sun.setSunPosition(0,currentRealLocation);
-		
-		//testing rotation
+		// sun.rotate(degrees, groundPlane.getTransformedCenter());
+
+		// new, set direction by time
+		sun.setSunPosition(0, currentRealLocation);
+
+		// testing rotation
 		/*
-		Timer setRotation = new Timer();
-		
-		TimerTask sunAnimation = new TimerTask() {
-			int t=0;
-			@Override
-			public void run() {	
-				
-				
-				sun.setSunPosition(t,currentRealLocation);
-				t=t+1;
-				
-				if(t>24){
-					t=0;
-				}
-				
-			}				
-		};
-		
-		setRotation.scheduleAtFixedRate(sunAnimation, 10, 6500);
-		*/
+		 * Timer setRotation = new Timer();
+		 * 
+		 * TimerTask sunAnimation = new TimerTask() { int t=0;
+		 * 
+		 * @Override public void run() {
+		 * 
+		 * 
+		 * sun.setSunPosition(t,currentRealLocation); t=t+1;
+		 * 
+		 * if(t>24){ t=0; }
+		 * 
+		 * } };
+		 * 
+		 * setRotation.scheduleAtFixedRate(sunAnimation, 10, 6500);
+		 */
 
 	}
 
-	/** adds a new ARBlip to the currently active ARWaveLayer 
-	 *  (currently there is only one ARWaveLayer) **/
 	/**
+	 * adds a new ARBlip to the currently active ARWaveLayer /**
+	 * 
 	 * @throws IOException
 	 **/
 
 	public void addBlip(ARBlip newblip) throws IOException {
+		Log.e("add","adding blips.");
+		
+		addBlip(newblip, CurrentActiveLayer);
+	}
+
+	/**
+	 * adds a new ARBlip to the ARWaveLayer with the specified ID (currently
+	 * there is only one ARWaveLayer)
+	 **/
+	/**
+	 * @throws IOException
+	 **/
+
+	public void addBlip(ARBlip newblip, String WaveIDToAddToo)
+			throws IOException {
+		// get wavelayer from ID
+		Log.e("add","adding blips2__..");
+		Log.e("add","adding blips2__.."+WaveIDToAddToo);
+		
+		ARWaveLayer targetLayer = AllLayersOpenMap.get(WaveIDToAddToo);
+		Log.e("add","adding blips__.."+targetLayer.ARWaveLayerID);
+		
+		addBlip(newblip, targetLayer);
+	}
+
+	/**
+	 * adds a new ARBlip to the currently active ARWaveLayer (currently there is
+	 * only one ARWaveLayer)
+	 **/
+	/**
+	 * @throws IOException
+	 **/
+
+	public void addBlip(ARBlip newblip, ARWaveLayer targetLayer)
+			throws IOException {
 
 		// check blip isnt already in scene
 		if (this.isBlipInScene(newblip) == true) {
-			
+
 			// if so, then we update it
 			Log.e("blip", "already exists");
-			updateBlip(CurrentActiveLayer,newblip);
+			updateBlip(targetLayer, newblip);
 
 		} else {
+			Log.i("3ds", "_blip isnt in scene....");
+
+			Log.i("3ds", "_blip isnt in scene2....");
+			Log.i("3ds", "_blip isnt in scene3...." +targetLayer.ARWaveLayerID);
 			
-			Object3D newmarker = CurrentActiveLayer.createNewBlipObject(newblip);			
 			
+			Object3D newmarker = targetLayer.createNewBlipObject(newblip);
+
 			Log.i("3ds", "adding " + newblip.BlipID + " to scene");
-			
+
 			world.addObject(newmarker);
 
 			world.buildAllObjects();
-	
-			
+
 		}
 
 	}
 
 	static void fetchAndSwapTexturesFromURL(Iterator<String> it, String URLPath)
-	throws MalformedURLException, IOException {
+			throws MalformedURLException, IOException {
 		while (it.hasNext()) {
 
 			String textureNameToLoad = (String) it.next();
@@ -861,7 +947,7 @@ public class ARWaveView extends GLSurfaceView {
 			// make the texture
 			URL texturedownloadfrom = new URL(TextureURL);
 			URLConnection textureconnection = texturedownloadfrom
-			.openConnection();
+					.openConnection();
 
 			textureconnection.connect();
 			BufferedInputStream texturebis = new BufferedInputStream(
@@ -884,153 +970,135 @@ public class ARWaveView extends GLSurfaceView {
 
 	/** updates a texture to a bit of text **/
 	/*
-	public static void updatedTexture(String Texturename, String text) {
-
-		Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
-
-		paint.setColor(Color.BLACK);
-
-		Bitmap.Config config = Bitmap.Config.ARGB_8888;
-		FontMetricsInt fontMetrics = paint.getFontMetricsInt();
-		int fontHeight = fontMetrics.leading - fontMetrics.ascent
-		+ fontMetrics.descent;
-		int baseline = -fontMetrics.top;
-		int height = fontMetrics.bottom - fontMetrics.top;
-
-		// have to add multiline support here
-		//Bitmap charImage = Bitmap.createBitmap(closestTwoPower((int) paint
-		//		.measureText(text) + 10), 32, config);
-		
-		Bitmap charImage = Bitmap.createBitmap(closestTwoPower(110), closestTwoPower(40), config);
-		
-		Canvas canvas = new Canvas(charImage);
-		canvas.drawColor(Color.WHITE);
-		
-		String[] lines = text.split("\r\n|\r|\n");
-		int linenumber = 0;
-		for (String line : lines) { 			
-			canvas.drawText(line, 5, baseline+(linenumber*10), paint); // draw text with a margin
-			linenumber++;
-		}
-		
-		// of 10
-
-		TextureManager tm = TextureManager.getInstance();
-		Texture testtext = new Texture(charImage, true); // the true specify
-		
-		// the texture has
-		// its own alpha. If
-		// not, black is
-		// assumed to be
-		// alpha!
-
-		//
-
-		if (tm.containsTexture(Texturename)) {
-
-			Log.i("add", "updating texture="+Texturename);
-
-			//tm.removeAndUnload(Texturename,fb);
-
-			Log.i("add", "updated texture="+Texturename);
-
-			//tm.addTexture(Texturename, testtext);
-			tm.unloadTexture(fb, tm.getTexture(Texturename));
-			tm.replaceTexture(Texturename, testtext);
-
-
-		} else {
-			tm.addTexture(Texturename, testtext);
-		}
-
-	}
-*/
-	
+	 * public static void updatedTexture(String Texturename, String text) {
+	 * 
+	 * Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
+	 * 
+	 * paint.setColor(Color.BLACK);
+	 * 
+	 * Bitmap.Config config = Bitmap.Config.ARGB_8888; FontMetricsInt
+	 * fontMetrics = paint.getFontMetricsInt(); int fontHeight =
+	 * fontMetrics.leading - fontMetrics.ascent + fontMetrics.descent; int
+	 * baseline = -fontMetrics.top; int height = fontMetrics.bottom -
+	 * fontMetrics.top;
+	 * 
+	 * // have to add multiline support here //Bitmap charImage =
+	 * Bitmap.createBitmap(closestTwoPower((int) paint // .measureText(text) +
+	 * 10), 32, config);
+	 * 
+	 * Bitmap charImage = Bitmap.createBitmap(closestTwoPower(110),
+	 * closestTwoPower(40), config);
+	 * 
+	 * Canvas canvas = new Canvas(charImage); canvas.drawColor(Color.WHITE);
+	 * 
+	 * String[] lines = text.split("\r\n|\r|\n"); int linenumber = 0; for
+	 * (String line : lines) { canvas.drawText(line, 5,
+	 * baseline+(linenumber*10), paint); // draw text with a margin
+	 * linenumber++; }
+	 * 
+	 * // of 10
+	 * 
+	 * TextureManager tm = TextureManager.getInstance(); Texture testtext = new
+	 * Texture(charImage, true); // the true specify
+	 * 
+	 * // the texture has // its own alpha. If // not, black is // assumed to be
+	 * // alpha!
+	 * 
+	 * //
+	 * 
+	 * if (tm.containsTexture(Texturename)) {
+	 * 
+	 * Log.i("add", "updating texture="+Texturename);
+	 * 
+	 * //tm.removeAndUnload(Texturename,fb);
+	 * 
+	 * Log.i("add", "updated texture="+Texturename);
+	 * 
+	 * //tm.addTexture(Texturename, testtext); tm.unloadTexture(fb,
+	 * tm.getTexture(Texturename)); tm.replaceTexture(Texturename, testtext);
+	 * 
+	 * 
+	 * } else { tm.addTexture(Texturename, testtext); }
+	 * 
+	 * }
+	 */
 
 	/** if a wave with the specified ID is open already, we set its visibility **/
-	public void setWaveVisiblity(String WaveID, boolean Visible){
-		
+	public void setWaveVisiblity(String WaveID, boolean Visible) {
+
 		Iterator<ARWaveLayer> OpenWaves = AllLayersOpen.iterator();
-		Log.i("wave", "setting wave:"+WaveID+"");
-		
-		while (OpenWaves.hasNext()){			
+		Log.i("wave", "setting wave:" + WaveID + "");
+
+		while (OpenWaves.hasNext()) {
 			ARWaveLayer Wave = OpenWaves.next();
-			if (Wave.ARWaveLayerID.equals(WaveID)){
-				Log.i("wave", "setting wave2:"+Wave.ARWaveLayerID+"");
+			if (Wave.ARWaveLayerID.equals(WaveID)) {
+				Log.i("wave", "setting wave2:" + Wave.ARWaveLayerID + "");
 				Wave.setVisible(Visible);
-			}			
+			}
 		}
-		
-		//if not already open, then we open it
-		
-		// (insert code here) 
-		
-		
-		
+
+		// if not already open, then we open it
+
+		// (insert code here)
+
 	}
-	
+
 	/**
-	 * updates an existing blip in the specified layer crashes if blip/object doesn't exist
+	 * updates an existing blip in the specified layer crashes if blip/object
+	 * doesn't exist
 	 **/
 
 	public void updateBlip(ARWaveLayer layer, ARBlip newblipdata) {
-		
+
 		Log.i("3ds", "updating1");
 		layer.updateBlip(newblipdata);
-		
+
 		/*
-		Object3D updateThis = world.getObjectByName(newblipdata.BlipID);
-
-		// update location (oddly, you have to clear the location and then
-		// "move" the position, rather then merely setting it)
-		// (you can use setOrigin to directly set it, but this wont move child
-		// objects)
-
-		// updateThis.setTranslationMatrix(new Matrix());
-
-		double worldX = ARBlipUtilitys.getRelativeXLocation(newblipdata,
-				startingLocation); // As the world is set on loading, and then
-		// the camera moves, we always messure
-		// relative to the loading location.
-		double worldY = ARBlipUtilitys.getRelativeYLocation(newblipdata,
-				startingLocation); // As the world is set on loading, and then
-		// the camera moves, we always messure
-		// relative to the loading location.
-		double worldZ = ARBlipUtilitys.getRelativeZLocation(newblipdata,
-				startingLocation); // As the world is set on loading, and then
-		// the camera moves, we always messure
-		// relative to the loading location.
-
-		float x = (float) -worldX;
-		float y = (float) -worldY;
-		float z = (float) worldZ;
-		// Log.i("3ds","moving to ="+worldX+" , "+worldY+" , "+worldZ);
-
-		updateThis.setTranslationMatrix(new Matrix());
-		updateThis.translate(new SimpleVector(x, y, z));
-
-		// update rotation
-		updateThis.setRotationMatrix(new Matrix());
-		updateThis.rotateX((float) Math.toRadians(newblipdata.roll));
-		updateThis.rotateY((float) Math.toRadians(newblipdata.baring));
-		updateThis.rotateZ((float) Math.toRadians(newblipdata.elevation));
-
-		// update textures
-		String text = newblipdata.ObjectData;
-		updatedTexture(newblipdata.BlipID, text);
-
-		// update other stuff
-*/
+		 * Object3D updateThis = world.getObjectByName(newblipdata.BlipID);
+		 * 
+		 * // update location (oddly, you have to clear the location and then //
+		 * "move" the position, rather then merely setting it) // (you can use
+		 * setOrigin to directly set it, but this wont move child // objects)
+		 * 
+		 * // updateThis.setTranslationMatrix(new Matrix());
+		 * 
+		 * double worldX = ARBlipUtilitys.getRelativeXLocation(newblipdata,
+		 * startingLocation); // As the world is set on loading, and then // the
+		 * camera moves, we always messure // relative to the loading location.
+		 * double worldY = ARBlipUtilitys.getRelativeYLocation(newblipdata,
+		 * startingLocation); // As the world is set on loading, and then // the
+		 * camera moves, we always messure // relative to the loading location.
+		 * double worldZ = ARBlipUtilitys.getRelativeZLocation(newblipdata,
+		 * startingLocation); // As the world is set on loading, and then // the
+		 * camera moves, we always messure // relative to the loading location.
+		 * 
+		 * float x = (float) -worldX; float y = (float) -worldY; float z =
+		 * (float) worldZ; //
+		 * Log.i("3ds","moving to ="+worldX+" , "+worldY+" , "+worldZ);
+		 * 
+		 * updateThis.setTranslationMatrix(new Matrix());
+		 * updateThis.translate(new SimpleVector(x, y, z));
+		 * 
+		 * // update rotation updateThis.setRotationMatrix(new Matrix());
+		 * updateThis.rotateX((float) Math.toRadians(newblipdata.roll));
+		 * updateThis.rotateY((float) Math.toRadians(newblipdata.baring));
+		 * updateThis.rotateZ((float) Math.toRadians(newblipdata.elevation));
+		 * 
+		 * // update textures String text = newblipdata.ObjectData;
+		 * updatedTexture(newblipdata.BlipID, text);
+		 * 
+		 * // update other stuff
+		 */
 	}
 
 	public boolean isBlipInScene(String BlipsID) {
 
-		Log.i("blip","checking for "+BlipsID+" in current active layer");
+		Log.i("blip", "checking for " + BlipsID + " in current active layer");
 
 		Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects.iterator();
 		while (it.hasNext()) {
 			String currentID = it.next().arblip.BlipID;
-			Log.i("check","checking for "+BlipsID+" against "+currentID);
+			Log.i("check", "checking for " + BlipsID + " against " + currentID);
 
 			if (currentID.equals(BlipsID)) {
 				return true;
@@ -1040,16 +1108,17 @@ public class ARWaveView extends GLSurfaceView {
 
 		return false;
 	}
+
 	/** returns a blip from a blipID **/
 	public ARBlip getBlipFromScene(String BlipsID) {
 
-		Log.i("blip","checking for "+BlipsID+" in current active layer");
+		Log.i("blip", "checking for " + BlipsID + " in current active layer");
 
 		Iterator<ARBlipObject> it = CurrentActiveLayer.LayersObjects.iterator();
 		while (it.hasNext()) {
 			ARBlip currentblip = it.next().arblip;
 			String currentID = currentblip.BlipID;
-			Log.i("check","checking for "+BlipsID+" against "+currentID);
+			Log.i("check", "checking for " + BlipsID + " against " + currentID);
 
 			if (currentID.equals(BlipsID)) {
 				return currentblip;
@@ -1089,22 +1158,19 @@ public class ARWaveView extends GLSurfaceView {
 		backgroundScenaryVisible = !backgroundScenaryVisible;
 		this.setBackgroundScenary(backgroundScenaryVisible);
 		LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);
-		
+
 	}
 
-	public void setBackgroundScenary(Boolean backgroundScenaryVisible){
+	public void setBackgroundScenary(Boolean backgroundScenaryVisible) {
 
 		this.backgroundScenaryVisible = backgroundScenaryVisible;
-		LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible); 
+		LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);
 
 	}
-
-
 
 	/** Map mode **/
 	/**
-	 * This will add a google map image as the ground plan and set camera
-	 * overhead
+	 * This will add a osm map image as the ground plan and set camera overhead
 	 **/
 	public void setMapMode(boolean setMapMode, LocatedMapBundle MapBundle) {
 		MapModeSet = setMapMode;
@@ -1162,9 +1228,8 @@ public class ARWaveView extends GLSurfaceView {
 
 	class MyRenderer implements GLSurfaceView.Renderer {
 
-
 		Resources res = getResources();
-		
+
 		private Texture numberFont = null;
 
 		Object3D cmtree = null;
@@ -1190,66 +1255,85 @@ public class ARWaveView extends GLSurfaceView {
 		}
 
 		public void stop() {
+			Log.i("__", "STOPPED");
+			
 			stop = true;
 			if (fb != null) {
 				fb.dispose();
 				fb = null;
+				Log.i("__", "FRAME BUFFER REMOVED");
+				
 			}
 		}
 
+		public void resume(){
+			//I added this bit in an attempty to make it work after a activity
+Log.i("__", "resume");
+			
+			stop = false;
+		}
 		public void onSurfaceChanged(GL10 gl, int w, int h) {
 			if (fb != null) {
 				fb.dispose();
 			}
 			fb = new FrameBuffer(gl, w, h);
-			
-			if (start.surface_activity_master == null) {	
-				
+
+			if (start.surface_activity_master == null) {
+
+				Log.i("____", "_______________setting up world");
+
 				setupWorld();
-				Log.i("____","_______________saving surface data");
 				
-				start.surface_activity_master = ARWaveView.this;
-				
-				//start.saveMaster();
-				
+				Log.i("____", "_______________saving surface data after surface changed");
+
+				if (start.surface_activity_master == null) {
+					start.surface_activity_master = ARWaveView.this;
+				}
+				// start.saveMaster();
+
 			}
+			
+			if (world == null){
+				Log.i("__","world is null");
+			}
+
 		}
 
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		//	setupWorld();
-			
-
+			// setupWorld();
 
 		}
 
 		private void setupWorld() {
-			TextureManager.getInstance().flush();
+			// TextureManager.getInstance().flush();
 			world = new World();
-			
 
 			Object3D tree2 = null;
 			Object3D tree1 = null;
 			Object3D grass = null;
 			Object3D rock = null;
-			
 
 			TextureManager tm = TextureManager.getInstance();
 
-			//set up default textures
+			// set up default textures
 
-			//Occulsion texture, for making things mask out the enviroment and show the camera view
-			Bitmap charImage = Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888 );
+			// Occulsion texture, for making things mask out the enviroment and
+			// show the camera view
+			Bitmap charImage = Bitmap.createBitmap(8, 8,
+					Bitmap.Config.ARGB_8888);
 			Canvas canvas = new Canvas(charImage);
-			canvas.drawColor(Color.TRANSPARENT);			
-			Texture occlusion = new Texture(charImage, true); // the true specify
+			canvas.drawColor(Color.TRANSPARENT);
+			Texture occlusion = new Texture(charImage, true); // the true
+																// specify
 			tm.addTexture("occlusion", occlusion);
-			//-------------------
-			
+			// -------------------
+
 			// set up pre-made landscape
 			Texture grass2 = new Texture(res.openRawResource(R.raw.grassy));
-			Texture cmtreetexture =  new Texture(res.openRawResource(R.raw.cmtree));
-			Texture snow =  new Texture(res.openRawResource(R.raw.snw));
-			
+			Texture cmtreetexture = new Texture(
+					res.openRawResource(R.raw.cmtree));
+			Texture snow = new Texture(res.openRawResource(R.raw.snw));
+
 			Texture leaves = new Texture(res.openRawResource(R.raw.tree2y));
 			Texture leaves2 = new Texture(res.openRawResource(R.raw.tree3y));
 			Texture rocky = new Texture(res.openRawResource(R.raw.rocky));
@@ -1264,32 +1348,34 @@ public class ARWaveView extends GLSurfaceView {
 			tm.addTexture("leaves2", leaves2);
 			tm.addTexture("rock", rocky);
 			tm.addTexture("grassy", planetex);
-			tm.addTexture("snow",snow);
-			
+			tm.addTexture("snow", snow);
+
 			if (!deSer) {
 				// Use the normal loaders...
 				groundPlane = Primitives.getPlane(1, 378);
 				grass = Loader.load3DS(res.openRawResource(R.raw.grass), 5)[0];
-				rock = Loader.load3DS(res.openRawResource(R.raw.rock), 15f)[0];				
+				rock = Loader.load3DS(res.openRawResource(R.raw.rock), 15f)[0];
 				tree1 = Loader.load3DS(res.openRawResource(R.raw.tree2), 2)[0];
 				tree2 = Loader.load3DS(res.openRawResource(R.raw.tree3), 6)[0];
 				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
 				cmtree2 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
 				cmtree3 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
-				
+
 				groundPlane.setTexture("grassy");
 				rock.setTexture("rock");
-				grass.setTexture("grass2");				
+				grass.setTexture("grass2");
 				tree1.setTexture("leaves");
 				tree2.setTexture("leaves2");
 
-				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];				
+				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
 				cmtree.setTexture("cmtree");
-				atmos = Loader.load3DS(res.openRawResource(R.raw.atmosphere), 2)[0];				
+				atmos = Loader
+						.load3DS(res.openRawResource(R.raw.atmosphere), 2)[0];
 				atmos.setTexture("snow");
-				atmos2= Loader.load3DS(res.openRawResource(R.raw.atmosphere2), 2)[0];				
+				atmos2 = Loader.load3DS(res.openRawResource(R.raw.atmosphere2),
+						2)[0];
 				atmos2.setTexture("snow");
-				
+
 			} else {
 				// Load the serialized version instead...
 				groundPlane = Primitives.getPlane(1, 378);
@@ -1298,48 +1384,50 @@ public class ARWaveView extends GLSurfaceView {
 				// Loader.loadSerializedObject(res.openRawResource(R.raw.serplane));
 				rock = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.serrock));
-				
-				//cmtree = Loader.loadSerializedObject(res
-				//		.openRawResource(R.raw.sertree1));
-				
+
+				// cmtree = Loader.loadSerializedObject(res
+				// .openRawResource(R.raw.sertree1));
+
 				tree1 = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.sertree1));
 				tree2 = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.sertree2));
 				grass = Loader.loadSerializedObject(res
 						.openRawResource(R.raw.sergrass));
-			
-				//these should be seralised to speed up loading
-				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];				
+
+				// these should be seralised to speed up loading
+				cmtree = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
 				cmtree.setTexture("cmtree");
 				cmtree2 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
 				cmtree2.setTexture("cmtree");
 				cmtree3 = Loader.load3DS(res.openRawResource(R.raw.ct), 2)[0];
 				cmtree3.setTexture("cmtree");
-				atmos = Loader.load3DS(res.openRawResource(R.raw.atmosphere), 2)[0];				
+				atmos = Loader
+						.load3DS(res.openRawResource(R.raw.atmosphere), 2)[0];
 				atmos.setTexture("snow");
-				atmos2= Loader.load3DS(res.openRawResource(R.raw.atmosphere2), 2)[0];				
+				atmos2 = Loader.load3DS(res.openRawResource(R.raw.atmosphere2),
+						2)[0];
 				atmos2.setTexture("snow");
-			
+
 			}
 
 			grass.translate(-90, -34, -100);
 			grass.rotateZ((float) Math.PI);
-			
+
 			cmtree.translate(-30, -15, 25);
-			cmtree.rotateX(-(float) Math.PI /2);
+			cmtree.rotateX(-(float) Math.PI / 2);
 			cmtree2.translate(0, -15, -50);
-			cmtree2.rotateX(-(float) Math.PI /2);
+			cmtree2.rotateX(-(float) Math.PI / 2);
 			cmtree3.translate(85, -15, 45);
-			cmtree3.rotateX(-(float) Math.PI /2);
-			
-			atmos.rotateX(-(float) Math.PI /2);
-			atmos2.rotateX(-(float) Math.PI /2);
+			cmtree3.rotateX(-(float) Math.PI / 2);
+
+			atmos.rotateX(-(float) Math.PI / 2);
+			atmos2.rotateX(-(float) Math.PI / 2);
 			atmos.setCulling(Object3D.CULLING_DISABLED);
 			atmos2.setCulling(Object3D.CULLING_DISABLED);
 			atmos.setTransparency(30);
 			atmos2.setTransparency(30);
-			
+
 			rock.translate(0, 0, 0);
 			rock.rotateX(-(float) Math.PI / 2);
 			tree1.translate(-189, -34, 0);
@@ -1377,77 +1465,80 @@ public class ARWaveView extends GLSurfaceView {
 			grass.setTransparency(10);
 			tree1.setTransparency(0);
 			tree2.setTransparency(0);
-			
-			
-			
+
 			tree1.setAdditionalColor(dark);
 			tree2.setAdditionalColor(dark);
 			grass.setAdditionalColor(dark);
-			//cmtree.setAdditionalColor(dark);
+			// cmtree.setAdditionalColor(dark);
 			atmos.setAdditionalColor(RGBColor.WHITE);
 			atmos2.setAdditionalColor(RGBColor.WHITE);
-			//set up atmos animation
+			// set up atmos animation
 			Timer atmosTimer = new Timer();
-			
+
 			TimerTask atmosphereAnimation = new TimerTask() {
-				int h=-130;
-				int h2=-130;
+				int h = -130;
+				int h2 = -130;
+
 				@Override
-				public void run() {					
-					h=h+1;
-					if (h>120){
-						h=-130;		
-						}
-					h2=h2+4;
-					if (h2>120){
-						h2=-130;		
-						}
-					
+				public void run() {
+					h = h + 1;
+					if (h > 120) {
+						h = -130;
+					}
+					h2 = h2 + 4;
+					if (h2 > 120) {
+						h2 = -130;
+					}
+
 					atmos.setTranslationMatrix(new Matrix());
 					atmos.translate(0, h, 0);
-					
+
 					atmos2.setTranslationMatrix(new Matrix());
-					atmos2.translate(0, h2-30, 0);
-					
-				}				
+					atmos2.translate(0, h2 - 30, 0);
+
+				}
 			};
 			atmosTimer.scheduleAtFixedRate(atmosphereAnimation, 500, 100);
-			
+
 			world.setAmbientLight(20, 20, 20);
 			world.buildAllObjects();
 
-			//add objects to default layer
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(grass,ARBlipObject.ObjectType.MESH_OBJECT));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree1, ARBlipObject.ObjectType.MESH_OBJECT));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree2,ARBlipObject.ObjectType.MESH_OBJECT));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(rock,ARBlipObject.ObjectType.MESH_OBJECT));
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,ARBlipObject.ObjectType.MESH_OBJECT));	
-			LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);			
-			//-----
+			// add objects to default layer
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(grass,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree1,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(tree2,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(rock,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);
+			// -----
 			// This can be removed when not in season....
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,ARBlipObject.ObjectType.MESH_OBJECT));
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos2,ARBlipObject.ObjectType.MESH_OBJECT));
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree,ARBlipObject.ObjectType.MESH_OBJECT));	
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree2,ARBlipObject.ObjectType.MESH_OBJECT));	
-			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree3,ARBlipObject.ObjectType.MESH_OBJECT));	
-			
-			//-----
-			//set there prefs
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos2,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree2,
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(cmtree3,
+					ARBlipObject.ObjectType.MESH_OBJECT));
 
-			
-			//get pref for background wave
+			// -----
+			// set there prefs
+
+			// get pref for background wave
 			SpecialChristmassScenaryLayer.setVisible(start.backgroundScenaryOn);
-			
-			//get and Christmas wave
+
+			// get and Christmas wave
 			LocalBackgroundScenaryLayer.setVisible(start.CMScenaryOn);
-			
-			
-			
-			
-			
-			
-			//create a new sun and position it relative to the ground plane
-			sun = new SunObject(world,0,res);
+
+			// create a new sun and position it relative to the ground plane
+			sun = new SunObject(world, 0, res);
 
 			Camera cam = world.getCamera();
 			cam.moveCamera(Camera.CAMERA_MOVEUP, 100);
@@ -1455,22 +1546,25 @@ public class ARWaveView extends GLSurfaceView {
 
 			cam.setFOV(0.5f); // used to be 1.5, 0.5 seemed closer to my phones
 			// camera -thomas
-			
-			
-			
-			//set up lensflare
-			if (LensFlareOn)
-		    {   //set up textures
-				//Texture flare_maintexture = new Texture(res.openRawResource(R.raw.mainflare2));
-                //tm.addTexture("flare_maintexture", flare_maintexture);				
-                //for a more pretty flare, we can use different textures for each halo.
-				//SceneLensFlare = new LensFlare(sun.getPosition(),"flare_maintexture", "flare_maintexture", "flare_maintexture","flare_maintexture");
-				//SceneLensFlare.setMaximumDistance(1000);
-				//SceneLensFlare.setTransparency(7);
-				
-		       sun.setLensFlareOn(true);
-		    }
-			
+
+			// set up lensflare
+			if (LensFlareOn) { // set up textures
+								// Texture flare_maintexture = new
+								// Texture(res.openRawResource(R.raw.mainflare2));
+								// tm.addTexture("flare_maintexture",
+								// flare_maintexture);
+								// for a more pretty flare, we can use different
+								// textures for each halo.
+								// SceneLensFlare = new
+								// LensFlare(sun.getPosition(),"flare_maintexture",
+								// "flare_maintexture",
+								// "flare_maintexture","flare_maintexture");
+								// SceneLensFlare.setMaximumDistance(1000);
+								// SceneLensFlare.setTransparency(7);
+
+				sun.setLensFlareOn(true);
+			}
+
 			setSunRotation();
 		}
 
@@ -1513,7 +1607,6 @@ public class ARWaveView extends GLSurfaceView {
 
 						}
 
-
 						if (CurrentMode == VIEWING_MODE) {
 							if (move != 0) {
 
@@ -1534,12 +1627,13 @@ public class ARWaveView extends GLSurfaceView {
 							}
 						}
 
-						if ((CurrentMode == EDIT_MODE)||(CurrentMode == EDIT_END_FLAG)) {
+						if ((CurrentMode == EDIT_MODE)
+								|| (CurrentMode == EDIT_END_FLAG)) {
 
 							CurrentObject.setTranslationMatrix(new Matrix());
 
 							SimpleVector CameraPosition = world.getCamera()
-							.getPosition();
+									.getPosition();
 
 							CurrentObject.translate(CameraPosition);
 
@@ -1548,9 +1642,9 @@ public class ARWaveView extends GLSurfaceView {
 							SimpleVector test = CurrentObject.getZAxis();
 							newobject_distance = newobject_distance + move;
 
-							//not closer then 2 meters
-							if (newobject_distance<2){
-								newobject_distance=2;
+							// not closer then 2 meters
+							if (newobject_distance < 2) {
+								newobject_distance = 2;
 							}
 
 							test.scalarMul(newobject_distance);
@@ -1573,22 +1667,19 @@ public class ARWaveView extends GLSurfaceView {
 						// world.getCamera().setBack(CameraMatrix);
 
 						fb.clear();
-						
-						
+
 						sun.updatedAndRender(fb);
 						world.renderScene(fb);
-						
-					
-						
+
 						world.draw(fb);
 
 						blitNumber(lfps, 5, 5);
 						if (currentRealLocation != null) {
-							blitNumber(Math
-									.round(Math.round(currentRealLocation
+							blitNumber(
+									Math.round(Math.round(currentRealLocation
 											.getLatitude() * 1E6)), 15, 25);
-							blitNumber(Math
-									.round(Math.round(currentRealLocation
+							blitNumber(
+									Math.round(Math.round(currentRealLocation
 											.getLongitude() * 1E6)), 15, 45);
 							blitNumber(TestVar, 200, 25);
 						}
@@ -1620,7 +1711,6 @@ public class ARWaveView extends GLSurfaceView {
 							world.getCamera().rotateCameraAxis(Y_AXIS,
 									newCameraY);
 
-
 							/*
 							 * if (showDebugInfo){
 							 * 
@@ -1640,8 +1730,8 @@ public class ARWaveView extends GLSurfaceView {
 
 						if (System.currentTimeMillis() - time >= 1000) {
 							lfps = (fps + lfps) >> 1;
-			fps = 0;
-			time = System.currentTimeMillis();
+							fps = 0;
+							time = System.currentTimeMillis();
 						}
 						fps++;
 						ind += 0.02f;
@@ -1650,6 +1740,9 @@ public class ARWaveView extends GLSurfaceView {
 						}
 					}
 				} else {
+
+					Log.i("__", "stoped so removing current fb..");
+					
 					if (fb != null) {
 						fb.dispose();
 						fb = null;
@@ -1663,7 +1756,6 @@ public class ARWaveView extends GLSurfaceView {
 			worldReadyToGo = true;
 
 		}
-
 
 		// seems to be for picking numbers from a texture and displaying them
 		// for the framerate

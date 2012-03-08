@@ -42,6 +42,8 @@ import android.widget.Toast;
  *
  */
 public class FedOneCommunicationManager implements
+
+
 		AbstractCommunicationManager, WaveletOperationListener {
 
 	/** */
@@ -72,7 +74,7 @@ public class FedOneCommunicationManager implements
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#ARBlipInserted()
 	 */
-	public void ARBlipInserted() {
+	public void ARBlipInserted(ARBlip blip,String WaveID) {
 		// TODO Auto-generated method stub
 
 	}
@@ -80,7 +82,7 @@ public class FedOneCommunicationManager implements
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#ARBlipUpdated()
 	 */
-	public void ARBlipUpdated() {
+	public void ARBlipUpdated(ARBlip blip, String WaveID) {
 		// TODO Auto-generated method stub
 		Log.i("wave", "updateARBlip");
 	}
@@ -183,11 +185,15 @@ public class FedOneCommunicationManager implements
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#createWave(java.lang.String)
 	 */
-	public void createWave(String waveTitle) {
+	public String createWave(String waveTitle) {
 		BlockingSuccessFailCallback<ProtocolSubmitResponse, String> callback =
 				BlockingSuccessFailCallback.create();
 		backend.createConversationWave(callback);
 		callback.await(60, TimeUnit.SECONDS ); //one minute
+		
+		//should return waves true id
+		return waveTitle;
+		
 	}
 
 	/* (non-Javadoc)
@@ -544,5 +550,23 @@ public class FedOneCommunicationManager implements
 	public void deleteARBlip(String blipID) {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+	public void setActiveWave(String waveID) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	public String getCurrentWaveID() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public String[] getParticipantList(String WaveID) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

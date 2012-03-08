@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/CreateNewWave"
+        android:textAppearance="?android:attr/textAppearanceLarge" android:layout_gravity="center_horizontal" android:gravity="center_horizontal"/>
+
+    <TableRow
+        android:id="@+id/tableRow1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center" >
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/CreateWaveName"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <EditText
+            android:id="@+id/NewWaveName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/TypeNameHere" android:inputType="text" android:minWidth="300px" android:selectAllOnFocus="true"/>
+
+    </TableRow>
+
+    <Button
+        android:id="@+id/CreateNewWave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/createWave" />
+
+    <Button
+        android:id="@+id/CancelWaveCreation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cancelButton" />
+
+    <TextView
+        android:id="@+id/WaveCreationFeedback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/WaveCreationFeedback"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</TableLayout>

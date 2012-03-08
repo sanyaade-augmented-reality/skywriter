@@ -1,46 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical" android:id="@+id/MainLoginPage"
-	android:layout_height="wrap_content" android:layout_width="wrap_content"
-	android:layout_gravity="center_vertical|center_horizontal">
+    android:id="@+id/MainLoginPage"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_vertical|center_horizontal"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" >
 
-	<LinearLayout android:id="@+id/LinearLayout02"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_gravity="center_horizontal">
-		<TextView android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/UsernameBox"
-			android:text="@string/username" />
-		<EditText android:text="@string/defaultUsername" android:id="@+id/EditText02"
-			android:layout_width="wrap_content" android:layout_height="wrap_content" />
-	</LinearLayout>
+	<TableLayout
+	    android:id="@+id/tableLayout1"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content" >
 
-	<LinearLayout android:id="@+id/LinearLayout03"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_gravity="center_horizontal">
-		<TextView android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/PasswordBox"
-			android:text="@string/password" />
-		<EditText android:text="@string/defaultPassword" android:id="@+id/EditText01"
-			android:layout_width="wrap_content" android:layout_height="wrap_content" />
-	</LinearLayout>
+	    <TableRow
+	        android:id="@+id/tableRow1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" >
 
-	<LinearLayout android:id="@+id/LinearLayout03"
-		android:layout_height="wrap_content" android:layout_gravity="left"
-		android:layout_width="fill_parent">
-		<TextView android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/ServerBox"
-			android:text="@string/Server" />
-		<EditText android:text="@string/defaultServer" android:id="@+id/EditText03"
-			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_gravity="right" />
-	</LinearLayout>
+	        <TextView
+	            android:id="@+id/UsernameBox"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/username" />
 
-	<Button android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
-		android:id="@+id/LoginButton" android:text="@string/login" />
+	        <EditText
+	            android:id="@+id/EditText02"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/defaultUsername" >
 
-	<TextView android:id="@+id/messages" android:text="@string/messages"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_gravity="center_horizontal" />
+	            <requestFocus />
+	        </EditText>
+
+	    </TableRow>
+
+	    <TableRow
+	        android:id="@+id/tableRow2"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" >
+
+	        <TextView
+	            android:id="@+id/PasswordLabel"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/password" />
+
+	        <EditText
+	            android:id="@+id/PasswordBox"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:inputType="textPassword"
+	            android:text="@string/defaultPassword" />
+
+	    </TableRow>
+
+	    <TableRow
+	        android:id="@+id/tableRow3"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" >
+
+	        <TextView
+	            android:id="@+id/TextView01"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/Server" />
+
+	        <EditText
+	            android:id="@+id/EditText03"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/defaultServer" />
+
+	    </TableRow>
+
+	    <TableRow
+	        android:id="@+id/tableRow4"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" >
+
+	        <TextView
+	            android:id="@+id/ServerBox"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/ServerTypeLabel" />
+
+	        <Spinner
+	            android:id="@+id/ServerSelect"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:entries="@array/ServerType" />
+
+	    </TableRow>
+	</TableLayout>
+
+	<Button
+	    android:id="@+id/LoginButton"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="@string/login" />
+
+	<TextView
+	    android:id="@+id/messages"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="@string/messages" />
 
 </LinearLayout>

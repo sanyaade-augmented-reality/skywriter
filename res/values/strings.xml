@@ -31,5 +31,22 @@
 <string name="createWave">Create New Wave</string>
 <string name="setWavePrefsText">Set Wave Preferances</string>
 
+<string name="NoARBlipID">no_id_set</string>
+<string name="colourGrey">#030303</string>
+<string name="ARBlipID">ARBlipID</string>
+<string name="InviteUser">Invite User To Wave</string>
+<string name="ServerTypeLabel">ServerType</string>
+<string name="removeWave">Remove Wave</string>
+<string name="CreateNewWave">Create New Wave</string>
+<string name="CreateWaveName">Name</string>
+<string name="TypeNameHere">TypeNameHere</string>
+<string name="WaveCreationFeedback">Please enter wave name and hit confirm</string>
+<string name="Visibility">Visibility</string>
+<string name="wavename">Wave Name</string>
+<string name="ActiveWave">Post To Wave:</string>
+<string name="waveid">wave id:</string>
+<string name="JoinWave">Join Wave</string>
+<string name="JoinExistingWave">Join Existing Wave</string>
+
 
 </resources>

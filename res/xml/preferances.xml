@@ -28,7 +28,9 @@
                              
                               
                                                               
-    <EditTextPreference android:key="DefaultServer" android:summary="You can set a default server here" android:title="Default Server" android:defaultValue="atresica.nl" android:dialogMessage="Please type the default FedOne server" android:dialogTitle="Default Server"/></PreferenceCategory>
+    <EditTextPreference android:key="DefaultServer" android:summary="You can set a default server here" android:title="Default Server" android:defaultValue="atresica.nl" android:dialogMessage="Please type the default FedOne server" android:dialogTitle="Default Server"/>
+    <ListPreference android:entryValues="@array/ServerType" android:entries="@array/ServerType" android:key="Server_Type" android:summary="The type of server the default is" android:title="Server Type"/>
+</PreferenceCategory>
   
   
 </PreferenceScreen>

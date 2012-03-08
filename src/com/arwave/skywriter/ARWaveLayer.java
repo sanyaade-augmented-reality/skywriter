@@ -46,7 +46,9 @@ public class ARWaveLayer {
 	 ScaleType BillboardMode = ScaleType.BILLBOARDMODE_LINEAR; // default to linear
 		
 	
-	public ARWaveLayer(){
+	public ARWaveLayer(String layerName){
+		
+		ARWaveLayerID = layerName;
 		
 	}
 	
@@ -81,6 +83,10 @@ public class ARWaveLayer {
 	
 	/** will create a new arblip object and add it to the layer, as well as returning it to add to the world **/
 	public Object3D createNewBlipObject(ARBlip newblip) throws IOException {
+		
+
+		Log.e("3ds", "blip being made");
+				
 		// new object dummy
 		Object3D newmarker = Object3D.createDummyObj();
 		//variable holding the object type;
@@ -298,7 +304,7 @@ public class ARWaveLayer {
 		float y = (float) -worldY;
 		float z = (float) worldZ;
 
-		Log.i("3ds", "positioning at z=" + z + " y=" + y + "x=" + x);
+		Log.e("3ds", "positioning at z=" + z + " y=" + y + "x=" + x);
 
 		// newmarker.setTranslationMatrix(new Matrix());
 		newmarker.translate(x, y, z);
@@ -315,7 +321,8 @@ public class ARWaveLayer {
 		if (true){
 			newmarker.setCollisionMode(Object3D.COLLISION_CHECK_OTHERS);
 		}
-		Log.i("3ds", "adding " + newblip.BlipID + " to layers storage");			
+		Log.e("3ds", "adding " + newblip.BlipID + " to layers storage");			
+		
 		this.addObject(new ARBlipObject(newblip,newmarker, object3dtype));
 		
 		return newmarker;

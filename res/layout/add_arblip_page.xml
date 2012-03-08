@@ -1,9 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-   android:orientation="vertical"
-	android:layout_width="fill_parent" android:layout_height="wrap_content"
-	android:id="@+id/add_arblip_layout">
+    android:id="@+id/add_arblip_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" >
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/waveid" />
+
+        <TextView
+            android:id="@+id/Waveidlabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TextView" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ARBlipID" 
+            android:textColor="#333333"
+            />
+
+        <TextView
+            android:id="@+id/BlipIDLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/NoARBlipID"
+            android:textColor="#333333"
+            
+            
+            />
+
+    </LinearLayout>
 
 	<TextView android:text="@string/latitudeText"
 		android:textSize="8pt" android:layout_width="fill_parent"
@@ -30,9 +78,13 @@
 	<TextView android:text="@string/arblipContentText"
 		android:textSize="8pt" android:layout_width="fill_parent"
 		android:layout_height="wrap_content" android:layout_weight="1" />
-	<EditText android:id="@+id/arblipContent" android:text="@string/arblipContentValue"
-		android:layout_width="fill_parent" android:layout_height="wrap_content"
-		android:background="@android:drawable/editbox_background" />
+
+	<EditText
+	    android:id="@+id/arblipContent"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:background="@android:drawable/editbox_background"
+	    android:text="@string/arblipContentValue" />
 
 	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 		android:orientation="horizontal" android:layout_width="fill_parent"
@@ -46,9 +98,12 @@
 			android:layout_height="wrap_content" android:layout_gravity="right"
 			android:id="@+id/addButton" android:text="@string/addButton" />
 	</LinearLayout>
-	<CheckBox android:text="@string/autoSeLocationText"
-		android:id="@+id/AutoSetLocation" android:layout_width="wrap_content"
-		android:layout_height="wrap_content" />
 
+	<CheckBox
+	    android:id="@+id/AutoSetLocation"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:checked="true"
+	    android:text="@string/autoSeLocationText" android:enabled="false"/>
 
 </LinearLayout>

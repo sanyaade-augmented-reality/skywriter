@@ -4,18 +4,31 @@ import java.util.ArrayList;
 
 public interface AbstractCommunicationManager {
 
+	//login/logout of server
 	public void login( String serverAddress, int serverPort, String username, String password );
 	public void logout();
-	public void createWave( String waveTitle );
+	public boolean isConnected();
+	
+	//wave creation functions
+	public String createWave( String waveTitle );
+	
 	public void openWavelet( String waveletID );
 	public void closeWavelet();
+	
+	public void setActiveWave (String waveID); /** where to post too! **/
+	public String getCurrentWaveID();
+	
+	//data sending functions
 	public void addARBlip( String text );
 	public void updateARBlip( String blipID,String WaveID, String text );
+	
 	public void deleteARBlip( String blipID );
-	public void addParticipant( String participant );
-	public void ARBlipUpdated();
-	public void ARBlipInserted();
+	public void ARBlipUpdated(ARBlip blip, String WaveToAddToo);
+	public void ARBlipInserted(ARBlip blip, String WaveToAddToo);
 	public ArrayList<Blip> getBlips(String waveID);
-	public boolean isConnected();
+	
+	//participant functions
+	public void addParticipant( String participant );
+	public String[] getParticipantList( String WaveID);
 	
 }
