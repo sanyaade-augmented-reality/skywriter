@@ -20,6 +20,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smackx.Form;
 import org.jivesoftware.smackx.muc.InvitationListener;
+import org.jivesoftware.smackx.muc.InvitationRejectionListener;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.Occupant;
 
@@ -37,6 +38,7 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 
 	String loggedIn_username = "";
 	private start mainWindow;
+	private String ServerAddress;
 	
 	
 
@@ -64,8 +66,16 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 
 		con = new XMPPConnection(cc);
 
+		if (con == null) {
+			mainWindow.addMessage("conection failed : ");
+			return;
+		}
+		
 		try {
 			con.connect();
+			
+			ServerAddress = serverAddress;
+			
 			// //if connected login
 			Log.i("xmpp", "server connected, logging in : ");
 			mainWindow.addMessage("Connected to: " + serverAddress);
@@ -143,6 +153,8 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 
 			});
 
+			
+			
 			return true;
 
 		} catch (XMPPException xe) {
@@ -211,6 +223,19 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 			});
 			
 
+			// add invite listener (doesnt seem to work, at least on gtalk )
+			current_muc.addInvitationRejectionListener(new InvitationRejectionListener() {
+
+							public void invitationDeclined(String arg0, String arg1) {
+								Log.i("xmpp", "rejection recieved!");
+
+								Log.i("xmpp", "rejection recieved FOR ROOM :" + arg1);
+
+								// join room
+							}
+
+						});
+						
 		} catch (XMPPException e1) {
 			// TODO Auto-generated catch block
 			Log.i("xmpp", "no room created:" + e1.getMessage());
@@ -251,7 +276,9 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 				// TODO Auto-generated method stub
 				
 				Log.i("xmpp", " partipant update:"+arg0.toString());
-				getParticipantList("waveid here");
+				
+				//dpesnt work
+				//getParticipantList("waveid here");
 				
 				
 			}
@@ -305,10 +332,16 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 	}
 
 	public void addParticipant(String participant) {
-		// TODO Auto-generated method stub
 		if (current_muc.isJoined()) {
-			current_muc.invite(participant, "Meet me in this excellent room");
+			
+			//check formating is valid
+			Log.i("xmpp","participant adding:"+participant);
+			
+			
+			//try to invite
+			current_muc.invite(participant, "Meet me in this ARWave!(arwave compatical browser needed)");
 
+			
 		}
 	}
 	
@@ -369,41 +402,45 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 		
 		Log.i("xmpp","ocupants:"+current_muc.getOccupantsCount());
 		int count=current_muc.getOccupantsCount();
-		
-		if (count>0){
-		
-		try {
-			Log.i("xmpp","ocupants:"+current_muc.getOccupantsCount());
-			
-			Collection<Occupant> users;
-			
-			if (current_muc.getParticipants()!=null){
-			users = current_muc.getParticipants();
-			} else {
-				Log.e("xmpp","null returned by get participants...dunno why");
-					
-				return null;
-			}
-			
-			Iterator<Occupant> oit= users.iterator();
-			
-			while (oit.hasNext()) {
-				
-				Occupant occupant = (Occupant) oit.next();
-				
-				Log.i("xmpp", occupant.getJid());
-				
-			}
-			
-		
-		} catch (XMPPException e) {
-			
-			// TODO Auto-generated catch block
-			Log.i("xmpp", "occupant  count fail");
-		}
-		
-		}
+//		
+//		if (count>0){
+//		
+//		try {
+//			Log.i("xmpp","ocupants:"+current_muc.getOccupantsCount());
+//			
+//			Collection<Occupant> users;
+//			
+//			if (current_muc.getParticipants()!=null){
+//			users = current_muc.getParticipants();
+//			} else {
+//				Log.e("xmpp","null returned by get participants...dunno why");
+//					
+//				return null;
+//			}
+//			
+//			Iterator<Occupant> oit= users.iterator();
+//			
+//			while (oit.hasNext()) {
+//				
+//				Occupant occupant = (Occupant) oit.next();
+//				
+//				Log.i("xmpp", occupant.getJid());
+//				
+//			}
+//			
+//		
+//		} catch (XMPPException e) {
+//			
+//			// TODO Auto-generated catch block
+//			Log.i("xmpp", "occupant  count fail");
+//		}
+//		
+//		}
 		return null;
+	}
+
+	public String getServerAddress() {
+		return ServerAddress;
 	}
 
 }

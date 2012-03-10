@@ -6,6 +6,10 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
 
 /** activity used to customise the settings for a particular wave **/
 public class WavePreferances extends PreferenceActivity {
@@ -25,13 +29,10 @@ public class WavePreferances extends PreferenceActivity {
         
         PreferenceManager prefManager = getPreferenceManager();
         prefManager.setSharedPreferencesName(prefsName);
-        }
+        
 
         addPreferencesFromResource(R.xml.wavepreferances);
-        
-        
-        //set up invite new user button
-        
+
         
         
         
@@ -103,5 +104,5 @@ public class WavePreferances extends PreferenceActivity {
         }
         */
     }
-}
+}};
 

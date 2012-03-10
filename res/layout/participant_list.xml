@@ -2,17 +2,18 @@
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-
+
     <TableRow
-        android:id="@+id/tableRow1"
+        android:id="@+id/userListTable"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-
+        android:layout_height="wrap_content"
+        android:gravity="center" >
+
         <TextView
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Medium Text"
+            android:text="@string/ParticipantManagement"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
     </TableRow>
@@ -21,19 +22,32 @@
         android:id="@+id/tableRow2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
-
+
         <EditText
-            android:id="@+id/editText1"
+            android:id="@+id/userNameToInvite"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress" />
-
+
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/InviteUserToWave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/InviteUser" />
 
     </TableRow>
+
+    <TextView
+        android:id="@+id/wpmfeedback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Medium Text"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Button
+        android:id="@+id/FinishUserListActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Finish" />
 
 </TableLayout>

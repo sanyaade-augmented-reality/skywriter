@@ -56,7 +56,6 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TabHost;
-import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -95,17 +94,19 @@ public class start extends Activity implements SensorEventListener,
 
 	private static final int OPEN_WAVE_ID = 0;
 	private static final int SET_WAVE_PREFS = 1;
+	private static final int SET_USERS = 2;
 
 	// ar view context menu
-	private static final int ADD_ARBLIPFROMARVIEW_ID = 2;
-	private static final int MENU_CONFIRM_BLIP = 3;
-	private static final int MENU_CONTINUE_EDITING = 4;
-	private static final int MENU_CANCEL_BLIP = 5;
-	private static final int MENU_EDIT_BLIP = 6;
-	private static final int MENU_DELETE_BLIP = 7;
-	private static final int REMOVE_WAVE = 8;
+	private static final int ADD_ARBLIPFROMARVIEW_ID = 3;
+	private static final int MENU_CONFIRM_BLIP = 4;
+	private static final int MENU_CONTINUE_EDITING = 5;
+	private static final int MENU_CANCEL_BLIP = 6;
+	private static final int MENU_EDIT_BLIP = 7;
+	private static final int MENU_DELETE_BLIP = 8;
+	private static final int REMOVE_WAVE = 9;
 
-	private static AbstractCommunicationManager acm;
+	/** the connect manager - all communication too/from servers should use this */
+	static AbstractCommunicationManager acm;
 
 	// screen views
 	static ARWaveView arView;
@@ -250,13 +251,12 @@ public class start extends Activity implements SensorEventListener,
 
 		// get startup data if any
 		String startUpValues = this.getIntent().getStringExtra("||");
-		
-		
+
 		if (startUpValues != null) {
 			Log.i("_____", "start string=" + startUpValues);
 			this.addMessage("Auto Join AfterLogin:" + startUpValues);
 		}
-		
+
 		// set up screen stats
 		final DisplayMetrics dm = new DisplayMetrics();
 		screenwidth = dm.widthPixels;
@@ -357,18 +357,16 @@ public class start extends Activity implements SensorEventListener,
 
 		});
 
+		// assign interface
 
-		//assign interface
-		
-		//assign WaveList page buttons
+		// assign WaveList page buttons
 		joinWaveButton = (Button) findViewById(R.id.OpenJoinWaveButton);
 		joinWaveButton.setEnabled(false);
-		
+
 		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
 		CreateWaveButton.setEnabled(false);
-		
-		
-		//assign AR Blip adding page
+
+		// assign AR Blip adding page
 		Log.i("setup", "setting addblips");
 		AutoSetLocation = (CheckBox) findViewById(R.id.AutoSetLocation);
 		AddBlipLat = (EditText) findViewById(R.id.latitude);
@@ -981,16 +979,18 @@ public class start extends Activity implements SensorEventListener,
 		tabHost.setCurrentTab(0);
 
 	}
-	
-	/** Disables all interface that only works when logged in, and sends
-	 * the user back to the login screen **/
-	public static void ProcessLogout(){
 
-		//logout of wave screen
+	/**
+	 * Disables all interface that only works when logged in, and sends the user
+	 * back to the login screen
+	 **/
+	public static void ProcessLogout() {
+
+		// logout of wave screen
 
 		CreateWaveButton.setEnabled(false);
 		joinWaveButton.setEnabled(false);
-		
+
 		sendToLoginScreen();
 	}
 
@@ -1806,6 +1806,7 @@ public class start extends Activity implements SensorEventListener,
 		} else {
 			Log.i("wave", "adding options to menu");
 			menu.add(0, OPEN_WAVE_ID, 0, R.string.openWaveText);
+			menu.add(0, SET_USERS, 0, R.string.ParticipantManagement);
 			menu.add(0, SET_WAVE_PREFS, 0, R.string.setWavePrefsText);
 			menu.add(0, REMOVE_WAVE, 0, R.string.removeWave);
 
@@ -1822,6 +1823,8 @@ public class start extends Activity implements SensorEventListener,
 
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
 				.getMenuInfo();
+
+		
 		switch (item.getItemId()) {
 
 		case REMOVE_WAVE:
@@ -1833,20 +1836,40 @@ public class start extends Activity implements SensorEventListener,
 
 			// code to remove the selected wave
 
-		case SET_WAVE_PREFS:
-			// demo code; parse's blips into arblips and displays them
-			String wavetosetid = ((TextView) info.targetView).getText()
-					.toString();
+		case SET_USERS:
 
-			Log.i("MENU", "setting preferances for " + wavetosetid);
+			String wavetosetname = ((TextView) info.targetView).getText().toString();
+
+			String wavetosetid = WaveList.getWaveIDFromNick(wavetosetname);
+
+			Log.i("MENU", "setting users for " + wavetosetid);
+
+			Intent i2 = new Intent(this, WaveParticipantManager.class);
+			i2.putExtra("waveID", wavetosetid);
+
+			startActivity(i2);
+			return true;
+
+		case SET_WAVE_PREFS:
+			
+			String wavetosetname2 = ((TextView) info.targetView).getText().toString();
+
+			String wavetosetid2 = WaveList.getWaveIDFromNick(wavetosetname2);
+
+			//wavetosetid = ((TextView) info.targetView).getText().toString();
+
+			Log.i("MENU", "setting preferances for " + wavetosetid2);
 
 			Intent i = new Intent(this, WavePreferances.class);
-			i.putExtra("waveID", wavetosetid);
+			i.putExtra("waveID", wavetosetid2);
 
 			startActivity(i);
 			return true;
 
 		case OPEN_WAVE_ID:
+
+			// in future waves should be openable/viewable automaticly
+			// however only the active wave is writeable
 
 			// first we check we have gps working and the scene loaded, if not
 			// exit!
