@@ -46,6 +46,7 @@ public class FedOneCommunicationManager implements
 
 		AbstractCommunicationManager, WaveletOperationListener {
 
+	private static final String ServerAddress = null;
 	/** */
 	private ClientBackend backend = null;
 	start mainWindow;
@@ -568,5 +569,10 @@ public class FedOneCommunicationManager implements
 	public String[] getParticipantList(String WaveID) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public String getServerAddress() {
+		return ServerAddress;
+		
 	}
 }

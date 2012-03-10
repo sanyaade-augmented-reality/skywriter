@@ -34,7 +34,7 @@
 <string name="NoARBlipID">no_id_set</string>
 <string name="colourGrey">#030303</string>
 <string name="ARBlipID">ARBlipID</string>
-<string name="InviteUser">Invite User To Wave</string>
+<string name="InviteUser">Invite User</string>
 <string name="ServerTypeLabel">ServerType</string>
 <string name="removeWave">Remove Wave</string>
 <string name="CreateNewWave">Create New Wave</string>
@@ -47,6 +47,8 @@
 <string name="waveid">wave id:</string>
 <string name="JoinWave">Join Wave</string>
 <string name="JoinExistingWave">Join Existing Wave</string>
+<string name="ParticipantManagement">Participant Management</string>
+<string name="Finish">Finish</string>
 
 
 </resources>

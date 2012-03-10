@@ -4,10 +4,13 @@ import java.util.ArrayList;
 
 public interface AbstractCommunicationManager {
 
-	//login/logout of server
+	//login/logout of server and server details
 	public void login( String serverAddress, int serverPort, String username, String password );
 	public void logout();
 	public boolean isConnected();
+	
+	public String getServerAddress();
+	
 	
 	//wave creation functions
 	public String createWave( String waveTitle );

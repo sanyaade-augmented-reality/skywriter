@@ -56,6 +56,7 @@
         </activity>
         <activity android:name="JoinWaveActivity" >
         </activity>
+        <activity android:name="WaveParticipantManager"></activity>
     </application>
 
     <uses-sdk
