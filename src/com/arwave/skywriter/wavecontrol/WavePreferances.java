@@ -1,4 +1,7 @@
-package com.arwave.skywriter;
+package com.arwave.skywriter.wavecontrol;
+
+import com.arwave.skywriter.R;
+import com.arwave.skywriter.R.xml;
 
 import android.os.Bundle;
 import android.preference.Preference;

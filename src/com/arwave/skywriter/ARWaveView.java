@@ -29,6 +29,8 @@ import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
+
+import com.arwave.skywriter.wavecontrol.WaveList;
 import com.threed.jpct.Camera;
 import com.threed.jpct.Config;
 import com.threed.jpct.FrameBuffer;
@@ -1514,7 +1516,6 @@ Log.i("__", "resume");
 					ARBlipObject.ObjectType.MESH_OBJECT));
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,
 					ARBlipObject.ObjectType.MESH_OBJECT));
-			LocalBackgroundScenaryLayer.setVisible(backgroundScenaryVisible);
 			// -----
 			// This can be removed when not in season....
 			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,
@@ -1532,10 +1533,10 @@ Log.i("__", "resume");
 			// set there prefs
 
 			// get pref for background wave
-			SpecialChristmassScenaryLayer.setVisible(start.backgroundScenaryOn);
+		//	SpecialChristmassScenaryLayer.setVisible(start.backgroundScenaryOn);
 
 			// get and Christmas wave
-			LocalBackgroundScenaryLayer.setVisible(start.CMScenaryOn);
+		//	LocalBackgroundScenaryLayer.setVisible(start.CMScenaryOn);
 
 			// create a new sun and position it relative to the ground plane
 			sun = new SunObject(world, 0, res);

@@ -1,4 +1,4 @@
-package com.arwave.skywriter;
+package com.arwave.skywriter.wavecontrol;
 
 import java.util.HashMap;
 

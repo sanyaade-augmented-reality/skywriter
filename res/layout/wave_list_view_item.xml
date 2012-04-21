@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="right" >
+        
+    <CheckedTextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/wavelist_wavename"
+        style="@style/listtext"
+        android:layout_width="wrap_content"
+        android:layout_height="?android:attr/listPreferredItemHeight"
+        android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+        android:gravity="center_vertical|left"
+        android:paddingLeft="6dip"
+        android:paddingRight="6dip"
+        android:tag="WaveNameAndVis" android:focusable="false"/>
+
+    <RadioButton
+        android:id="@+id/inuse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:tag="inUse" android:focusable="false"/>
+    
+    </LinearLayout>

@@ -9,17 +9,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class JoinWaveActivity extends Activity {
-	private Button joinWaveButton;
-
+public class InviteRecievedActivity extends Activity {
+	private Button acceptInviteButton;
+	private String wid="not set";
+	private String invitor="not set";
+	
+	//static private int RoomNameCounter =0;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.joinnewwave_page);
-
+		setContentView(R.layout.invite_recieved_activity);
+		((TextView) findViewById(R.id.InviteSourceText)).setText("(source here)");
+		
 		Log.i("wave", "adding wave");
 
-		Button cancelButton = (Button) findViewById(R.id.CancelWaveCreation);
+		Button cancelButton = (Button) findViewById(R.id.CancelInvite);
 
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -28,26 +33,17 @@ public class JoinWaveActivity extends Activity {
 			}
 		});
 		
-		joinWaveButton = (Button) findViewById(R.id.JoinExistingWaveButton);
+		acceptInviteButton = (Button) findViewById(R.id.AcceptInvite);
 
-		joinWaveButton.setOnClickListener(new OnClickListener() {
+		acceptInviteButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				
-				//run the create wave function
-				// create a new wave if logged in
-				
-	String waveName = ((EditText) findViewById(R.id.joinWaveName)).getText().toString();
-
-	
-				TextView feedbackBox = ((TextView) findViewById(R.id.WaveCreationFeedback));
-				feedbackBox.setText("creating wave called '"+waveName+"'");
+				//run the join wave function
 				
 				
 			
-				start.joinWave(waveName,waveName);
-				
+				start.joinWave(wid,wid);
 			
-				
 				// return to main activity
 				finish();
 			}
@@ -57,6 +53,9 @@ public class JoinWaveActivity extends Activity {
 		Bundle b = getIntent().getExtras();
 		if (b != null) {
 			//do  stuff with b
+			wid= b.getString("waveid");
+			invitor= b.getString("invitor");
+			
 		}
 	}
 }
