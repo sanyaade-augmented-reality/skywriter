@@ -24,7 +24,7 @@
      </PreferenceScreen>           
 
            
-        <EditTextPreference  android:key="LoginName" android:defaultValue="demo" android:title="Login Name" android:summary="You can set a default login name here" android:dialogMessage="Please type your login name;" android:dialogTitle="Default Login"/><EditTextPreference android:key="LoginPassword" android:title="Login Password" android:defaultValue="no password support yet" android:summary="You can set a default pass here" android:dialogMessage="(passwords not supported yet)" android:dialogTitle="Default Password"/>      
+        <EditTextPreference  android:key="LoginName" android:defaultValue="demo" android:title="Login Name" android:summary="You can set a default login name here" android:dialogMessage="Please type your login name;" android:dialogTitle="Default Login"/><EditTextPreference android:key="LoginPassword" android:title="Login Password" android:defaultValue="no password support yet" android:summary="You can set a default pass here" android:dialogTitle="Default Password"/>      
                              
                               
                                                               

@@ -44,6 +44,8 @@ public class ARWaveLayer {
 		}
 	//----
 	 ScaleType BillboardMode = ScaleType.BILLBOARDMODE_LINEAR; // default to linear
+
+	private boolean isVisible=true;
 		
 	
 	public ARWaveLayer(String layerName){
@@ -63,10 +65,16 @@ public class ARWaveLayer {
 		LayersObjects.add(newArBlipObject);
 		}
 		
-	
+		//if wave is invisble then set it invisible
+		if (!isVisible){
+		newArBlipObject.object3d.setVisibility(false);
+		}
+		
 	}
 	
 	public void setVisible(boolean visible){
+		isVisible = visible;
+		
 		
 		Log.i("wave", "setting to"+visible);
 		

@@ -47,6 +47,14 @@
 					        android:layout_gravity="right"
 					        android:gravity="right"
 					        android:text="@string/Visibility" android:layout_weight="1" android:paddingRight="9px"/>
+
+					    <TextView
+					        android:id="@+id/textView4"
+					        android:layout_width="wrap_content"
+					        android:layout_height="wrap_content"
+					        android:text="@string/PostTo"
+					        android:textAppearance="?android:attr/textAppearanceSmall" android:paddingLeft="5px"/>
+
 					</LinearLayout>
 
 					<FrameLayout
@@ -67,12 +75,12 @@
 						    android:layout_width="wrap_content"
 						    android:layout_height="wrap_content"
 						    android:text="@string/ActiveWave"
-						    android:textAppearance="?android:attr/textAppearanceMedium" android:layout_gravity="center_vertical"/>
+						    android:textAppearance="?android:attr/textAppearanceMedium" android:layout_gravity="center_vertical" android:visibility="gone"/>
 
 						<Spinner
 						    android:id="@+id/activewaveselectlist"
 						    android:layout_width="wrap_content"
-						    android:layout_height="wrap_content" android:layout_gravity="fill_horizontal"/>
+						    android:layout_height="wrap_content" android:layout_gravity="fill_horizontal" android:visibility="gone"/>
 
 					</LinearLayout>
 										

@@ -10,7 +10,7 @@ public interface AbstractCommunicationManager {
 	public boolean isConnected();
 	
 	public String getServerAddress();
-	
+	public String[] getFriendList();
 	
 	//wave creation functions
 	public String createWave( String waveTitle );
@@ -21,6 +21,9 @@ public interface AbstractCommunicationManager {
 	public void setActiveWave (String waveID); /** where to post too! **/
 	public String getCurrentWaveID();
 	
+	//join a wave/room
+	public void joinWave(String roomID); 
+		
 	//data sending functions
 	public void addARBlip( String text );
 	public void updateARBlip( String blipID,String WaveID, String text );
@@ -31,7 +34,7 @@ public interface AbstractCommunicationManager {
 	public ArrayList<Blip> getBlips(String waveID);
 	
 	//participant functions
-	public void addParticipant( String participant );
+	public void addParticipant( String participant , String WaveID);
 	public String[] getParticipantList( String WaveID);
 	
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arwave.skywriter"
-    android:versionCode="1"
+    android:versionCode="3"
     android:versionName="Moya" >
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -11,7 +11,7 @@
 
     <application
         android:icon="@drawable/icon"
-        android:label="@string/app_name" >
+        android:label="@string/app_name" android:allowBackup="true">
         <uses-library android:name="com.google.android.maps" />
 
         <activity
@@ -22,8 +22,6 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-
-                <data android:scheme="arwave" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" >
@@ -49,19 +47,20 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="WavePreferances"
+            android:name=".wavecontrol.WavePreferances"
             android:screenOrientation="portrait" >
         </activity>
         <activity android:name="CreateWaveActivity" >
         </activity>
         <activity android:name="JoinWaveActivity" >
         </activity>
-        <activity android:name="WaveParticipantManager"></activity>
+        <activity android:name=".wavecontrol.WaveParticipantManager"></activity>
+        <activity android:name="InviteRecievedActivity"></activity>
     </application>
 
     <uses-sdk
         android:minSdkVersion="4"
-        android:targetSdkVersion="7" >
+        android:targetSdkVersion="11" >
     </uses-sdk>
 
 </manifest>

@@ -16,6 +16,7 @@ import org.waveprotocol.wave.model.operation.wave.WaveletDocumentOperation;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -49,6 +50,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -63,6 +65,12 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.OnTabChangeListener;
 
 //import com.google.android.maps.MapActivity;
+import com.arwave.skywriter.wavecontrol.WaveList;
+import com.arwave.skywriter.wavecontrol.WaveDetails;
+import com.arwave.skywriter.wavecontrol.WaveListAdapter;
+import com.arwave.skywriter.wavecontrol.WaveListView;
+import com.arwave.skywriter.wavecontrol.WaveParticipantManager;
+import com.arwave.skywriter.wavecontrol.WavePreferances;
 import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
 
@@ -106,10 +114,12 @@ public class start extends Activity implements SensorEventListener,
 	private static final int REMOVE_WAVE = 9;
 
 	/** the connect manager - all communication too/from servers should use this */
-	static AbstractCommunicationManager acm;
+	public static AbstractCommunicationManager acm;
+	
 
 	// screen views
-	static ARWaveView arView;
+	public static ARWaveView arView;
+	
 	CameraView cameraView;
 
 	FrameLayout arBackground;
@@ -182,8 +192,10 @@ public class start extends Activity implements SensorEventListener,
 
 	static TabHost tabHost;
 
-	private ArrayAdapter<String> usersWaveListAdapter;
-	static List<String> usersWavesList;
+	//private ArrayAdapter<String> usersWaveListAdapter;
+	private WaveListAdapter usersWaveListAdapter;
+	
+	static List<WaveDetails> usersWavesList;
 
 	private static WaveListView waveListViewBox;
 
@@ -376,6 +388,9 @@ public class start extends Activity implements SensorEventListener,
 		AddBlipBlipID = (TextView) findViewById(R.id.BlipIDLabel);
 		AddBlipWaveID = (TextView) findViewById(R.id.Waveidlabel);
 
+		
+         
+        
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				//
@@ -403,6 +418,9 @@ public class start extends Activity implements SensorEventListener,
 
 				// add it
 				acm.addARBlip(tempdata);
+				
+				//go back to world view
+				tabHost.setCurrentTab(2);
 
 			}
 		});
@@ -527,7 +545,9 @@ public class start extends Activity implements SensorEventListener,
 		FrameLayout wavesListPage = (FrameLayout) findViewById(R.id.wavelistframe);
 
 		waveListViewBox = new WaveListView(this);
+		
 		waveListViewBox.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		
 		waveListViewBox.setLayoutParams(new LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
@@ -537,17 +557,26 @@ public class start extends Activity implements SensorEventListener,
 		wavesListPage.addView(waveListViewBox);
 
 		// add default contents and set adapter
-		usersWavesList = new ArrayList<String>();
+		//usersWavesList = new ArrayList<String>();
+		
+		usersWavesList = new ArrayList<WaveDetails>();
+		
 		// usersWavesList.add("wave list not updated");
-		usersWaveListAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_multiple_choice,
+		//usersWaveListAdapter = new ArrayAdapter<String>(this,
+		//		R.layout.wave_list_view_item,
+		//		usersWavesList);
+		
+		
+		usersWaveListAdapter = new WaveListAdapter(this,
+				R.layout.wave_list_view_item,
 				usersWavesList);
-
+		
+		
 		waveListViewBox.setAdapter(usersWaveListAdapter);
+		
+		usersWavesList.add(new WaveDetails("Background")); // default background wave
 
-		usersWavesList.add("Background"); // default background wave
-
-		usersWavesList.add("Background_CM"); // Christmas layer
+		usersWavesList.add(new WaveDetails("Background_CM")); // Christmas layer
 
 		// SharedPreferences prefs = PreferenceManager
 		// .getDefaultSharedPreferences(getBaseContext());
@@ -556,13 +585,15 @@ public class start extends Activity implements SensorEventListener,
 		SharedPreferences BackgroundPrefs = getBaseContext()
 				.getSharedPreferences("waveID_Background", Context.MODE_PRIVATE);
 		backgroundScenaryOn = BackgroundPrefs.getBoolean("ShowByDefault", true);
-		waveListViewBox.setItemChecked(0, backgroundScenaryOn);
-
+		
+		//waveListViewBox.setItemChecked(0, backgroundScenaryOn);
+		waveListViewBox.setWaveVisible(0, backgroundScenaryOn);
+		
 		// get and Christmas wave
 		SharedPreferences CMLayerPrefs = getBaseContext().getSharedPreferences(
 				"waveID_CMLayer", Context.MODE_PRIVATE);
 		CMScenaryOn = CMLayerPrefs.getBoolean("ShowByDefault", true);
-		waveListViewBox.setItemChecked(1, CMScenaryOn);
+		waveListViewBox.setWaveVisible(1, CMScenaryOn);
 
 		waveListViewBox.invalidate();
 
@@ -571,36 +602,36 @@ public class start extends Activity implements SensorEventListener,
 		 * backgroundScenaryOn); } else { waveListViewBox.setItemChecked(0,
 		 * true); } waveListViewBox.setItemChecked(1, true);
 		 */
-
-		waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
-			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-					long arg3) {
-
-				// one of the wave check boxs has changed,so find out which
-				String WaveName = waveListViewBox.getItemAtPosition(arg2)
-						.toString(); // <---This really needs to be improved,
-										// the waveID should be stored somehow
-										// so we can use proper labels
-
-				Log.i("wavelist", "changing wave name:" + WaveName);
-
-				// get the id
-				String WaveID = WaveList.getWaveIDFromNick(WaveName);
-
-				Log.i("wavelist", "changing wave id:" + WaveID);
-
-				// set boolean to its checked state
-				Boolean isVisible = waveListViewBox.isItemChecked(arg2);
-				Log.i("wavelist", "to " + isVisible);
-
-				// toggle visibility (only has effect if wave is already open)
-				arView.setWaveVisiblity(WaveID, isVisible);
-
-				// else we load it, setting it also as the current wave
-
-			}
-
-		});
+//
+//		waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
+//			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+//					long arg3) {
+//
+//				// one of the wave check boxs has changed,so find out which
+//				String WaveName = waveListViewBox.getItemAtPosition(arg2)
+//						.toString(); // <---This really needs to be improved,
+//										// the waveID should be stored somehow
+//										// so we can use proper labels
+//
+//				Log.i("wavelist", "changing wave name:" + WaveName);
+//
+//				// get the id
+//				String WaveID = WaveList.getWaveIDFromNick(WaveName);
+//
+//				Log.i("wavelist", "changing wave id:" + WaveID);
+//
+//				// set boolean to its checked state
+//				Boolean isVisible = waveListViewBox.isItemChecked(arg2);
+//				Log.i("wavelist", "to " + isVisible);
+//
+//				// toggle visibility (only has effect if wave is already open)
+//				arView.setWaveVisiblity(WaveID, isVisible);
+//
+//				// else we load it, setting it also as the current wave
+//
+//			}
+//
+//		});
 
 		/*
 		 * /add a listener for user selection
@@ -1087,6 +1118,7 @@ public class start extends Activity implements SensorEventListener,
 
 		}
 
+		
 		public void surfaceCreated(SurfaceHolder holder) {
 			try {
 				if (camera != null) {
@@ -1115,6 +1147,7 @@ public class start extends Activity implements SensorEventListener,
 				Log.i("version", " ->" + SDK_INT);
 				if (SDK_INT >= 8) {
 					// 2.2 only;
+					//@SuppressLint("NewApi")
 					camera.setDisplayOrientation(90);
 				}
 
@@ -1671,21 +1704,23 @@ public class start extends Activity implements SensorEventListener,
 
 		// debugging location set
 		if (location != null) {
+			
+			if (AutoSetLocation.isChecked()) {
+				Log.i("setting", "setting location");
+
+				AddBlipLat.setText("" + currentLocation.getLatitude());
+				AddBlipLong.setText("" + currentLocation.getLongitude());
+
+			}
+
+			arView.TestVar = arView.TestVar + 1;
+			ARWaveView.currentRealLocation = currentLocation;
 			// Log.i("connection","current location set to"+location);
 		} else {
 			Log.e("connection", "current location null");
 		}
 
-		if (AutoSetLocation.isChecked()) {
-			Log.i("setting", "setting location");
-
-			AddBlipLat.setText("" + currentLocation.getLatitude());
-			AddBlipLong.setText("" + currentLocation.getLongitude());
-
-		}
-
-		arView.TestVar = arView.TestVar + 1;
-		ARWaveView.currentRealLocation = currentLocation;
+		
 	}
 
 	public void noOp(String arg0, WaveletData arg1) {
@@ -1740,7 +1775,7 @@ public class start extends Activity implements SensorEventListener,
 
 			// only add if it doesnt start with index wave
 			if (!(list[i].startsWith("indexwave!"))) {
-				usersWavesList.add(list[i]);
+				usersWavesList.add(new WaveDetails(list[i]));
 			}
 
 		}
@@ -2034,8 +2069,27 @@ public class start extends Activity implements SensorEventListener,
 
 	}
 
-	public static void joinWave(String name) {
-		// look up wave by ID??
+	
+	/** here we trigger the invite activity and wait for a response**/	
+	public static void inviteRecieved(String wid,String from){
+		
+		
+		Intent i = new Intent(start.maincontext, InviteRecievedActivity.class);
+		// any extra data needed? probably not...
+		i.putExtra("waveid", wid); 
+		i.putExtra("invitor", wid); 
+
+		maincontext.startActivity(i);
+	}
+	
+	public static void joinWave(String name, String wid) {
+		
+		// register the wave with the manager
+		acm.joinWave(wid);
+		
+		
+		//add to the list
+		//addWave(name, wid);
 	}
 
 	public static void createANewWave(String name) {
@@ -2045,49 +2099,7 @@ public class start extends Activity implements SensorEventListener,
 			String wid = acm.createWave(name); // title is not used so
 												// far
 
-			// temp test;
-			acm.getParticipantList("");
-
-			// create the arwavelayer
-			ARWaveView.createLayerAndSetAsActive(wid);
-
-			// add wave and nick to internal store
-			WaveList.putWaveInfo(name, wid);
-
-			// used name in future
-			usersWavesList.add(name);
-
-			// update the active wave list (all real wave layers, ignore
-			// background/inbuilt ones)
-			List<String> activatableWaves = new ArrayList<String>();
-
-			Iterator<String> wavenames = start.usersWavesList.iterator();
-			while (wavenames.hasNext()) {
-
-				String string = wavenames.next();
-
-				// if not background, add it
-				if (!string.startsWith("Background")) {
-					activatableWaves.add(string);
-				}
-
-			}
-
-			ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-					activewavelist.getContext(),
-					android.R.layout.simple_dropdown_item_1line,
-					activatableWaves);
-
-			activewavelist.setAdapter(adapter);
-
-			waveListViewBox.setDataUpdated();
-			waveListViewBox.postInvalidate();
-
-			waveListViewBox.setItemChecked(waveListViewBox.getChildCount() - 1,
-					true);
-
-			// set it active by default
-			activewavelist.setSelection(activewavelist.getChildCount() - 1);
+			addWave(name, wid);
 
 		} else {
 
@@ -2097,6 +2109,52 @@ public class start extends Activity implements SensorEventListener,
 					" You need to be connected in order to create a new wave. Log in first and then retry ",
 					Toast.LENGTH_LONG).show();
 		}
+	}
+
+	public static void addWave(String name, String wid) {
+		// temp test;
+		acm.getParticipantList("");
+
+		// create the arwavelayer
+		ARWaveView.createLayerAndSetAsActive(wid);
+
+		// add wave and nick to internal store
+		WaveList.putWaveInfo(name, wid);
+
+		// used name in future
+		usersWavesList.add(new WaveDetails(name));
+
+		// update the active wave list (all real wave layers, ignore
+		// background/inbuilt ones)
+		List<String> activatableWaves = new ArrayList<String>();
+
+		Iterator<WaveDetails> wavenames = start.usersWavesList.iterator();
+		while (wavenames.hasNext()) {
+
+			String string = wavenames.next().name; //err..id?
+
+			// if not background, add it
+			if (!string.startsWith("Background")) {
+				activatableWaves.add(string);
+			}
+
+		}
+
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+				activewavelist.getContext(),
+				android.R.layout.simple_dropdown_item_1line,
+				activatableWaves);
+
+		activewavelist.setAdapter(adapter);
+
+		waveListViewBox.setDataUpdated();
+		waveListViewBox.postInvalidate();
+
+		waveListViewBox.setItemChecked(waveListViewBox.getChildCount() - 1,
+				true);
+
+		// set it active by default
+		activewavelist.setSelection(activewavelist.getChildCount() - 1);
 	}
 
 }

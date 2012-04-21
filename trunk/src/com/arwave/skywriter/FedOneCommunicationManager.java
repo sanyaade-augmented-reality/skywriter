@@ -57,13 +57,20 @@ public class FedOneCommunicationManager implements
 	//current wave ID
 	private String CurrentWaveletID = "";
 	
-	
+	//users friendlist
+	//should be updated onlogin
+		final static ArrayList<String> friendlist = new ArrayList<String>();
+		
 	
 	FedOneCommunicationManager( start s ) {
 		mainWindow = s;
 	}
 	
-	
+	public String[] getFriendList() {
+		String []strArray = new String[friendlist.size()];
+		return friendlist.toArray(strArray);
+	}
+
 	/*
 	 * check if the client is actually connected
 	 */
@@ -170,7 +177,7 @@ public class FedOneCommunicationManager implements
 	/* (non-Javadoc)
 	 * @see com.arwave.skywriter.AbstractCommunicationManager#addParticipant(java.lang.String)
 	 */
-	public void addParticipant(String participant) {
+	public void addParticipant(String participant,String WaveID) {
 		// TODO Auto-generated method stub
 
 	}
@@ -573,6 +580,12 @@ public class FedOneCommunicationManager implements
 	
 	public String getServerAddress() {
 		return ServerAddress;
+		
+	}
+
+
+	public void joinWave(String roomID) {
+		// TODO Auto-generated method stub
 		
 	}
 }
