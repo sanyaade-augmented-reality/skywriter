@@ -574,9 +574,9 @@ public class start extends Activity implements SensorEventListener,
 		
 		waveListViewBox.setAdapter(usersWaveListAdapter);
 		
-		usersWavesList.add(new WaveDetails("Background")); // default background wave
+		usersWavesList.add(new WaveDetails("Background",false)); // default background wave
 
-		usersWavesList.add(new WaveDetails("Background_CM")); // Christmas layer
+		usersWavesList.add(new WaveDetails("Background_CM",false)); // Christmas layer
 
 		// SharedPreferences prefs = PreferenceManager
 		// .getDefaultSharedPreferences(getBaseContext());
@@ -1775,7 +1775,7 @@ public class start extends Activity implements SensorEventListener,
 
 			// only add if it doesnt start with index wave
 			if (!(list[i].startsWith("indexwave!"))) {
-				usersWavesList.add(new WaveDetails(list[i]));
+				usersWavesList.add(new WaveDetails(list[i],false));
 			}
 
 		}
@@ -1873,8 +1873,14 @@ public class start extends Activity implements SensorEventListener,
 
 		case SET_USERS:
 
-			String wavetosetname = ((TextView) info.targetView).getText().toString();
-
+			//get the details from the wavelistadapter
+			WaveDetails details = ((WaveListAdapter)waveListViewBox.getAdapter()).getItem(info.position);
+			
+			
+			//String wavetosetname = ((TextView) info.targetView).getText().toString();
+			String wavetosetname =details.name;
+			
+			//in future the following should be removed. "id from nick" wont be neccessery if ID is in details
 			String wavetosetid = WaveList.getWaveIDFromNick(wavetosetname);
 
 			Log.i("MENU", "setting users for " + wavetosetid);
@@ -1887,7 +1893,11 @@ public class start extends Activity implements SensorEventListener,
 
 		case SET_WAVE_PREFS:
 			
-			String wavetosetname2 = ((TextView) info.targetView).getText().toString();
+			WaveDetails details2 = ((WaveListAdapter)waveListViewBox.getAdapter()).getItem(info.position);
+			String wavetosetname2 =details2.name;
+			
+			
+			//String wavetosetname2 = ((TextView) info.targetView).getText().toString();
 
 			String wavetosetid2 = WaveList.getWaveIDFromNick(wavetosetname2);
 
@@ -2112,9 +2122,7 @@ public class start extends Activity implements SensorEventListener,
 	}
 
 	public static void addWave(String name, String wid) {
-		// temp test;
-		acm.getParticipantList("");
-
+	
 		// create the arwavelayer
 		ARWaveView.createLayerAndSetAsActive(wid);
 
@@ -2122,8 +2130,9 @@ public class start extends Activity implements SensorEventListener,
 		WaveList.putWaveInfo(name, wid);
 
 		// used name in future
-		usersWavesList.add(new WaveDetails(name));
+		usersWavesList.add(new WaveDetails(name,true));
 
+		
 		// update the active wave list (all real wave layers, ignore
 		// background/inbuilt ones)
 		List<String> activatableWaves = new ArrayList<String>();
@@ -2139,6 +2148,8 @@ public class start extends Activity implements SensorEventListener,
 			}
 
 		}
+		
+		//redundant code follows
 
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(
 				activewavelist.getContext(),
@@ -2147,6 +2158,8 @@ public class start extends Activity implements SensorEventListener,
 
 		activewavelist.setAdapter(adapter);
 
+		//---
+		
 		waveListViewBox.setDataUpdated();
 		waveListViewBox.postInvalidate();
 

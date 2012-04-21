@@ -11,12 +11,12 @@ public class WaveDetails {
         super();
     }
     
-	public WaveDetails(String name) {
+	public WaveDetails(String name,boolean postToThis ) {
 		super();
 		this.name = name;
 		this.wid = "no id";
 		this.visible = true;
-		this.postToThis = false;
+		this.postToThis = postToThis;
 	}
     
 	public WaveDetails(String name, String wid, boolean visible,

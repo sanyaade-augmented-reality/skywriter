@@ -287,11 +287,8 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 		//
 
 		// temp testing: add users
-		current_muc.invite(loggedIn_username, "Meet me in this excellent room:"
-				+ roomID);
-		current_muc.invite("atresica@gmail.com",
-				"Meet me in this excellent room:" + roomID);
-
+	//	current_muc.invite(loggedIn_username, "Meet me in this excellent room:"
+	//			+ roomID);
 		try {
 			current_muc.sendMessage("Test muc message :");// send roomID maybe
 															// as a link?
