@@ -1,23 +1,37 @@
 package com.arwave.skywriter;
 
+import android.util.Log;
+
 import com.threed.jpct.Object3D;
 import com.threed.jpct.SimpleVector;
 
 /** Provides a basic rectangle plane with a specified number of quads **/
 public class Rectangle extends Object3D {
 
+	int quads = 0;
+	
 	public Rectangle (int quads, float scalex, float scaley) {
 		
 		super(quads*quads*2+8);
+		this.quads = quads;
 		
-	      float startx=-scalex*(float) quads/2f;
+	      createRect(quads, scalex, scaley);
+	   }
+
+
+
+	private void createRect(int quads, float scalex, float scaley) {
+		
+		Log.i("text", "building for size: = "+scalex+","+scaley);
+		
+		
+		float startx=-scalex*(float) quads/2f;
 	      float starty=startx;
 	      float tx=0f;
 	      float ty=0f;
 	      float dtex=(1f/(float) quads);
 	      Object3D obj=this;
-	      
-	      
+	    
 	      
 	      for (int i=0; i<quads; i++) {
 	         for (int p=0; p<quads; p++) {
@@ -41,5 +55,17 @@ public class Rectangle extends Object3D {
 	         tx=0;
 	         ty+=dtex;
 	      }
-	   }
+	}
+	
+	
+	/** rebuilds whole objec to rescale - pretty wastefull I think **/
+	public void setSize(float scalex, float scaley)
+	
+	{		Log.i("text", "rebuilding for size: = "+scalex+","+scaley);
+	
+		this.clearObject();
+		 createRect(quads, scalex, scaley);
+		 super.build();
+		
+	}
 }

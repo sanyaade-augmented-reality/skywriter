@@ -21,13 +21,18 @@ public class SkywriterBillboard extends Rectangle {
 	int TextScaleY = 10;
 	
 	int DistanceScaleMultiplier = 1;
+	static int margin = 3;
+	
 	
 	public SkywriterBillboard(String TextString, int TextScaleX,int TextScaleY) {
 		
-		super(1, getWidthFromText(TextString)*TextScaleX, getHeightFromText(TextString)*TextScaleY); // fixed, but in future these should vary based on the size of the text?
+		super(1, getWidthFromText(TextString)*TextScaleX+margin, getHeightFromText(TextString)*TextScaleY+margin); // fixed, but in future these should vary based on the size of the text?
 				
 		this.TextScaleX= TextScaleX;
 		this.TextScaleY= TextScaleY;
+		
+		Log.i("add", "TextScaleY = "+getHeightFromText(TextString)*TextScaleY);
+		
 		
 		this.setAdditionalColor(RGBColor.WHITE);
 		this.setCulling(false);
@@ -41,9 +46,18 @@ public class SkywriterBillboard extends Rectangle {
 	}
 
 	public void updatedTexture(String Texturename, String text) {
-
+	
 		TextWidth = getWidthFromText(text);
 		TextHeight= getHeightFromText(text);
+		
+		//if height or width has changed then rescale
+		this.setSize(TextWidth*TextScaleX+margin, TextHeight*TextScaleY+margin);
+		
+		this.setAdditionalColor(RGBColor.WHITE);
+		this.setCulling(false);		
+		//set paint to ARWaveView default
+		paint = ARWaveView.paint;
+		
 		
 		Log.i("add", "update texture triggered with:"+Texturename+"|"+text);
 

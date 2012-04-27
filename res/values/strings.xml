@@ -54,6 +54,7 @@
 <string name="Accept">Accept</string>
 <string name="DoYouWishToJoin">Do you wish to join this room</string>
 <string name="PostTo">PostTo:</string>
+<string name="LocationDetails">Blip Location Details</string>
 
 
 </resources>

@@ -97,7 +97,7 @@ public class WaveListView extends ListView {
 		
 		o.visible = state;
 		
-		  Toast.makeText(meep, "wave set to "+state, Toast.LENGTH_LONG).show();
+		 // Toast.makeText(meep, "wave set to "+state, Toast.LENGTH_LONG).show();
 		  
 	}
 

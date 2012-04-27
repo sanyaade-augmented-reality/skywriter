@@ -24,7 +24,19 @@ import android.widget.TextView;
 
 public class WaveListAdapter extends ArrayAdapter<WaveDetails>{
 
-	    Context context; 
+	    public static void deselectAllPostToButtons() {
+		for (WaveDetails wd : data) {
+			
+			Log.i("wave", "disselecting button from "+wd.name);
+			
+			//if (waved!=wd){
+			wd.postToThis=false;
+			//}
+			
+		}
+	}
+
+		Context context; 
 	    int layoutResourceId;    
 	    
 	    //stores the data for all waves
@@ -95,6 +107,11 @@ public class WaveListAdapter extends ArrayAdapter<WaveDetails>{
 	        
 	        holder.chkInUse.setChecked(wavedata.postToThis);
 	        
+	        if (!wavedata.allowPostingTo){
+	        	  holder.chkInUse.setVisibility(View.INVISIBLE);	        	  
+	        } else{
+	        	 holder.chkInUse.setVisibility(View.VISIBLE);	
+	        }
 	        	        
 	        holder.textWaveName.setChecked(wavedata.visible);
 	        
@@ -126,8 +143,8 @@ public class WaveListAdapter extends ArrayAdapter<WaveDetails>{
 
 			public void onClick(View v) {
 
-				//set checked if it isnt
-				//buttonView.setChecked(true);				
+				//test if its allowed to be set and only set if thats the case
+				if (waved.allowPostingTo){
 				
 				Log.i("wavelist", "changed!");
 				
@@ -143,29 +160,20 @@ public class WaveListAdapter extends ArrayAdapter<WaveDetails>{
 				Log.i("wave", "disselect others");
 				//Iterator<RadioButton> rbi=radiobuttons.iterator();
 				
-				for (WaveDetails wd : data) {
-					
-					Log.i("wave", "disselecting button from "+wd.name);
-					
-					//if (waved!=wd){
-					wd.postToThis=false;
-					//}
-					
-				}
+				deselectAllPostToButtons();
 				
 				waved.postToThis=true;
 					//RadioButton rb = (RadioButton) rbi.next();
 				tadapter.notifyDataSetChanged();
 					Log.i("wave", "fin");
+				} else {
 					
-					//rb.setChecked(false);
-					//rb.setFocusable(false); //fixs glitch that causes bad additional selections
+					((RadioButton)v).setChecked(false);
 					
-					//rb.setClickable(true);
-				//}
-				//((RadioButton)v).setChecked(true);
-			//((RadioButton)v).setFocusable(false); //fixs glitch that causes bad additional selections
-				//((RadioButton)v).setClickable(false);
+					
+				}
+				
+				
 				
 			}
 	    	
