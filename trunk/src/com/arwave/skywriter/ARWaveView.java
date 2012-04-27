@@ -1455,13 +1455,13 @@ Log.i("__", "resume");
 			world.addObject(tree1);
 			world.addObject(cmtree);
 			world.addObject(cmtree2);
-			world.addObject(cmtree3);
-			world.addObject(atmos);
-			world.addObject(atmos2);
+			world.addObject(cmtree3);		
 			world.addObject(tree2);
 			world.addObject(grass);
 			world.addObject(rock);
-
+			world.addObject(atmos);
+			world.addObject(atmos2);
+			
 			RGBColor dark = new RGBColor(100, 100, 100);
 
 			grass.setTransparency(10);
@@ -1474,6 +1474,10 @@ Log.i("__", "resume");
 			// cmtree.setAdditionalColor(dark);
 			atmos.setAdditionalColor(RGBColor.WHITE);
 			atmos2.setAdditionalColor(RGBColor.WHITE);
+			
+			groundPlane.setSortOffset(-500000); //ensures its behind everything
+		
+			
 			// set up atmos animation
 			Timer atmosTimer = new Timer();
 

@@ -387,7 +387,8 @@ public class ARWaveLayer {
 		
 			String text = newblipdata.ObjectData;
 			((SkywriterBillboard) updateThis.object3d).updatedTexture(newblipdata.BlipID, text);
-		
+			
+			
 		}
 		
 		// update other stuff

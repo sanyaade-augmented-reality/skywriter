@@ -37,10 +37,14 @@ public class ARBlip {
 
 	/** Vector **/
 	// If no vector is specified, its assumed to be a facing sprite.
-	int baring = 0;
-	int elevation = 0;
-	int roll = 0;
-	boolean isFacingSprite = false;
+	double baring = 0;
+	double elevation = 0;
+	double roll = 0;
+	
+	
+	boolean isFacingSprite = true;
+	
+	
 
 	// (should these be doubles too? or is that wastefull? float? half a degree
 	// could make quite a difference)
@@ -67,10 +71,18 @@ public class ARBlip {
 
 	/** incomplete serialisation **/
 	public String serialise() {
+		
+		String rot="";
+		//rotation string
+		if (isFacingSprite){
+			rot="###";
+		} else {
+			rot=baring+"#"+elevation+"#"+roll+"#";
+		}
+		
 		// converts to a string
-
 		String ArBlipString = ARWAVEIDENTIFIER + BlipID +"#"+ParentWaveID+ "#" + x + "#" + y
-				+ "#" + z + "#" + ObjectData + "#" + MIMEtype;
+				+ "#" + z + "#" +rot + ObjectData + "#" + MIMEtype;
 		
 		
 		return ArBlipString;
@@ -95,12 +107,28 @@ public class ARBlip {
 				String newx = ArBlipString.split("#")[2];
 				String newy = ArBlipString.split("#")[3];
 				String newz = ArBlipString.split("#")[4];
-				newObjectData = ArBlipString.split("#")[5];
+				
+				
+				String newbaring = ArBlipString.split("#")[5];
+				String newelevation = ArBlipString.split("#")[6];
+				String newroll = ArBlipString.split("#")[7];
+				
+				if ((""+newbaring+newelevation+newroll).length()<6){
+					isFacingSprite = true;
+				} else {
+					isFacingSprite = false;
+
+					baring = Double.parseDouble(newbaring);
+					elevation=Double.parseDouble(newelevation);
+					roll =Double.parseDouble(newroll);
+				}
+				
+				newObjectData = ArBlipString.split("#")[8];
 
 				// optional;
 				String mime;
 				try {
-					mime = ArBlipString.split("#")[6];
+					mime = ArBlipString.split("#")[9];
 				} catch (Exception e) {
 					mime = "";
 
