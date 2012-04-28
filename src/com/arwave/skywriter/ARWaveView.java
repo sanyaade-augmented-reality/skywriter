@@ -466,9 +466,9 @@ public class ARWaveView extends GLSurfaceView {
 		// vertical, but the game engine use's "y" as the
 		// vertical.
 
-		// newblip.baring = (int) obj_baring;
-		// newblip.elevation = (int) obj_elevation;
-		// newblip.roll =(int) obj_roll;
+		 newblip.baring =  obj_baring;
+		 newblip.elevation =obj_elevation;
+		 newblip.roll = obj_roll;
 
 		Log.i("add", "new alt = " + newblip.z);
 
@@ -1475,7 +1475,7 @@ Log.i("__", "resume");
 			atmos.setAdditionalColor(RGBColor.WHITE);
 			atmos2.setAdditionalColor(RGBColor.WHITE);
 			
-			groundPlane.setSortOffset(-500000); //ensures its behind everything
+			groundPlane.setSortOffset(-500000); //ensures its behind everything?
 		
 			
 			// set up atmos animation

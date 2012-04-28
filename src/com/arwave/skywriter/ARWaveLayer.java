@@ -282,6 +282,8 @@ public class ARWaveLayer {
 			// set billboarding off if rotations are set
 			if (newblip.isFacingSprite) {
 				newmarker.setBillboarding(true);
+			} else {
+				newmarker.setBillboarding(false);
 			}
 
 		}
@@ -320,10 +322,16 @@ public class ARWaveLayer {
 		// set rotation
 		if (!newblip.isFacingSprite) {
 			newmarker.setRotationMatrix(new Matrix());
-			Log.i("add", "roating..." + newblip.baring);
+							
+			Log.i("add", "source X deg :" + newblip.roll);
+			Log.i("add", "source Y deg :" + newblip.baring);
+			Log.i("add", "source Z deg :" + newblip.elevation);
+			
+			
 			newmarker.rotateX((float) Math.toRadians(newblip.roll));
 			newmarker.rotateY((float) Math.toRadians(newblip.baring));
 			newmarker.rotateZ((float) Math.toRadians(newblip.elevation));
+			
 		}
 		//is editable
 		if (true){
@@ -393,6 +401,13 @@ public class ARWaveLayer {
 		
 		// update other stuff
 
+		
+		// set billboarding off if rotations are set
+		if (newblipdata.isFacingSprite) {
+			updateThisObject.setBillboarding(true);
+		} else {
+			updateThisObject.setBillboarding(false);
+		}
 	}
 	
 	private ARBlipObject getObjectByID(String arblipid) {

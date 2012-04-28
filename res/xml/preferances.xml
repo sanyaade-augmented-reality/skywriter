@@ -1,36 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-  xmlns:android="http://schemas.android.com/apk/res/android">
-    
-   <PreferenceCategory android:title="3D Scene options">
-        <CheckBoxPreference android:defaultValue="true" android:key="Scenary_On" android:summary="(Turn the grass/tree's on/off)" android:title="Scenary on by default"></CheckBoxPreference>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-                
-    
-<ListPreference android:title="BillBoard Scaleing" android:key="BillBoard_Scaleing" android:entryValues="@array/BillboardScaleingKeys" android:entries="@array/BillboardScaleing" android:summary="Options for how billboards scale with distance." android:enabled="false"></ListPreference>
-<CheckBoxPreference android:summary="This might fix camera rotation problems on some phones" android:key="Portrait_Camera" android:defaultValue="false" android:title="Portrait Mode Camera"></CheckBoxPreference>
-</PreferenceCategory>
-    
-    <PreferenceCategory android:title="Wave Options">
-    
-     Password<PreferenceScreen android:title="Advanced Options">
-     
-        Password<CheckBoxPreference
-                android:key="Advanced_Option"
-                android:title="Advanced Option"
+    <PreferenceCategory android:title="3D Scene options" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="Scenary_On"
+            android:summary="(Turn the grass/tree&apos;s on/off)"
+            android:title="Scenary on by default" >
+        </CheckBoxPreference>
+
+        <ListPreference
+            android:enabled="false"
+            android:entries="@array/BillboardScaleing"
+            android:entryValues="@array/BillboardScaleingKeys"
+            android:key="BillBoard_Scaleing"
+            android:summary="Options for how billboards scale with distance."
+            android:title="BillBoard Scaleing" >
+        </ListPreference>
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="Portrait_Camera"
+            android:summary="This might fix camera rotation problems on some phones"
+            android:title="Portrait Mode Camera" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Wave Options" >
+     Password
+        <PreferenceScreen android:title="Advanced Options" >
+        Password
+            <CheckBoxPreference
                 android:defaultValue="true"
-                android:summary="SUMMARY_Advanced_Option"/>
-                
-     </PreferenceScreen>           
+                android:key="Advanced_Option"
+                android:summary="SUMMARY_Advanced_Option"
+                android:title="Advanced Option" />
+        </PreferenceScreen>
 
-           
-        <EditTextPreference  android:key="LoginName" android:defaultValue="demo" android:title="Login Name" android:summary="You can set a default login name here" android:dialogMessage="Please type your login name;" android:dialogTitle="Default Login"/><EditTextPreference android:key="LoginPassword" android:title="Login Password" android:defaultValue="no password support yet" android:summary="You can set a default pass here" android:dialogTitle="Default Password"/>      
-                             
-                              
-                                                              
-    <EditTextPreference android:key="DefaultServer" android:summary="You can set a default server here" android:title="Default Server" android:defaultValue="atresica.nl" android:dialogMessage="Please type the default FedOne server" android:dialogTitle="Default Server"/>
-    <ListPreference android:entryValues="@array/ServerType" android:entries="@array/ServerType" android:key="Server_Type" android:summary="The type of server the default is" android:title="Server Type"/>
-</PreferenceCategory>
-  
-  
+        <EditTextPreference
+            android:defaultValue="demo"
+            android:dialogMessage="Please type your login name;"
+            android:dialogTitle="Default Login"
+            android:key="LoginName"
+            android:summary="You can set a default login name here"
+            android:title="Login Name" />
+        <EditTextPreference
+            android:dialogTitle="Default Password"
+            android:key="LoginPassword"
+            android:summary="You can set a default pass here"
+            android:title="Login Password"
+            android:inputType="textPassword" />
+        <EditTextPreference
+            android:defaultValue="atresica.nl"
+            android:dialogMessage="Please type the default FedOne server"
+            android:dialogTitle="Default Server"
+            android:key="DefaultServer"
+            android:summary="You can set a default server here"
+            android:title="Default Server" />
+
+        <ListPreference
+            android:entries="@array/ServerType"
+            android:entryValues="@array/ServerType"
+            android:key="Server_Type"
+            android:summary="The type of server the default is"
+            android:title="Server Type" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
