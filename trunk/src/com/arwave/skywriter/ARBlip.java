@@ -114,13 +114,18 @@ public class ARBlip {
 				String newroll = ArBlipString.split("#")[7];
 				
 				if ((""+newbaring+newelevation+newroll).length()<6){
+					
 					isFacingSprite = true;
+					Log.i("wave", "object data is facing sprite" );
+					
 				} else {
 					isFacingSprite = false;
 
 					baring = Double.parseDouble(newbaring);
 					elevation=Double.parseDouble(newelevation);
 					roll =Double.parseDouble(newroll);
+					
+					Log.i("wave", "object data is not facing sprite" );
 				}
 				
 				newObjectData = ArBlipString.split("#")[8];

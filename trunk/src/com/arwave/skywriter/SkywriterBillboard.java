@@ -17,11 +17,11 @@ public class SkywriterBillboard extends Rectangle {
 	
 	int TextWidth = 0;
 	int TextHeight = 0;
-	int TextScaleX = 10;
-	int TextScaleY = 10;
+	int TextScaleX = 1;
+	int TextScaleY = 1;
 	
 	int DistanceScaleMultiplier = 1;
-	static int margin = 3;
+	static float margin = 0.5f;
 	
 	
 	public SkywriterBillboard(String TextString, int TextScaleX,int TextScaleY) {
@@ -51,10 +51,12 @@ public class SkywriterBillboard extends Rectangle {
 		TextHeight= getHeightFromText(text);
 		
 		//if height or width has changed then rescale
+		
 		this.setSize(TextWidth*TextScaleX+margin, TextHeight*TextScaleY+margin);
 		
 		this.setAdditionalColor(RGBColor.WHITE);
 		this.setCulling(false);		
+		
 		//set paint to ARWaveView default
 		paint = ARWaveView.paint;
 		

@@ -10,9 +10,9 @@
 <string name="defaultUsername">demo_atresica.nl</string>
 <string name="defaultPassword">temppassword</string>
 <string name="messages">What happens goes here</string>
-<string name="latitudeText">Latitude: </string>
+<string name="latitudeText">Lat: </string>
 <string name="latitudeValue">0.0</string>
-<string name="longitudeText">Longitude: </string>
+<string name="longitudeText">Long: </string>
 <string name="longitudeValue">0.0</string>
 <string name="altitudeText">Altitude: </string>
 <string name="altitudeValue">0.0</string>
@@ -55,6 +55,10 @@
 <string name="DoYouWishToJoin">Do you wish to join this room</string>
 <string name="PostTo">PostTo:</string>
 <string name="LocationDetails">Blip Location Details</string>
+<string name="SetAsBillboard">Always Face Camera</string>
+<string name="Baring">Baring</string>
+<string name="elevation">Elevation</string>
+<string name="roll">Roll</string>
 
 
 </resources>

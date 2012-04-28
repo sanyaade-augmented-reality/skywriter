@@ -53,6 +53,8 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListView;
@@ -140,11 +142,18 @@ public class start extends Activity implements SensorEventListener,
 	private boolean OriginalLocationSet = false;
 
 	public Location currentLocation;
+	
 	// static CheckBox AutoSetLocation;
 	static EditText AddBlipLat;
 	static EditText AddBlipLong;
-	static EditText AddBlipText;
+	
+	static EditText AddBlipBaring;
+	static EditText AddBlipElevation;
+	static EditText AddBlipRoll;
+	
+	static EditText AddBlipText;	
 	static EditText AddBlipAlt;
+	static CheckBox AddBlipBillBoard;
 	static TextView AddBlipBlipID;
 	static TextView AddBlipWaveID;
 
@@ -293,7 +302,7 @@ public class start extends Activity implements SensorEventListener,
 
 		spec = tabHost.newTabSpec("WorldTab")
 				.setIndicator("World", res.getDrawable(R.drawable.earth))
-				.setContent(R.id.ARViewPage);
+				.setContent(R.id.ARViewPageSpacer);
 
 		tabHost.addTab(spec);
 
@@ -317,7 +326,7 @@ public class start extends Activity implements SensorEventListener,
 		tabHost.setOnTabChangedListener(this);
 
 		// set up camera view and ar overlay
-		arPage = (FrameLayout) findViewById(R.id.ARViewPage);
+		arPage = (FrameLayout) findViewById(R.id.ARViewPage2);
 
 		cameraView = new CameraView(this);
 		// cameraView.cameraRotationCorrection = 90;
@@ -330,6 +339,11 @@ public class start extends Activity implements SensorEventListener,
 
 		// asign to ar page
 		arPage.addView(cameraView);
+		cameraView.setMinimumHeight(dm.heightPixels);
+		
+		//Log.i("start", "tab height="+tabHost.getTabWidget().get);
+		
+		
 		// arPage.addView(mapView,256,256);
 		arPage.addView(arView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
@@ -383,6 +397,13 @@ public class start extends Activity implements SensorEventListener,
 		AddBlipLat = (EditText) findViewById(R.id.latitude);
 		AddBlipLong = (EditText) findViewById(R.id.longitude);
 		AddBlipAlt = (EditText) findViewById(R.id.altitude);
+		
+		AddBlipBaring = (EditText) findViewById(R.id.BaringValue);
+		AddBlipRoll = (EditText) findViewById(R.id.RollValue);
+		AddBlipElevation = (EditText) findViewById(R.id.ElevationValue);
+
+		
+		AddBlipBillBoard = (CheckBox) findViewById(R.id.BillBoardCheck);
 		AddBlipText = (EditText) findViewById(R.id.arblipContent);
 		AddBlipBlipID = (TextView) findViewById(R.id.BlipIDLabel);
 		AddBlipWaveID = (TextView) findViewById(R.id.Waveidlabel);
@@ -395,18 +416,49 @@ public class start extends Activity implements SensorEventListener,
 			}
 		});
 
+		//toggles rotation settings
+		AddBlipBillBoard.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+				
+				if (isChecked){
+					AddBlipBaring.setEnabled(false);
+					AddBlipRoll.setEnabled(false);
+					AddBlipElevation.setEnabled(false);
+				} else {
+					AddBlipBaring.setEnabled(true);
+					AddBlipRoll.setEnabled(true);
+					AddBlipElevation.setEnabled(true);
+				}
+				
+			}
+			
+		});
+		
 		Button addConfirmBlipButton = (Button) findViewById(R.id.addButton);
 		addConfirmBlipButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				Log.i("wave", "adding blip_on view");
 
-				// make arblip from data
+				//Make a new arblip from data on creation screen
+				
 				ARBlip newtemp = new ARBlip();
+				
 				newtemp.x = Double.parseDouble(AddBlipLat.getText().toString());
 				newtemp.y = Double
 						.parseDouble(AddBlipLong.getText().toString());
 				newtemp.z = Double.parseDouble(AddBlipAlt.getText().toString());
-
+//
+				//if billboard is set to off we set the rotation
+				if (!AddBlipBillBoard.isChecked()){
+					newtemp.elevation =Double.parseDouble(AddBlipElevation.getText().toString());
+					newtemp.baring =Double.parseDouble(AddBlipBaring.getText().toString());
+					newtemp.roll =Double.parseDouble(AddBlipRoll.getText().toString());
+					newtemp.isFacingSprite = false;
+				}
+				
+				
 				newtemp.ObjectData = AddBlipText.getText().toString();
 				newtemp.BlipID = AddBlipBlipID.getText().toString();
 
@@ -1044,6 +1096,11 @@ public class start extends Activity implements SensorEventListener,
 		AddBlipLat.setText("" + newblip.x);
 		AddBlipLong.setText("" + newblip.y);
 		AddBlipAlt.setText("" + newblip.z);
+		
+		AddBlipBaring.setText("" + newblip.baring);
+		AddBlipElevation.setText("" + newblip.elevation);
+		AddBlipRoll.setText("" + newblip.roll);
+		
 		AddBlipText.setText("" + newblip.ObjectData);
 		AddBlipBlipID.setText("" + newblip.BlipID);
 
