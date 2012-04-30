@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.hardware.Camera;
 import android.hardware.Sensor;
@@ -34,6 +35,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.speech.RecognizerIntent;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -49,8 +51,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -63,10 +63,10 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TabHost.OnTabChangeListener;
 
 //import com.google.android.maps.MapActivity;
+import com.arwave.skywriter.utilities.NoConnection;
 import com.arwave.skywriter.wavecontrol.WaveList;
 import com.arwave.skywriter.wavecontrol.WaveDetails;
 import com.arwave.skywriter.wavecontrol.WaveListAdapter;
@@ -91,6 +91,7 @@ public class start extends Activity implements SensorEventListener,
 	// Used to handle pause and resume...
 	// These two variables store everything when the app is paused
 	static ARWaveView surface_activity_master = null;
+	
 	// static MapActivity main_activity_master = null;
 
 	static Activity main_activity_master = null;
@@ -150,6 +151,7 @@ public class start extends Activity implements SensorEventListener,
 	static EditText AddBlipBaring;
 	static EditText AddBlipElevation;
 	static EditText AddBlipRoll;
+	private static Button AddBlipSpeakButton;
 	
 	static EditText AddBlipText;	
 	static EditText AddBlipAlt;
@@ -159,6 +161,14 @@ public class start extends Activity implements SensorEventListener,
 
 	private static Button CreateWaveButton;
 	private static Button joinWaveButton;
+	
+	//For speach recognition support
+	 private static final String TAG = "VoiceRecognition";
+	 private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+	 //private ListView mList;
+	 private Handler speachmHandler;
+	 //private Spinner mSupportedLanguageView;
+	    
 
 	boolean overheadmode = false;
 	boolean fixedlocationmode = false;
@@ -324,7 +334,8 @@ public class start extends Activity implements SensorEventListener,
 		tabHost.setCurrentTab(0);
 
 		tabHost.setOnTabChangedListener(this);
-
+	
+		
 		// set up camera view and ar overlay
 		arPage = (FrameLayout) findViewById(R.id.ARViewPage2);
 
@@ -402,7 +413,7 @@ public class start extends Activity implements SensorEventListener,
 		AddBlipRoll = (EditText) findViewById(R.id.RollValue);
 		AddBlipElevation = (EditText) findViewById(R.id.ElevationValue);
 
-		
+		AddBlipSpeakButton = (Button) findViewById(R.id.VoiceInput_button);
 		AddBlipBillBoard = (CheckBox) findViewById(R.id.BillBoardCheck);
 		AddBlipText = (EditText) findViewById(R.id.arblipContent);
 		AddBlipBlipID = (TextView) findViewById(R.id.BlipIDLabel);
@@ -416,6 +427,26 @@ public class start extends Activity implements SensorEventListener,
 			}
 		});
 
+		//dictate the blip message button
+		// Check to see if a recognition activity is present
+		
+		PackageManager pm = getPackageManager();
+		List activities = pm.queryIntentActivities(
+		  new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
+		if (activities.size() != 0) {
+			AddBlipSpeakButton.setOnClickListener(new OnClickListener(){
+				public void onClick(View v) {					
+					 if (v.getId() == R.id.VoiceInput_button) {
+				            startVoiceRecognitionActivity();
+				        }
+				}
+				
+			});
+		} else {
+			AddBlipSpeakButton.setEnabled(false);
+			AddBlipSpeakButton.setText("Recognizer not present");
+		}
+		
 		//toggles rotation settings
 		AddBlipBillBoard.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 
@@ -649,52 +680,7 @@ public class start extends Activity implements SensorEventListener,
 
 		waveListViewBox.invalidate();
 
-		/*
-		 * if (backgroundScenaryOn!=null){ waveListViewBox.setItemChecked(0,
-		 * backgroundScenaryOn); } else { waveListViewBox.setItemChecked(0,
-		 * true); } waveListViewBox.setItemChecked(1, true);
-		 */
-		//
-		// waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
-		// public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-		// long arg3) {
-		//
-		// // one of the wave check boxs has changed,so find out which
-		// String WaveName = waveListViewBox.getItemAtPosition(arg2)
-		// .toString(); // <---This really needs to be improved,
-		// // the waveID should be stored somehow
-		// // so we can use proper labels
-		//
-		// Log.i("wavelist", "changing wave name:" + WaveName);
-		//
-		// // get the id
-		// String WaveID = WaveList.getWaveIDFromNick(WaveName);
-		//
-		// Log.i("wavelist", "changing wave id:" + WaveID);
-		//
-		// // set boolean to its checked state
-		// Boolean isVisible = waveListViewBox.isItemChecked(arg2);
-		// Log.i("wavelist", "to " + isVisible);
-		//
-		// // toggle visibility (only has effect if wave is already open)
-		// arView.setWaveVisiblity(WaveID, isVisible);
-		//
-		// // else we load it, setting it also as the current wave
-		//
-		// }
-		//
-		// });
-
-		/*
-		 * /add a listener for user selection
-		 * waveListViewBox.setOnItemClickListener(new OnItemClickListener() {
-		 * public void onItemClick(AdapterView<?> parent, View view, int
-		 * position, long id) { // When clicked, show a toast with the TextView
-		 * text //acm.openWavelet( ((TextView)view).getText().toString() );
-		 * Toast.makeText(getApplicationContext(), acm.getBlips(
-		 * ((TextView)view).getText().toString() ), Toast.LENGTH_LONG).show(); }
-		 * });
-		 */
+	
 
 		// create wave button
 		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
@@ -706,9 +692,6 @@ public class start extends Activity implements SensorEventListener,
 				if (acm.isConnected()) {
 
 					Intent i = new Intent(maincontext, CreateWaveActivity.class);
-					// any extra data needed? probably not...
-					// i.putExtra("key", "value"); // FIXME: this really isn't
-					// needed
 
 					startActivity(i);
 
@@ -734,10 +717,7 @@ public class start extends Activity implements SensorEventListener,
 				if (acm.isConnected()) {
 
 					Intent i = new Intent(maincontext, JoinWaveActivity.class);
-					// any extra data needed? probably not...
-					// i.putExtra("key", "value"); // FIXME: this really isn't
-					// needed
-
+			
 					startActivity(i);
 
 				} else {
@@ -788,7 +768,82 @@ public class start extends Activity implements SensorEventListener,
 			throw new RuntimeException(e);
 		}
 	}
+	
+	//code to handle the speach recognition
+	 private void startVoiceRecognitionActivity() {
+	        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
+	        // Specify the calling package to identify your application
+	        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+
+	        // Display an hint to the user about what he should say.
+	        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speech recognition demo");
+
+	        // Given an hint to the recognizer about what the user is going to say
+	        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+	                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+	        // Specify how many results you want to receive. The results will be sorted
+	        // where the first result is the one with higher confidence.
+	        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+
+	        // Specify the recognition language. This parameter has to be specified only if the
+	        // recognition has to be done in a specific language and not the default one (i.e., the
+	        // system locale). Most of the applications do not have to set this parameter.
+	        //if (!mSupportedLanguageView.getSelectedItem().toString().equals("Default")) {
+	          //  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
+	            //        mSupportedLanguageView.getSelectedItem().toString());
+	        //}
+
+	        startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
+	    }
+	 
+	 
+	 
+	  /**
+	     * Handle the results from the recognition activity.
+	     */
+	    @Override
+	    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	        if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == RESULT_OK) {
+	            // Fill the list view with the strings the recognizer thought it could have heard
+	            
+	        	       	ArrayList<String> matches = data.getStringArrayListExtra(
+	                    RecognizerIntent.EXTRA_RESULTS);
+	        	
+	        	//matches.toString();
+	        	
+	        	 TextView textView = (TextView) findViewById(R.id.arblipContent);
+	             String firstMatch = matches.get(0);
+	             textView.setText(firstMatch);
+	        }
+
+	        super.onActivityResult(requestCode, resultCode, data);
+	    }
+
+//	    private void refreshVoiceSettings() {
+//	        Log.i(TAG, "Sending broadcast");
+//	        sendOrderedBroadcast(RecognizerIntent.getVoiceDetailsIntent(this), null,
+//	                new SupportedLanguageBroadcastReceiver(), null, Activity.RESULT_OK, null, null);
+//	    }
+
+//	    private void updateSupportedLanguages(List<String> languages) {
+//	        // We add "Default" at the beginning of the list to simulate default language.
+//	        languages.add(0, "Default");
+//
+//	        SpinnerAdapter adapter = new ArrayAdapter<CharSequence>(this,
+//	                android.R.layout.simple_spinner_item, languages.toArray(
+//	                        new String[languages.size()]));
+//	        mSupportedLanguageView.setAdapter(adapter);
+//	    }
+//
+//	    private void updateLanguagePreference(String language) {
+//	        TextView textView = (TextView) findViewById(R.id.language_preference);
+//	        textView.setText(language);
+//	    }
+//	 
+//	 
+	 
 	private void setUpPreferances(final EditText username,
 			final EditText password, EditText serverAddress,
 			Spinner serverSelect) {
@@ -1181,6 +1236,7 @@ public class start extends Activity implements SensorEventListener,
 
 		}
 
+		@SuppressLint("NewApi")
 		public void surfaceCreated(SurfaceHolder holder) {
 			try {
 				if (camera != null) {
@@ -1428,7 +1484,6 @@ public class start extends Activity implements SensorEventListener,
 			Log.i("MENU", "loading preferances");
 
 			Intent i = new Intent(this, SkywriterAppPreferances.class);
-			i.putExtra("key", "value"); // FIXME: this really isn't needed
 
 			startActivity(i);
 
@@ -1611,21 +1666,7 @@ public class start extends Activity implements SensorEventListener,
 
 		case MENU_ADDSPINNINGTHING:
 
-			// this.addTestBlip();
-
-			// add a spinning christmass tree
-
-			/*
-			 * ARBlip testcone = new ARBlip(); testcone.x =
-			 * currentLocation.getLatitude(); testcone.y =
-			 * currentLocation.getLongitude(); testcone.z =
-			 * 10+(int)(Math.random() * 10); testcone.BlipID = "conetest";
-			 * testcone.ObjectData = "Test - meep meep"; testcone.MIMEtype =
-			 * "Primative_Bounceing_Cone"; testcone.isFacingSprite=true;
-			 * 
-			 * try { arView.addBlip(testcone); } catch (IOException e) { // TODO
-			 * Auto-generated catch block Log.e("adding test",e.getMessage()); }
-			 */
+	
 			Timer blah = new Timer();
 
 			TimerTask meep = new TimerTask() {
@@ -2031,7 +2072,16 @@ public class start extends Activity implements SensorEventListener,
 
 		case MENU_CONFIRM_BLIP:
 
-			arView.confirmObjectCreation();
+			try {
+				arView.confirmObjectCreation();
+				
+			} catch (NoConnection e) {
+				
+				// TODO Auto-generated catch block
+				// right here we should deal with the specific actions to do when theres a disconnection halfway into posting something
+				// the NoConnection exception itself deals with the logout
+			}
+			
 			return true;
 
 		case MENU_CONTINUE_EDITING:

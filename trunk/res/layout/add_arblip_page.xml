@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout android:id="@+id/add_arblip_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" xmlns:android="http://schemas.android.com/apk/res/android" android:background="#DD000000">
+    android:layout_height="match_parent" android:background="#000" xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,13 +16,29 @@
             android:text="@string/arblipContentText"
             android:textSize="8pt" />
 
-        <EditText
-            android:id="@+id/arblipContent"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:background="@android:drawable/editbox_background"
-            android:text="@string/arblipContentValue" android:gravity="top"/>
+            android:layout_height="wrap_content" >
+
+            <EditText
+                android:id="@+id/arblipContent"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@android:drawable/editbox_background"
+                android:ems="10"
+                android:gravity="top"
+                android:text="@string/arblipContentValue" />
+
+            <Button
+                android:id="@+id/VoiceInput_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:text="@string/Speak" />
+
+        </RelativeLayout>
 
         <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"

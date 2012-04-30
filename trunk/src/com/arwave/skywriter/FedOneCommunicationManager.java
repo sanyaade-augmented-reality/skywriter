@@ -588,4 +588,9 @@ public class FedOneCommunicationManager implements
 		// TODO Auto-generated method stub
 		
 	}
+
+	public String getLoggedInUser() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

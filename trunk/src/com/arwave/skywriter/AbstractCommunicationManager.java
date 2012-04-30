@@ -2,6 +2,8 @@ package com.arwave.skywriter;
 
 import java.util.ArrayList;
 
+import com.arwave.skywriter.utilities.NoConnection;
+
 public interface AbstractCommunicationManager {
 
 	//login/logout of server and server details
@@ -9,6 +11,7 @@ public interface AbstractCommunicationManager {
 	public void logout();
 	public boolean isConnected();
 	
+	public String getLoggedInUser() throws NoConnection;
 	public String getServerAddress();
 	public String[] getFriendList();
 	

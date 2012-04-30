@@ -9,7 +9,10 @@ public class ARBlip {
 
 	static private String ARWAVEIDENTIFIER = "#ARWAVE#";
 
-	/** Should be a unique identification of the object **/
+	/** Should be a unique identification of the object
+	 * in the form [CreatorID]_[UniqueNumber for that creator]
+	 * Note: The number does not need to be globaly unique, just for that creator on this 
+	 * blips parent wave**/
 	String BlipID = "";
 
 	/** The wave this blip belongs too **/
@@ -40,8 +43,7 @@ public class ARBlip {
 	double baring = 0;
 	double elevation = 0;
 	double roll = 0;
-	
-	
+	/** should this blip always face the camera? **/
 	boolean isFacingSprite = true;
 	
 	
@@ -54,6 +56,13 @@ public class ARBlip {
 
 	// Permissions
 
+	
+	/** If this is false, then only the creator can edit the blip 
+	 * This is done simply by checking incoming blips to see if the creator portion of
+	 * the ID string matchs the poster. If it does not, then the blip update is ignored.
+	 * Likewise, new blips with miss-matched creators are also ignored **/
+	boolean AllowEditsByOThers = false;
+			
 	/** Reference URL for positioning on a marker **/
 	String MarkerURL = "";
 

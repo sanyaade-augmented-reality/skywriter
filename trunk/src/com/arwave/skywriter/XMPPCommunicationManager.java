@@ -1,6 +1,9 @@
 package com.arwave.skywriter;
 
 import java.util.ArrayList;
+
+import com.arwave.skywriter.utilities.NoConnection;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,6 +37,8 @@ import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.Occupant;
 import org.jivesoftware.smackx.packet.MUCUser.Invite;
 import org.jivesoftware.smackx.provider.MUCUserProvider;
+
+import com.arwave.skywriter.utilities.NoConnection;
 
 import android.content.Intent;
 import android.util.Log;
@@ -82,21 +87,22 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 		cc = new ConnectionConfiguration(serverAddress, 5222, "gmail.com");
 
 		con = new XMPPConnection(cc);
-
+		
+		//register extensions
+		ProviderManager pm = ProviderManager.getInstance();
+		pm.addExtensionProvider("x", "http://jabber.org/protocol/muc#user", new MUCUserProvider());
+		//--
+		
 		if (con == null) {
 			mainWindow.addMessage("conection failed : ");
 			return;
 		}
 
 		try {
-			
-			//register extensions
-			ProviderManager pm = ProviderManager.getInstance();
-			pm.addExtensionProvider("x", "http://jabber.org/protocol/muc#user", new MUCUserProvider());
-			//--
-			
+		
 			con.connect();
-
+			
+			
 			ServerAddress = serverAddress;
 
 			// //if connected login
@@ -597,6 +603,14 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 
 		return friendlist.toArray(strArray);
 		
+	}
+
+	public String getLoggedInUser() throws NoConnection {
+		if (start.acm.isConnected()){
+		 return con.getUser();
+		} else {
+			throw new NoConnection();	
+		}
 	}
 
 }

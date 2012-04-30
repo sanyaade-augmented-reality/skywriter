@@ -1,4 +1,4 @@
-package com.arwave.skywriter;
+package com.arwave.skywriter.objects;
 
 import android.util.Log;
 
