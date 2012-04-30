@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.FontMetricsInt;
 import android.util.Log;
 
+import com.arwave.skywriter.objects.Rectangle;
 import com.threed.jpct.RGBColor;
 import com.threed.jpct.Texture;
 import com.threed.jpct.TextureManager;

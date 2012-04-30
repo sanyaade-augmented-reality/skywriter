@@ -4,4 +4,14 @@
         <item name="android:textSize">17sp</item>
         <item name="android:textColor">#77B</item>
     </style>
+    
+      <color name="custom_theme_color">#00F</color>
+       
+     <style name="blackbackground"  parent="android:Theme.Light">
+       <item name="android:colorBackground">@color/custom_theme_color</item>
+     </style>
+
+    <style name="transbackground"  parent="android:Theme.Light" >
+       <item name="android:colorBackground">@color/custom_theme_color</item>
+     </style>
 </resources>

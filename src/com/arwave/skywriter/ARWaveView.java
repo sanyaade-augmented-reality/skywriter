@@ -30,6 +30,10 @@ import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import com.arwave.skywriter.objects.ArrowMarker;
+import com.arwave.skywriter.objects.Rectangle;
+import com.arwave.skywriter.utilities.ARBlipIDCreator;
+import com.arwave.skywriter.utilities.NoConnection;
 import com.arwave.skywriter.wavecontrol.WaveList;
 import com.threed.jpct.Camera;
 import com.threed.jpct.Config;
@@ -172,6 +176,7 @@ public class ARWaveView extends GLSurfaceView {
 															// default blank
 															// layer untill one
 															// is selected
+		
 		LocalBackgroundScenaryLayer.ARWaveLayerID = "Background"; // The default
 																	// layer
 																	// contains
@@ -412,8 +417,10 @@ public class ARWaveView extends GLSurfaceView {
 
 	}
 
-	/** finish an object creation **/
-	public void confirmObjectCreation() {
+	/** finish an object creation 
+	 * @throws NoConnection **/
+	public void confirmObjectCreation() throws NoConnection {
+		
 
 		// get internal co-ordinates
 
@@ -474,7 +481,7 @@ public class ARWaveView extends GLSurfaceView {
 
 		newblip.isFacingSprite = true;
 		
-		newblip.BlipID = "_NEWBLIP_" + Math.random(); // crude tempID only
+		newblip.BlipID = ARBlipIDCreator.getFreshID(); // crude tempID only
 													  // The blip ID should be unique to the wave
 													  // whats the best system to ensure this?
 		
@@ -1520,6 +1527,10 @@ Log.i("__", "resume");
 					ARBlipObject.ObjectType.MESH_OBJECT));
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,
 					ARBlipObject.ObjectType.MESH_OBJECT));
+			
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(new ArrowMarker(),
+					ARBlipObject.ObjectType.MESH_OBJECT));
+			
 			// -----
 			// This can be removed when not in season....
 			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,
