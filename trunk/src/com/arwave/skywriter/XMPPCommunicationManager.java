@@ -142,21 +142,6 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 
 				});
 
-//				PacketFilter filter = new PacketTypeFilter(IQ.class);
-//
-//				PacketListener myListener = new PacketListener() {
-//					public void processPacket(Packet packet) {
-//						Log.i("xmpp",
-//								"- you have been choosen to join  a special room! -");
-//						Log.i("xmpp", "--" + packet.toXML());
-//
-//						Log.i("xmpp", "--" + packet.getFrom());
-//
-//					}
-//				};
-
-				// Register the listener.
-				//con.addPacketListener(myListener, filter);
 
 			} else {
 				mainWindow.addMessage("failed to login");
@@ -220,7 +205,6 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 	}
 
 	public void logout() {
-		// TODO Auto-generated method stub
 		con.disconnect();
 		Log.i("xmpp", "logout");
 	}
@@ -407,7 +391,6 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 				current_muc.addParticipantListener(new PacketListener() {
 
 					public void processPacket(Packet arg0) {
-						// TODO Auto-generated method stub
 
 						Log.i("xmpp", " partipant update:" + arg0.toXML().toString());
 
@@ -448,7 +431,6 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 			try {
 				current_muc.sendMessage(text);
 			} catch (XMPPException e) {
-				// TODO Auto-generated catch block
 				Log.i("xmpp", "no muc:" + e.getMessage());
 
 			}
@@ -468,7 +450,6 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 	}
 
 	public void deleteARBlip(String blipID) {
-		// TODO Auto-generated method stub
 
 		// we cant really delete with xmpp, so we just repost the blip
 		// as it as the same ID it should update itself anyway

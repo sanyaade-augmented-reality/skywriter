@@ -19,9 +19,9 @@ public class NoConnection extends Exception {
 	public NoConnection() {
 		  
 		  //run tasks that should happen on disconnect?
-		  Log.i("connection", "no connection! - Trigger logout?");
+		  Log.i("con", "no connection! - Trigger logout?");
 		  
-		  start.ProcessLogout();
+		start.ProcessLogout();
 		  
 	  }
 
