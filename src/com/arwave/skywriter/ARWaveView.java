@@ -481,10 +481,7 @@ public class ARWaveView extends GLSurfaceView {
 
 		newblip.isFacingSprite = true;
 		
-		newblip.BlipID = ARBlipIDCreator.getFreshID(); // crude tempID only
-													  // The blip ID should be unique to the wave
-													  // whats the best system to ensure this?
-		
+		newblip.BlipID = ARBlipIDCreator.getFreshID(); 
 		
 		
 		int randomint = (int) (Math.random() * 1000);
@@ -836,13 +833,8 @@ public class ARWaveView extends GLSurfaceView {
 
 	}
 
-	/** Supposed to set the subs rotation **/
+	/** Supposed to set the suns rotation **/
 	public void setSunRotation() {
-
-		// arg, this works relatively..no clue how to fix this
-		// degrees = new SimpleVector(0, 0.05f, 0);
-
-		// sun.rotate(degrees, groundPlane.getTransformedCenter());
 
 		// new, set direction by time
 		sun.setSunPosition(0, currentRealLocation);
@@ -1454,6 +1446,10 @@ Log.i("__", "resume");
 			rock.setName("rock");
 
 			rock.scale(0.1f);
+			
+			//test arrow
+			ArrowMarker testarrow = new ArrowMarker();
+			testarrow.translate(0, 0, 0);
 
 			// note the rock is at 0,0,0 to mark the center point.
 			// the tree is at -200,-180,0
@@ -1468,6 +1464,8 @@ Log.i("__", "resume");
 			world.addObject(rock);
 			world.addObject(atmos);
 			world.addObject(atmos2);
+			
+			world.addObject(testarrow);
 			
 			RGBColor dark = new RGBColor(100, 100, 100);
 
@@ -1528,7 +1526,7 @@ Log.i("__", "resume");
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,
 					ARBlipObject.ObjectType.MESH_OBJECT));
 			
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(new ArrowMarker(),
+			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(testarrow,
 					ARBlipObject.ObjectType.MESH_OBJECT));
 			
 			// -----

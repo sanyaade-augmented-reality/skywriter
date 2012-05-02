@@ -77,11 +77,11 @@ import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
 
 /**
- * A simple demo. This shows more how to use jPCT-AE than it shows how to write
- * a proper application for Android, because i have no idea how to do this. This
- * thing is more or less a hack to get you started...
+ * Skywriter - a demo application to show the usefullness of AR objects being created and 
+ * updated over Wave Federation Protocol.
+ * Currently only supports XMPP as there is no standard WFP client sever interface.
  * 
- * @author EgonOlsen
+ * @author Thomas Wrobel, amongst others
  * 
  */
 public class start extends Activity implements SensorEventListener,
@@ -92,8 +92,8 @@ public class start extends Activity implements SensorEventListener,
 	// These two variables store everything when the app is paused
 	static ARWaveView surface_activity_master = null;
 	
+	
 	// static MapActivity main_activity_master = null;
-
 	static Activity main_activity_master = null;
 
 	// ----------------
@@ -166,7 +166,7 @@ public class start extends Activity implements SensorEventListener,
 	 private static final String TAG = "VoiceRecognition";
 	 private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 	 //private ListView mList;
-	 private Handler speachmHandler;
+	 
 	 //private Spinner mSupportedLanguageView;
 	    
 
@@ -504,12 +504,7 @@ public class start extends Activity implements SensorEventListener,
 			}
 		});
 
-		// map tests
-		// LinearLayout blipPage = (LinearLayout)
-		// findViewById(R.id.add_arblip_layout);
-
-		// ,
-		//
+	
 		// listen for gps
 
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -554,7 +549,7 @@ public class start extends Activity implements SensorEventListener,
 					int arg2, long rowid) {
 				if (rowid == 0) {
 
-					serverAddress.setText("talk.google.com");
+					serverAddress.setText("talk.google.com"); //default, but any XMPP server should work
 
 					acm = xmppacm;
 
@@ -877,16 +872,6 @@ public class start extends Activity implements SensorEventListener,
 		}
 	}
 
-	/**
-	 * public void loginUser(String name, String password, String server){
-	 * 
-	 * //login //ARBlipInterface.login(name,password,server)
-	 * 
-	 * //assign listeners
-	 * 
-	 * 
-	 * }
-	 */
 
 	private class LocListener implements LocationListener {
 
@@ -1510,14 +1495,6 @@ public class start extends Activity implements SensorEventListener,
 			testblip2.ObjectData = "http://www.darkflame.co.uk/petrolstation.3ds";
 			testblip2.MIMEtype = "application/x-3ds";
 
-			/*
-			 * ARBlip testblip2 = new ARBlip(); testblip2.x = 51.557856;
-			 * testblip2.y = 5.077389; testblip2.z = 0;
-			 * testblip2.isOcculisionMask = false; testblip2.BlipID =
-			 * "CastleTest"; testblip2.ObjectData =
-			 * "http://www.darkflame.co.uk/objtest.obj"; testblip2.MIMEtype =
-			 * "application/x-obj";
-			 */
 
 			try {
 				arView.addBlip(testblip);

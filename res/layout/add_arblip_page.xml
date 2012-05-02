@@ -18,12 +18,12 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="wrap_content" android:layout_weight="4">
 
             <EditText
                 android:id="@+id/arblipContent"
                 android:layout_width="match_parent"
-                android:layout_height="fill_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:drawable/editbox_background"
                 android:ems="10"
@@ -45,7 +45,7 @@
             android:id="@+id/add_arblip_buttons_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" >
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/cancelButton"
