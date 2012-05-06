@@ -60,6 +60,9 @@
 <string name="elevation">Elevation</string>
 <string name="roll">Roll</string>
 <string name="Speak">Speak</string>
+<string name="CreateArrowHere">Create Arrow Here</string>
+<string name="createBlipAnywhere">Create Blip Anywhere</string>
+<string name="addBlipLocationMarkerSettings">Location Marker Settings</string>
 
 
 </resources>

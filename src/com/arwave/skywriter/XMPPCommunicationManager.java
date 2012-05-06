@@ -7,15 +7,11 @@ import com.arwave.skywriter.utilities.NoConnection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.Connection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketInterceptor;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -23,9 +19,6 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.PacketFilter;
-import org.jivesoftware.smack.filter.PacketTypeFilter;
-import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
@@ -34,13 +27,8 @@ import org.jivesoftware.smackx.Form;
 import org.jivesoftware.smackx.muc.InvitationListener;
 import org.jivesoftware.smackx.muc.InvitationRejectionListener;
 import org.jivesoftware.smackx.muc.MultiUserChat;
-import org.jivesoftware.smackx.muc.Occupant;
-import org.jivesoftware.smackx.packet.MUCUser.Invite;
 import org.jivesoftware.smackx.provider.MUCUserProvider;
 
-import com.arwave.skywriter.utilities.NoConnection;
-
-import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -346,7 +334,7 @@ public class XMPPCommunicationManager implements AbstractCommunicationManager {
 
 					Iterator<String> uit = arg0.iterator();
 					while (uit.hasNext()) {
-						String string = (String) uit.next();
+						String string = uit.next();
 
 						Log.i("xmpp", "Presence changed: " + string);
 

@@ -2,6 +2,7 @@ package com.arwave.skywriter.objects;
 
 import android.util.Log;
 
+import com.arwave.skywriter.utilities.ObjectSerializer;
 import com.threed.jpct.Object3D;
 import com.threed.jpct.RGBColor;
 import com.threed.jpct.SimpleVector;
@@ -24,8 +25,37 @@ public class ArrowMarker extends Object3D {
 		super(15);
 
 		createMesh();
-		this.setAdditionalColor(RGBColor.BLUE);
+		this.setAdditionalColor(RGBColor.BLACK);
+		
+		//test serialisation
+		//ObjectSerializer.ObjectToString(this);
+		
 
+	}
+	public ArrowMarker(String colour) {
+
+		super(15);
+
+		createMesh();
+		
+		this.setColour(colour);
+
+	}
+	public void setColour(String colour){
+		
+		if (colour.equalsIgnoreCase("Red")){
+			this.setAdditionalColor(RGBColor.RED);
+		};
+		
+		if (colour.equalsIgnoreCase("BLUE")){
+			this.setAdditionalColor(RGBColor.BLUE);
+		};
+		
+		if (colour.equalsIgnoreCase("GREEN")){
+			this.setAdditionalColor(RGBColor.GREEN);
+		};
+		
+		
 	}
 
 	private void createMesh() {

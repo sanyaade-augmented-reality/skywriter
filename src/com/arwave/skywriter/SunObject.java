@@ -148,10 +148,14 @@ public class SunObject extends Light {
 		// dateTime.set(Calendar.HOUR_OF_DAY, HoursPassedNoon);  This was used to set the hour manualy
 		 
 		 
+		 //if location information is present, then get it, else we assume we are in the middle of the world!
+		  double latitude = 0;
+		  double longitude = 0;
+		 if (currentlocation!=null){
+		 latitude = currentlocation.getLatitude();
+		 longitude = currentlocation.getLongitude();
+		 } 
 		 
-		 final double latitude = currentlocation.getLatitude();
-		 final double longitude = currentlocation.getLongitude();
-
 		 AzimuthZenithAngle position = PSA.calculateSolarPosition(dateTime,latitude,longitude);
 		 double az = position.getAzimuth();
 		 double alt =position.getZenithAngle();
