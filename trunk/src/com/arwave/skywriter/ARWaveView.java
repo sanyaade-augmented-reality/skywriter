@@ -87,10 +87,11 @@ public class ARWaveView extends GLSurfaceView {
 
 	// background layer (for scenery and other gui elements local to the device
 	// and not linked to a real wave)
-	static final ARWaveLayer LocalBackgroundScenaryLayer = new ARWaveLayer("Background");
-	static final ARWaveLayer SpecialChristmassScenaryLayer = new ARWaveLayer("Background_CM");
+	static final ARWaveLayer LocalBackgroundScenaryLayer = new ARWaveLayer(
+			"Background");
+	static final ARWaveLayer SpecialChristmassScenaryLayer = new ARWaveLayer(
+			"Background_CM");
 
-	
 	// generic font
 	private GLFont glFont;
 	static final Paint paint = new Paint();
@@ -176,7 +177,7 @@ public class ARWaveView extends GLSurfaceView {
 															// default blank
 															// layer untill one
 															// is selected
-		
+
 		LocalBackgroundScenaryLayer.ARWaveLayerID = "Background"; // The default
 																	// layer
 																	// contains
@@ -193,35 +194,38 @@ public class ARWaveView extends GLSurfaceView {
 																	// a server
 		AllLayersOpen.add(LocalBackgroundScenaryLayer);
 		AllLayersOpenMap.put("Background", LocalBackgroundScenaryLayer);
-		//add to global wave lists
-		WaveList.putWaveInfo(LocalBackgroundScenaryLayer.ARWaveLayerID, LocalBackgroundScenaryLayer.ARWaveLayerID);
-	
+		// add to global wave lists
+		WaveList.putWaveInfo(LocalBackgroundScenaryLayer.ARWaveLayerID,
+				LocalBackgroundScenaryLayer.ARWaveLayerID);
+
 		// set up Christmas layer
 		SpecialChristmassScenaryLayer.ARWaveLayerID = "Background_CM";
 		AllLayersOpen.add(SpecialChristmassScenaryLayer);
-		AllLayersOpenMap.put(SpecialChristmassScenaryLayer.ARWaveLayerID, SpecialChristmassScenaryLayer);
+		AllLayersOpenMap.put(SpecialChristmassScenaryLayer.ARWaveLayerID,
+				SpecialChristmassScenaryLayer);
 
-		//add to global wave lists
-		WaveList.putWaveInfo(SpecialChristmassScenaryLayer.ARWaveLayerID, SpecialChristmassScenaryLayer.ARWaveLayerID);
-		
+		// add to global wave lists
+		WaveList.putWaveInfo(SpecialChristmassScenaryLayer.ARWaveLayerID,
+				SpecialChristmassScenaryLayer.ARWaveLayerID);
+
 	}
 
-	public static void createLayerAndSetAsActive(String layerName){
-				
+	public static void createLayerAndSetAsActive(String layerName) {
+
 		ARWaveLayer newlayer = new ARWaveLayer(layerName);
-		
+
 		AllLayersOpen.add(newlayer);
 		AllLayersOpenMap.put(layerName, newlayer);
 		CurrentActiveLayer = newlayer;
-		
-		
+
 	}
+
 	public void onResume() {
 
 		Log.i("_____", "_______resumeing.....");
 
 		renderer.resume();
-		
+
 		super.onResume();
 
 	}
@@ -278,10 +282,10 @@ public class ARWaveView extends GLSurfaceView {
 		} else {
 			Camera camera = world.getCamera();
 
-			if (fb==null){
-				Log.i("__","null frame buffer");
+			if (fb == null) {
+				Log.i("__", "null frame buffer");
 			}
-			
+
 			SimpleVector dir = Interact2D.reproject2D3DWS(world.getCamera(),
 					fb, touchX, touchY);
 
@@ -417,21 +421,22 @@ public class ARWaveView extends GLSurfaceView {
 
 	}
 
-	/** finish an object creation 
-	 * @throws NoConnection **/
+	/**
+	 * finish an object creation
+	 * 
+	 * @throws NoConnection
+	 **/
 	public void confirmObjectCreation() throws NoConnection {
+
+			
 		
-
-		// get internal co-ordinates
-
+		//get internal co-ordinates
 		double x = CurrentObject.getTranslation().x;
 		double y = CurrentObject.getTranslation().y;
 		double z = CurrentObject.getTranslation().z;
 
 		double obj_roll = Math.toDegrees(CurrentObject.getZAxis().x);
-
 		double obj_baring = Math.toDegrees(CurrentObject.getZAxis().y);
-
 		double obj_elevation = Math.toDegrees(CurrentObject.getZAxis().z);
 
 		Log.e("add", "roation x =" + obj_roll + " z = " + obj_elevation
@@ -473,19 +478,19 @@ public class ARWaveView extends GLSurfaceView {
 		// vertical, but the game engine use's "y" as the
 		// vertical.
 
-		 newblip.baring =  obj_baring;
-		 newblip.elevation =obj_elevation;
-		 newblip.roll = obj_roll;
+		newblip.baring = obj_baring;
+		newblip.elevation = obj_elevation;
+		newblip.roll = obj_roll;
 
 		Log.i("add", "new alt = " + newblip.z);
 
 		newblip.isFacingSprite = true;
-		
-		newblip.BlipID = ARBlipIDCreator.getFreshID(); 
-		
-		
+
+		newblip.BlipID = ARBlipIDCreator.getFreshID();
+
 		int randomint = (int) (Math.random() * 1000);
 		newblip.ObjectData = "(new blip:" + randomint + ")";
+
 		/*
 		 * try { Log.i("add", "creating blip:" + newblip.BlipID);
 		 * //this.addBlip(newblip); } catch (IOException e) { //Log.i("add",
@@ -866,8 +871,8 @@ public class ARWaveView extends GLSurfaceView {
 	 **/
 
 	public void addBlip(ARBlip newblip) throws IOException {
-		Log.e("add","adding blips.");
-		
+		Log.e("add", "adding blips.");
+
 		addBlip(newblip, CurrentActiveLayer);
 	}
 
@@ -882,12 +887,12 @@ public class ARWaveView extends GLSurfaceView {
 	public void addBlip(ARBlip newblip, String WaveIDToAddToo)
 			throws IOException {
 		// get wavelayer from ID
-		Log.e("add","adding blips2__..");
-		Log.e("add","adding blips2__.."+WaveIDToAddToo);
-		
+		Log.e("add", "adding blips2__..");
+		Log.e("add", "adding blips2__.." + WaveIDToAddToo);
+
 		ARWaveLayer targetLayer = AllLayersOpenMap.get(WaveIDToAddToo);
-		Log.e("add","adding blips__.."+targetLayer.ARWaveLayerID);
-		
+		Log.e("add", "adding blips__.." + targetLayer.ARWaveLayerID);
+
 		addBlip(newblip, targetLayer);
 	}
 
@@ -913,9 +918,8 @@ public class ARWaveView extends GLSurfaceView {
 			Log.i("3ds", "_blip isnt in scene....");
 
 			Log.i("3ds", "_blip isnt in scene2....");
-			Log.i("3ds", "_blip isnt in scene3...." +targetLayer.ARWaveLayerID);
-			
-			
+			Log.i("3ds", "_blip isnt in scene3...." + targetLayer.ARWaveLayerID);
+
 			Object3D newmarker = targetLayer.createNewBlipObject(newblip);
 
 			Log.i("3ds", "adding " + newblip.BlipID + " to scene");
@@ -1257,22 +1261,23 @@ public class ARWaveView extends GLSurfaceView {
 
 		public void stop() {
 			Log.i("__", "STOPPED");
-			
+
 			stop = true;
 			if (fb != null) {
 				fb.dispose();
 				fb = null;
 				Log.i("__", "FRAME BUFFER REMOVED");
-				
+
 			}
 		}
 
-		public void resume(){
-			//I added this bit in an attempty to make it work after a activity
-Log.i("__", "resume");
-			
+		public void resume() {
+			// I added this bit in an attempty to make it work after a activity
+			Log.i("__", "resume");
+
 			stop = false;
 		}
+
 		public void onSurfaceChanged(GL10 gl, int w, int h) {
 			if (fb != null) {
 				fb.dispose();
@@ -1284,8 +1289,9 @@ Log.i("__", "resume");
 				Log.i("____", "_______________setting up world");
 
 				setupWorld();
-				
-				Log.i("____", "_______________saving surface data after surface changed");
+
+				Log.i("____",
+						"_______________saving surface data after surface changed");
 
 				if (start.surface_activity_master == null) {
 					start.surface_activity_master = ARWaveView.this;
@@ -1293,9 +1299,9 @@ Log.i("__", "resume");
 				// start.saveMaster();
 
 			}
-			
-			if (world == null){
-				Log.i("__","world is null");
+
+			if (world == null) {
+				Log.i("__", "world is null");
 			}
 
 		}
@@ -1446,10 +1452,10 @@ Log.i("__", "resume");
 			rock.setName("rock");
 
 			rock.scale(0.1f);
-			
-			//test arrow
-			ArrowMarker testarrow = new ArrowMarker();
-			testarrow.translate(0, 0, 0);
+
+			// test arrow
+			//ArrowMarker testarrow = new ArrowMarker();
+			//testarrow.translate(0, 0, 0);
 
 			// note the rock is at 0,0,0 to mark the center point.
 			// the tree is at -200,-180,0
@@ -1458,15 +1464,15 @@ Log.i("__", "resume");
 			world.addObject(tree1);
 			world.addObject(cmtree);
 			world.addObject(cmtree2);
-			world.addObject(cmtree3);		
+			world.addObject(cmtree3);
 			world.addObject(tree2);
 			world.addObject(grass);
 			world.addObject(rock);
 			world.addObject(atmos);
 			world.addObject(atmos2);
-			
-			world.addObject(testarrow);
-			
+
+			//world.addObject(testarrow);
+
 			RGBColor dark = new RGBColor(100, 100, 100);
 
 			grass.setTransparency(10);
@@ -1479,10 +1485,10 @@ Log.i("__", "resume");
 			// cmtree.setAdditionalColor(dark);
 			atmos.setAdditionalColor(RGBColor.WHITE);
 			atmos2.setAdditionalColor(RGBColor.WHITE);
-			
-			groundPlane.setSortOffset(-500000); //ensures its behind everything?
-		
-			
+
+			groundPlane.setSortOffset(-500000); // ensures its behind
+												// everything?
+
 			// set up atmos animation
 			Timer atmosTimer = new Timer();
 
@@ -1525,10 +1531,10 @@ Log.i("__", "resume");
 					ARBlipObject.ObjectType.MESH_OBJECT));
 			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(groundPlane,
 					ARBlipObject.ObjectType.MESH_OBJECT));
-			
-			LocalBackgroundScenaryLayer.addObject(new ARBlipObject(testarrow,
-					ARBlipObject.ObjectType.MESH_OBJECT));
-			
+
+			//LocalBackgroundScenaryLayer.addObject(new ARBlipObject(testarrow,
+			//		ARBlipObject.ObjectType.MESH_OBJECT));
+
 			// -----
 			// This can be removed when not in season....
 			SpecialChristmassScenaryLayer.addObject(new ARBlipObject(atmos,
@@ -1546,10 +1552,10 @@ Log.i("__", "resume");
 			// set there prefs
 
 			// get pref for background wave
-		//	SpecialChristmassScenaryLayer.setVisible(start.backgroundScenaryOn);
+			// SpecialChristmassScenaryLayer.setVisible(start.backgroundScenaryOn);
 
 			// get and Christmas wave
-		//	LocalBackgroundScenaryLayer.setVisible(start.CMScenaryOn);
+			// LocalBackgroundScenaryLayer.setVisible(start.CMScenaryOn);
 
 			// create a new sun and position it relative to the ground plane
 			sun = new SunObject(world, 0, res);
@@ -1756,7 +1762,7 @@ Log.i("__", "resume");
 				} else {
 
 					Log.i("__", "stoped so removing current fb..");
-					
+
 					if (fb != null) {
 						fb.dispose();
 						fb = null;

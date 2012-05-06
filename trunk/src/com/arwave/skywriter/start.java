@@ -51,13 +51,17 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -66,6 +70,8 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.TabHost.OnTabChangeListener;
 
 //import com.google.android.maps.MapActivity;
+import com.arwave.skywriter.ARBlipObject.ObjectType;
+import com.arwave.skywriter.utilities.ARBlipIDCreator;
 import com.arwave.skywriter.utilities.NoConnection;
 import com.arwave.skywriter.wavecontrol.WaveList;
 import com.arwave.skywriter.wavecontrol.WaveDetails;
@@ -77,9 +83,9 @@ import com.threed.jpct.Matrix;
 import com.threed.jpct.SimpleVector;
 
 /**
- * Skywriter - a demo application to show the usefullness of AR objects being created and 
- * updated over Wave Federation Protocol.
- * Currently only supports XMPP as there is no standard WFP client sever interface.
+ * Skywriter - a demo application to show the usefullness of AR objects being
+ * created and updated over Wave Federation Protocol. Currently only supports
+ * XMPP as there is no standard WFP client sever interface.
  * 
  * @author Thomas Wrobel, amongst others
  * 
@@ -91,8 +97,7 @@ public class start extends Activity implements SensorEventListener,
 	// Used to handle pause and resume...
 	// These two variables store everything when the app is paused
 	static ARWaveView surface_activity_master = null;
-	
-	
+
 	// static MapActivity main_activity_master = null;
 	static Activity main_activity_master = null;
 
@@ -143,17 +148,38 @@ public class start extends Activity implements SensorEventListener,
 	private boolean OriginalLocationSet = false;
 
 	public Location currentLocation;
+
+	private static LinearLayout AddBlipOptions;
+
+	private static Spinner AddBlipSelectTypeSpinner;
 	
+
+	private static LinearLayout AddBlipTextSpecificOptions;
+	
+	private static LinearLayout AddBlipLocationMarkerSpecificOptions;
+	
+	//location specific options
+	private static RadioButton AddBlipRed;
+	private static RadioButton AddBlipGreen;
+	private static RadioButton AddBlipBlue;
+	private static RadioGroup addBlipColourOptions;
+	
+	
+	private static Button AddBlipCreateBlipHere;
+	private static Button AddBlipCreateArrowHere;
+	private static Button AddBlipCreateBlipAnywhere;
+	private static ArrayAdapter blipTypeAdapter;
+
 	// static CheckBox AutoSetLocation;
 	static EditText AddBlipLat;
 	static EditText AddBlipLong;
-	
+
 	static EditText AddBlipBaring;
 	static EditText AddBlipElevation;
 	static EditText AddBlipRoll;
 	private static Button AddBlipSpeakButton;
-	
-	static EditText AddBlipText;	
+
+	static EditText AddBlipText;
 	static EditText AddBlipAlt;
 	static CheckBox AddBlipBillBoard;
 	static TextView AddBlipBlipID;
@@ -161,14 +187,13 @@ public class start extends Activity implements SensorEventListener,
 
 	private static Button CreateWaveButton;
 	private static Button joinWaveButton;
-	
-	//For speach recognition support
-	 private static final String TAG = "VoiceRecognition";
-	 private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
-	 //private ListView mList;
-	 
-	 //private Spinner mSupportedLanguageView;
-	    
+
+	// For speach recognition support
+	private static final String TAG = "VoiceRecognition";
+	private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+	// private ListView mList;
+
+	// private Spinner mSupportedLanguageView;
 
 	boolean overheadmode = false;
 	boolean fixedlocationmode = false;
@@ -334,8 +359,7 @@ public class start extends Activity implements SensorEventListener,
 		tabHost.setCurrentTab(0);
 
 		tabHost.setOnTabChangedListener(this);
-	
-		
+
 		// set up camera view and ar overlay
 		arPage = (FrameLayout) findViewById(R.id.ARViewPage2);
 
@@ -351,10 +375,9 @@ public class start extends Activity implements SensorEventListener,
 		// asign to ar page
 		arPage.addView(cameraView);
 		cameraView.setMinimumHeight(dm.heightPixels);
-		
-		//Log.i("start", "tab height="+tabHost.getTabWidget().get);
-		
-		
+
+		// Log.i("start", "tab height="+tabHost.getTabWidget().get);
+
 		// arPage.addView(mapView,256,256);
 		arPage.addView(arView, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
@@ -404,11 +427,150 @@ public class start extends Activity implements SensorEventListener,
 
 		// assign AR Blip adding page
 		Log.i("setup", "setting addblips");
+
+		// main add options
+		AddBlipSelectTypeSpinner = (Spinner) findViewById(R.id.AddBlipTypeSelect);
+		AddBlipTextSpecificOptions  = (LinearLayout) findViewById(R.id.addBlipTextSpecificSettings);
+		AddBlipLocationMarkerSpecificOptions  = (LinearLayout) findViewById(R.id.addBlipLocationMarkerSettings);
+		
+		addBlipColourOptions = (RadioGroup) findViewById(R.id.addBlipColourOptions);
+		AddBlipRed = (RadioButton) findViewById(R.id.addBlipRedOption);
+		AddBlipGreen = (RadioButton) findViewById(R.id.addBlipGreenOption);
+		AddBlipBlue = (RadioButton) findViewById(R.id.addBlipBlueOption);
+		
+		AddBlipOptions = (LinearLayout) findViewById(R.id.CreateBlipOptions);
+		AddBlipCreateBlipHere = (Button) findViewById(R.id.createBlipHereButton);
+		AddBlipCreateArrowHere = (Button) findViewById(R.id.createArrowHereButton);
+		AddBlipCreateBlipAnywhere = (Button) findViewById(R.id.createBlipAnywhereButton);
+
+		// fill blip type spinner with all known types
+		blipTypeAdapter = new ArrayAdapter(this,
+				android.R.layout.simple_spinner_item,
+				ARBlipObject.ObjectType.values());
+
+		AddBlipSelectTypeSpinner.setAdapter(blipTypeAdapter);
+		
+		AddBlipSelectTypeSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				
+				
+				//make all settings invisible
+
+				AddBlipLocationMarkerSpecificOptions.setEnabled(false);
+				AddBlipLocationMarkerSpecificOptions.setVisibility(View.GONE);
+				AddBlipTextSpecificOptions.setEnabled(false);
+				AddBlipTextSpecificOptions.setVisibility(View.GONE);
+				
+				//set the correct details page for the specific blip type
+				int typePos = AddBlipSelectTypeSpinner.getSelectedItemPosition();
+				ObjectType ARBlipType = ARBlipObject.ObjectType.values()[typePos];
+						
+				if (ARBlipType==ARBlipObject.ObjectType.PRIMATIVE_LOCATION_MARKER){
+										
+					AddBlipLocationMarkerSpecificOptions.setEnabled(true);
+					AddBlipLocationMarkerSpecificOptions.setVisibility(View.VISIBLE);
+				} 
+				
+				if (ARBlipType==ARBlipObject.ObjectType.BILLBOARD_TEXT){
+					
+					AddBlipTextSpecificOptions.setEnabled(true);
+					AddBlipTextSpecificOptions.setVisibility(View.VISIBLE);
+				} 
+				
+				
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
+		AddBlipCreateBlipAnywhere.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+
+				try {
+					ARBlip newblip = new ARBlip();
+					newblip.x = currentLocation.getLatitude();
+					newblip.y = currentLocation.getLongitude();
+					newblip.z = 10;
+					newblip.BlipID = ARBlipIDCreator.getFreshID();
+					newblip.ObjectData = "(write your message!)";
+					newblip.MIMEtype=""; //text is default
+					start.sendToAddBlipPage(newblip);
+					
+
+				} catch (NoConnection e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+		});
+		
+		
+		AddBlipCreateBlipHere.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+
+				try {
+					ARBlip newblip = new ARBlip();
+					newblip.x = currentLocation.getLatitude();
+					newblip.y = currentLocation.getLongitude();
+					newblip.z = 10;
+					newblip.BlipID = ARBlipIDCreator.getFreshID();
+					newblip.ObjectData = "(write your message!)";
+
+					start.sendToAddBlipPage(newblip);
+					//AddBlipSelectTypeSpinner.setSelection(blipTypeAdapter
+					//		.getPosition(ARBlipObject.ObjectType.BILLBOARD_TEXT));
+
+				} catch (NoConnection e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+		});
+
+		AddBlipCreateArrowHere.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+
+				try {
+					ARBlip newblip = new ARBlip();
+					newblip.x = currentLocation.getLatitude();
+					newblip.y = currentLocation.getLongitude();
+					newblip.z = 10;
+					newblip.BlipID = ARBlipIDCreator.getFreshID();
+					newblip.ObjectData = "";
+					newblip.MIMEtype = "Primative_Location_Marker";
+
+					start.sendToAddBlipPage(newblip);
+					
+					//AddBlipSelectTypeSpinner.setSelection(blipTypeAdapter
+					//		.getPosition(ARBlipObject.ObjectType.PRIMATIVE_LOCATION_MARKER));
+
+				} catch (NoConnection e) {
+					e.printStackTrace();
+				}
+
+			}
+
+		});
+
+		AddBlipSelectTypeSpinner = (Spinner) findViewById(R.id.AddBlipTypeSelect);
 		// AutoSetLocation = (CheckBox) findViewById(R.id.AutoSetLocation);
 		AddBlipLat = (EditText) findViewById(R.id.latitude);
 		AddBlipLong = (EditText) findViewById(R.id.longitude);
 		AddBlipAlt = (EditText) findViewById(R.id.altitude);
-		
+
 		AddBlipBaring = (EditText) findViewById(R.id.BaringValue);
 		AddBlipRoll = (EditText) findViewById(R.id.RollValue);
 		AddBlipElevation = (EditText) findViewById(R.id.ElevationValue);
@@ -416,6 +578,7 @@ public class start extends Activity implements SensorEventListener,
 		AddBlipSpeakButton = (Button) findViewById(R.id.VoiceInput_button);
 		AddBlipBillBoard = (CheckBox) findViewById(R.id.BillBoardCheck);
 		AddBlipText = (EditText) findViewById(R.id.arblipContent);
+
 		AddBlipBlipID = (TextView) findViewById(R.id.BlipIDLabel);
 		AddBlipWaveID = (TextView) findViewById(R.id.Waveidlabel);
 
@@ -427,70 +590,101 @@ public class start extends Activity implements SensorEventListener,
 			}
 		});
 
-		//dictate the blip message button
+		// dictate the blip message button
 		// Check to see if a recognition activity is present
-		
+
 		PackageManager pm = getPackageManager();
-		List activities = pm.queryIntentActivities(
-		  new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
+		List activities = pm.queryIntentActivities(new Intent(
+				RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0);
 		if (activities.size() != 0) {
-			AddBlipSpeakButton.setOnClickListener(new OnClickListener(){
-				public void onClick(View v) {					
-					 if (v.getId() == R.id.VoiceInput_button) {
-				            startVoiceRecognitionActivity();
-				        }
+			AddBlipSpeakButton.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					if (v.getId() == R.id.VoiceInput_button) {
+						startVoiceRecognitionActivity();
+					}
 				}
-				
+
 			});
 		} else {
 			AddBlipSpeakButton.setEnabled(false);
 			AddBlipSpeakButton.setText("Recognizer not present");
 		}
-		
-		//toggles rotation settings
-		AddBlipBillBoard.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 
-			public void onCheckedChanged(CompoundButton buttonView,
-					boolean isChecked) {
-				
-				if (isChecked){
-					AddBlipBaring.setEnabled(false);
-					AddBlipRoll.setEnabled(false);
-					AddBlipElevation.setEnabled(false);
-				} else {
-					AddBlipBaring.setEnabled(true);
-					AddBlipRoll.setEnabled(true);
-					AddBlipElevation.setEnabled(true);
-				}
-				
-			}
-			
-		});
-		
+		// toggles rotation settings
+		AddBlipBillBoard
+				.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+					public void onCheckedChanged(CompoundButton buttonView,
+							boolean isChecked) {
+
+						if (isChecked) {
+							AddBlipBaring.setEnabled(false);
+							AddBlipRoll.setEnabled(false);
+							AddBlipElevation.setEnabled(false);
+						} else {
+							AddBlipBaring.setEnabled(true);
+							AddBlipRoll.setEnabled(true);
+							AddBlipElevation.setEnabled(true);
+						}
+
+					}
+
+				});
+
 		Button addConfirmBlipButton = (Button) findViewById(R.id.addButton);
 		addConfirmBlipButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				Log.i("wave", "adding blip_on view");
 
-				//Make a new arblip from data on creation screen
+				// Make a new arblip from data on creation screen
+
+				
+				//get blip type 
+				int typePos = AddBlipSelectTypeSpinner.getSelectedItemPosition();
+				ObjectType ARBlipType = ARBlipObject.ObjectType.values()[typePos];
+
+				Log.i("add", "typePos:"+typePos);
+
+				Log.i("add", "type:"+ARBlipType.name());
 				
 				ARBlip newtemp = new ARBlip();
 				
-				newtemp.x = Double.parseDouble(AddBlipLat.getText().toString());
-				newtemp.y = Double
-						.parseDouble(AddBlipLong.getText().toString());
-				newtemp.z = Double.parseDouble(AddBlipAlt.getText().toString());
-//
-				//if billboard is set to off we set the rotation
-				if (!AddBlipBillBoard.isChecked()){
-					newtemp.elevation =Double.parseDouble(AddBlipElevation.getText().toString());
-					newtemp.baring =Double.parseDouble(AddBlipBaring.getText().toString());
-					newtemp.roll =Double.parseDouble(AddBlipRoll.getText().toString());
-					newtemp.isFacingSprite = false;
+				//set the type if its not a billboard(which is default for text)
+				if (ARBlipType!=ARBlipObject.ObjectType.BILLBOARD_TEXT){
+					newtemp.MIMEtype = ""+ARBlipType.name();
+					
+					
+					
 				}
 				
-				
+				newtemp.x = Double.parseDouble(AddBlipLat.getText().toString());
+				newtemp.y = Double.parseDouble(AddBlipLong.getText().toString());
+				newtemp.z = Double.parseDouble(AddBlipAlt.getText().toString());
+				//
+				// if billboard is set to off we set the rotation
+				if (!AddBlipBillBoard.isChecked()) {
+					newtemp.elevation = Double.parseDouble(AddBlipElevation
+							.getText().toString());
+					newtemp.baring = Double.parseDouble(AddBlipBaring.getText()
+							.toString());
+					newtemp.roll = Double.parseDouble(AddBlipRoll.getText()
+							.toString());
+					newtemp.isFacingSprite = false;
+				}
+
 				newtemp.ObjectData = AddBlipText.getText().toString();
+				
+				//set the data if its not text
+				if (ARBlipType!=ARBlipObject.ObjectType.BILLBOARD_TEXT){
+					
+					
+					int rbid = addBlipColourOptions.getCheckedRadioButtonId();
+					newtemp.ObjectData = ""+((RadioButton)findViewById(rbid)).getText();
+					
+					Log.i("add", "cdata:"+newtemp.ObjectData );
+					
+				}
+				
 				newtemp.BlipID = AddBlipBlipID.getText().toString();
 
 				String tempdata = newtemp.serialise();
@@ -504,7 +698,6 @@ public class start extends Activity implements SensorEventListener,
 			}
 		});
 
-	
 		// listen for gps
 
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -549,7 +742,10 @@ public class start extends Activity implements SensorEventListener,
 					int arg2, long rowid) {
 				if (rowid == 0) {
 
-					serverAddress.setText("talk.google.com"); //default, but any XMPP server should work
+					serverAddress.setText("talk.google.com"); // default, but
+																// any XMPP
+																// server should
+																// work
 
 					acm = xmppacm;
 
@@ -675,8 +871,6 @@ public class start extends Activity implements SensorEventListener,
 
 		waveListViewBox.invalidate();
 
-	
-
 		// create wave button
 		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
 		CreateWaveButton.setEnabled(false);
@@ -712,7 +906,7 @@ public class start extends Activity implements SensorEventListener,
 				if (acm.isConnected()) {
 
 					Intent i = new Intent(maincontext, JoinWaveActivity.class);
-			
+
 					startActivity(i);
 
 				} else {
@@ -763,82 +957,92 @@ public class start extends Activity implements SensorEventListener,
 			throw new RuntimeException(e);
 		}
 	}
-	
-	//code to handle the speach recognition
-	 private void startVoiceRecognitionActivity() {
-	        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-	        // Specify the calling package to identify your application
-	        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+	// code to handle the speach recognition
+	private void startVoiceRecognitionActivity() {
+		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-	        // Display an hint to the user about what he should say.
-	        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speech recognition demo");
+		// Specify the calling package to identify your application
+		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass()
+				.getPackage().getName());
 
-	        // Given an hint to the recognizer about what the user is going to say
-	        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-	                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+		// Display an hint to the user about what he should say.
+		intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+				"Speech recognition demo");
 
-	        // Specify how many results you want to receive. The results will be sorted
-	        // where the first result is the one with higher confidence.
-	        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+		// Given an hint to the recognizer about what the user is going to say
+		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+				RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
 
-	        // Specify the recognition language. This parameter has to be specified only if the
-	        // recognition has to be done in a specific language and not the default one (i.e., the
-	        // system locale). Most of the applications do not have to set this parameter.
-	        //if (!mSupportedLanguageView.getSelectedItem().toString().equals("Default")) {
-	          //  intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
-	            //        mSupportedLanguageView.getSelectedItem().toString());
-	        //}
+		// Specify how many results you want to receive. The results will be
+		// sorted
+		// where the first result is the one with higher confidence.
+		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
 
-	        startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
-	    }
-	 
-	 
-	 
-	  /**
-	     * Handle the results from the recognition activity.
-	     */
-	    @Override
-	    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	        if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == RESULT_OK) {
-	            // Fill the list view with the strings the recognizer thought it could have heard
-	            
-	        	       	ArrayList<String> matches = data.getStringArrayListExtra(
-	                    RecognizerIntent.EXTRA_RESULTS);
-	        	
-	        	//matches.toString();
-	        	
-	        	 TextView textView = (TextView) findViewById(R.id.arblipContent);
-	             String firstMatch = matches.get(0);
-	             textView.setText(firstMatch);
-	        }
+		// Specify the recognition language. This parameter has to be specified
+		// only if the
+		// recognition has to be done in a specific language and not the default
+		// one (i.e., the
+		// system locale). Most of the applications do not have to set this
+		// parameter.
+		// if
+		// (!mSupportedLanguageView.getSelectedItem().toString().equals("Default"))
+		// {
+		// intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
+		// mSupportedLanguageView.getSelectedItem().toString());
+		// }
 
-	        super.onActivityResult(requestCode, resultCode, data);
-	    }
+		startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
+	}
 
-//	    private void refreshVoiceSettings() {
-//	        Log.i(TAG, "Sending broadcast");
-//	        sendOrderedBroadcast(RecognizerIntent.getVoiceDetailsIntent(this), null,
-//	                new SupportedLanguageBroadcastReceiver(), null, Activity.RESULT_OK, null, null);
-//	    }
+	/**
+	 * Handle the results from the recognition activity.
+	 */
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == VOICE_RECOGNITION_REQUEST_CODE
+				&& resultCode == RESULT_OK) {
+			// Fill the list view with the strings the recognizer thought it
+			// could have heard
 
-//	    private void updateSupportedLanguages(List<String> languages) {
-//	        // We add "Default" at the beginning of the list to simulate default language.
-//	        languages.add(0, "Default");
-//
-//	        SpinnerAdapter adapter = new ArrayAdapter<CharSequence>(this,
-//	                android.R.layout.simple_spinner_item, languages.toArray(
-//	                        new String[languages.size()]));
-//	        mSupportedLanguageView.setAdapter(adapter);
-//	    }
-//
-//	    private void updateLanguagePreference(String language) {
-//	        TextView textView = (TextView) findViewById(R.id.language_preference);
-//	        textView.setText(language);
-//	    }
-//	 
-//	 
-	 
+			ArrayList<String> matches = data
+					.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+			// matches.toString();
+
+			TextView textView = (TextView) findViewById(R.id.arblipContent);
+			String firstMatch = matches.get(0);
+			textView.setText(firstMatch);
+		}
+
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	// private void refreshVoiceSettings() {
+	// Log.i(TAG, "Sending broadcast");
+	// sendOrderedBroadcast(RecognizerIntent.getVoiceDetailsIntent(this), null,
+	// new SupportedLanguageBroadcastReceiver(), null, Activity.RESULT_OK, null,
+	// null);
+	// }
+
+	// private void updateSupportedLanguages(List<String> languages) {
+	// // We add "Default" at the beginning of the list to simulate default
+	// language.
+	// languages.add(0, "Default");
+	//
+	// SpinnerAdapter adapter = new ArrayAdapter<CharSequence>(this,
+	// android.R.layout.simple_spinner_item, languages.toArray(
+	// new String[languages.size()]));
+	// mSupportedLanguageView.setAdapter(adapter);
+	// }
+	//
+	// private void updateLanguagePreference(String language) {
+	// TextView textView = (TextView) findViewById(R.id.language_preference);
+	// textView.setText(language);
+	// }
+	//
+	//
+
 	private void setUpPreferances(final EditText username,
 			final EditText password, EditText serverAddress,
 			Spinner serverSelect) {
@@ -871,7 +1075,6 @@ public class start extends Activity implements SensorEventListener,
 			cameraView.PortrateCameraMode = cameraPortraiteMode;
 		}
 	}
-
 
 	private class LocListener implements LocationListener {
 
@@ -1129,18 +1332,69 @@ public class start extends Activity implements SensorEventListener,
 	 **/
 	public static void sendToAddBlipPage(ARBlip newblip) {
 
-		// String id = "0";
+		
+		
+		//else set it to specified type
+		if (newblip.MIMEtype.length()>3){
+			
+			Log.i("add", "new blip type:"+blipTypeAdapter
+					.getPosition(newblip.MIMEtype));
+			
+			AddBlipSelectTypeSpinner.setSelection(blipTypeAdapter
+					.getPosition(newblip.MIMEtype));
+			
+			//disable text box, and enable any type-specific settings
+			AddBlipTextSpecificOptions.setEnabled(false);
+			AddBlipTextSpecificOptions.setVisibility(View.GONE);
+			
+			if (newblip.MIMEtype.equalsIgnoreCase(ARBlipObject.ObjectType.PRIMATIVE_LOCATION_MARKER.name())){
+				
+				
+				AddBlipLocationMarkerSpecificOptions.setEnabled(true);
+				AddBlipLocationMarkerSpecificOptions.setVisibility(View.VISIBLE);
+				
+				AddBlipSelectTypeSpinner.setSelection(blipTypeAdapter.getPosition(ARBlipObject.ObjectType.PRIMATIVE_LOCATION_MARKER));
+				
+				//set color to contents of text field, as text is not used any other way
+				//crude? should the spec be better here? 
+				String ctext = newblip.ObjectData;
+				if (ctext.equalsIgnoreCase("red")){
+					AddBlipRed.setChecked(true);
+				}
+				if (ctext.equalsIgnoreCase("green")){
+					AddBlipGreen.setChecked(true);
+				}
+				if (ctext.equalsIgnoreCase("blue")){
+					AddBlipBlue.setChecked(true);
+				}
+				
+			}
+			
+		} else {
+			// text type is default
+			AddBlipSelectTypeSpinner.setSelection(blipTypeAdapter
+					.getPosition(ARBlipObject.ObjectType.BILLBOARD_TEXT));
+			
+			AddBlipLocationMarkerSpecificOptions.setEnabled(false);
+			AddBlipLocationMarkerSpecificOptions.setVisibility(View.GONE);
+			
+			AddBlipTextSpecificOptions.setEnabled(true);
+			AddBlipTextSpecificOptions.setVisibility(View.VISIBLE);
+			
+			
+			
+		}
 
 		// open add blip page with correct values
 		// AutoSetLocation.setChecked(false);
 		AddBlipLat.setText("" + newblip.x);
 		AddBlipLong.setText("" + newblip.y);
 		AddBlipAlt.setText("" + newblip.z);
-		
+
 		AddBlipBaring.setText("" + newblip.baring);
 		AddBlipElevation.setText("" + newblip.elevation);
 		AddBlipRoll.setText("" + newblip.roll);
-		
+
 		AddBlipText.setText("" + newblip.ObjectData);
 		AddBlipBlipID.setText("" + newblip.BlipID);
 
@@ -1149,6 +1403,9 @@ public class start extends Activity implements SensorEventListener,
 
 		// bring add blip page to front
 		tabHost.setCurrentTab(3);
+
+		// turn off the options
+		AddBlipOptions.setVisibility(View.GONE);
 
 		// after the blip is submitted from the Add page, the text string would
 		// have to be
@@ -1495,7 +1752,6 @@ public class start extends Activity implements SensorEventListener,
 			testblip2.ObjectData = "http://www.darkflame.co.uk/petrolstation.3ds";
 			testblip2.MIMEtype = "application/x-3ds";
 
-
 			try {
 				arView.addBlip(testblip);
 				arView.addBlip(testblip2);
@@ -1643,7 +1899,6 @@ public class start extends Activity implements SensorEventListener,
 
 		case MENU_ADDSPINNINGTHING:
 
-	
 			Timer blah = new Timer();
 
 			TimerTask meep = new TimerTask() {
@@ -2051,14 +2306,15 @@ public class start extends Activity implements SensorEventListener,
 
 			try {
 				arView.confirmObjectCreation();
-				
+
 			} catch (NoConnection e) {
-				
+
 				// TODO Auto-generated catch block
-				// right here we should deal with the specific actions to do when theres a disconnection halfway into posting something
+				// right here we should deal with the specific actions to do
+				// when theres a disconnection halfway into posting something
 				// the NoConnection exception itself deals with the logout
 			}
-			
+
 			return true;
 
 		case MENU_CONTINUE_EDITING:
@@ -2141,7 +2397,15 @@ public class start extends Activity implements SensorEventListener,
 		// trigger auto-updatiing of blips in a wave??
 	}
 
+	/** Triggered when the user changes to a different tab **/
 	public void onTabChanged(String tabId) {
+
+		// if they goto the add blip page, lets make sure the options are up
+		if (tabId.equals("AddBlipTab")) {
+
+			AddBlipOptions.setVisibility(View.VISIBLE);
+
+		}
 
 	}
 
@@ -2218,8 +2482,7 @@ public class start extends Activity implements SensorEventListener,
 
 		// use name in future
 		WaveListAdapter.deselectAllPostToButtons();
-		usersWavesList.add(new WaveDetails(name,wid,true, true));
-		
+		usersWavesList.add(new WaveDetails(name, wid, true, true));
 
 		// update the active wave list (all real wave layers, ignore
 		// background/inbuilt ones)
@@ -2239,11 +2502,11 @@ public class start extends Activity implements SensorEventListener,
 
 		// redundant code follows
 
-	//	ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-		///		activewavelist.getContext(),
-		//		android.R.layout.simple_dropdown_item_1line, activatableWaves);
+		// ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+		// / activewavelist.getContext(),
+		// android.R.layout.simple_dropdown_item_1line, activatableWaves);
 
-		//activewavelist.setAdapter(adapter);
+		// activewavelist.setAdapter(adapter);
 
 		// ---
 
@@ -2254,7 +2517,7 @@ public class start extends Activity implements SensorEventListener,
 				true);
 
 		// set it active by default
-		//activewavelist.setSelection(activewavelist.getChildCount() - 1);
+		// activewavelist.setSelection(activewavelist.getChildCount() - 1);
 	}
 
 }

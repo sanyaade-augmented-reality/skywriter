@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout android:id="@+id/add_arblip_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="#000" xmlns:android="http://schemas.android.com/apk/res/android">
+
+ 
 <RelativeLayout android:id="@+id/add_arblip_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent" android:background="#000" xmlns:android="http://schemas.android.com/apk/res/android">
@@ -8,37 +14,90 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="50sp"
         android:orientation="vertical" >
-
-        <TextView
-            android:id="@+id/TextView1"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/arblipContentText"
-            android:textSize="8pt" />
-
-        <RelativeLayout
+
+        <Spinner
+            android:id="@+id/AddBlipTypeSelect"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_weight="4">
-
-            <EditText
-                android:id="@+id/arblipContent"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@android:drawable/editbox_background"
-                android:ems="10"
-                android:gravity="top"
-                android:text="@string/arblipContentValue" />
+            android:layout_height="wrap_content" />
 
-            <Button
-                android:id="@+id/VoiceInput_button"
+        <LinearLayout
+            android:id="@+id/addBlipLocationMarkerSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+
+            <TextView
+                android:id="@+id/addblipLocationMakerLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:text="@string/Speak" />
+                android:text="@string/addBlipLocationMarkerSettings"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
-        </RelativeLayout>
+ <RadioGroup
+     android:id="@+id/addBlipColourOptions"
+     android:layout_width="fill_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical" >
+
+            <RadioButton
+                android:id="@+id/addBlipRedOption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Red" />
+
+            <RadioButton
+                android:id="@+id/addBlipGreenOption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Green" />
+
+            <RadioButton
+                android:id="@+id/addBlipBlueOption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Blue" />
+
+ </RadioGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/addBlipTextSpecificSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_weight="3" android:visibility="gone">
+
+            <TextView
+                android:id="@+id/TextView1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/arblipContentText"
+                android:textSize="8pt" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="4" >
+
+                <EditText
+                    android:id="@+id/arblipContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/editbox_background"
+                    android:ems="10"
+                    android:gravity="top"
+                    android:text="@string/arblipContentValue" />
+
+                <Button
+                    android:id="@+id/VoiceInput_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/Speak" />
+            </RelativeLayout>
+
+        </LinearLayout>
 
         <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
@@ -299,3 +358,46 @@
     </SlidingDrawer>
 
 </RelativeLayout>
+
+   <LinearLayout
+       android:id="@+id/CreateBlipOptions"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:background="#000"
+       android:orientation="vertical"
+       android:visibility="invisible" android:paddingTop="100sp">
+
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical" android:layout_gravity="center_vertical|center_horizontal" android:layout_margin="30sp">
+
+           <Button
+               android:id="@+id/createArrowHereButton"
+               style="?android:attr/buttonStyleSmall"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/CreateArrowHere" />
+
+           <Button
+               android:id="@+id/createBlipHereButton"
+               style="?android:attr/buttonStyleSmall"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="20sp"
+               android:text="Create Blip Here" />
+
+           <Button
+               android:id="@+id/createBlipAnywhereButton"
+               style="?android:attr/buttonStyleSmall"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/createBlipAnywhere" android:layout_marginTop="20sp" android:enabled="false"/>
+
+       </LinearLayout>
+
+    </LinearLayout>
+
+
+
+</FrameLayout>

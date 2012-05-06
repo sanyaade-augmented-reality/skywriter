@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.util.Log;
 
 import com.arwave.skywriter.ARBlipObject.ObjectType;
+import com.arwave.skywriter.objects.ArrowMarker;
 import com.threed.jpct.Loader;
 import com.threed.jpct.Matrix;
 import com.threed.jpct.Object3D;
@@ -247,24 +248,35 @@ public class ARWaveLayer {
 				e.printStackTrace();
 			}
 
-		} else if (newblip.MIMEtype.equalsIgnoreCase("Primative_Bounceing_Cone")) {
+		} else if (newblip.MIMEtype.equalsIgnoreCase(ObjectType.PRIMATIVE_CONE.name())) {
 			
 			//its a cone , so a primitive
-			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_OBJECT;	
+			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_CONE;	
 			
 			newmarker = Primitives.getCone(5);
 
-		} else if (newblip.MIMEtype.equalsIgnoreCase("Primative_Bounceing_Cube")) {
+		} else if (newblip.MIMEtype.equalsIgnoreCase(ObjectType.PRIMATIVE_CUBE.name())) {
 
 			//its a cube, so a primitive
-			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_OBJECT;			
+			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_CUBE;			
 
 			newmarker = Primitives.getCube(5);
 
+		}  else if (newblip.MIMEtype.equalsIgnoreCase(ObjectType.PRIMATIVE_LOCATION_MARKER.name())) {
+
+			//its a cube, so a primitive
+			object3dtype = ARBlipObject.ObjectType.PRIMATIVE_LOCATION_MARKER;			
+
+			//the object data just contains a color string at the moment
+			newmarker = new ArrowMarker(newblip.ObjectData);
+			
+			
+
+			
 		} else {
 			// if no recognised type, then we assume its a billboard with
 			// text
-			object3dtype = ARBlipObject.ObjectType.BILLBOARD_OBJECT;
+			object3dtype = ARBlipObject.ObjectType.BILLBOARD_TEXT;
 			
 			// set texture
 			String text = newblip.ObjectData;
@@ -391,7 +403,7 @@ public class ARWaveLayer {
 		updateThisObject.rotateZ((float) Math.toRadians(newblipdata.elevation));
 
 		// update textures if its a billboard
-		if (updateThis.Object3DType == ARBlipObject.ObjectType.BILLBOARD_OBJECT){
+		if (updateThis.Object3DType == ARBlipObject.ObjectType.BILLBOARD_TEXT){
 		
 			String text = newblipdata.ObjectData;
 			((SkywriterBillboard) updateThis.object3d).updatedTexture(newblipdata.BlipID, text);
@@ -455,7 +467,7 @@ public class ARWaveLayer {
 			
 			while (objects.hasNext()){			
 				ARBlipObject object = objects.next();			
-				if (object.Object3DType == ObjectType.BILLBOARD_OBJECT){
+				if (object.Object3DType == ObjectType.BILLBOARD_TEXT){
 					//if its a billboard..
 					Log.i("test", "scaleing billboard "+object.arblip.BlipID);
 

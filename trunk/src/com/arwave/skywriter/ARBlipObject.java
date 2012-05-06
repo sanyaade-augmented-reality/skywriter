@@ -11,11 +11,11 @@ public class ARBlipObject {
 	
 	// fast way to ID the object type	 
 	 public enum ObjectType {
-		 BILLBOARD_OBJECT, PRIMATIVE_OBJECT, MESH_OBJECT
+		 BILLBOARD_TEXT, PRIMATIVE_LOCATION_MARKER,PRIMATIVE_CUBE,PRIMATIVE_CONE, MESH_OBJECT
 		}
 	 
 	 
-	 ObjectType Object3DType = ObjectType.BILLBOARD_OBJECT; //defaults to billboard
+	 ObjectType Object3DType = ObjectType.BILLBOARD_TEXT; //defaults to billboard
 	
 	public ARBlipObject(ARBlip arblip, Object3D object3d, ObjectType ot){
 		
