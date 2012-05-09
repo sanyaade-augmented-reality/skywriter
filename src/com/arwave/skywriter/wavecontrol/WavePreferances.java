@@ -1,18 +1,10 @@
 package com.arwave.skywriter.wavecontrol;
 
 import com.arwave.skywriter.R;
-import com.arwave.skywriter.R.xml;
-
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.preference.Preference.OnPreferenceChangeListener;
 import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.EditText;
 
 /** activity used to customise the settings for a particular wave **/
 public class WavePreferances extends PreferenceActivity {

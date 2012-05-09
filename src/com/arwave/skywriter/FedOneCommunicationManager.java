@@ -125,7 +125,8 @@ public class FedOneCommunicationManager implements
 		    }
 		    
 		    BufferedDocOp manifest = convRoot.getDocuments().get(DocumentConstants.MANIFEST_DOCUMENT_ID);
-		    if (convRoot == null) {
+		    if (manifest == null) {
+		    	//I changed convRoot in the above IF to manifest as it seemed wrong (flagging as dead code how it was)
 		    	Log.i("wave","null manifest");
 		      return;
 		    }

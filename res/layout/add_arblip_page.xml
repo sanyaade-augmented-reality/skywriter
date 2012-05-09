@@ -5,7 +5,7 @@
     android:layout_height="match_parent" android:background="#000" xmlns:android="http://schemas.android.com/apk/res/android">
 
  
-<RelativeLayout android:id="@+id/add_arblip_layout"
+<RelativeLayout android:id="@+id/add_arblip_layout_inner"
     android:layout_width="match_parent"
     android:layout_height="match_parent" android:background="#000" xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -43,19 +43,19 @@
                 android:id="@+id/addBlipRedOption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Red" />
+                android:text="Red" android:textColor="@color/Red" android:checked="true"/>
 
             <RadioButton
                 android:id="@+id/addBlipGreenOption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Green" />
+                android:text="Green" android:textColor="@color/Green"/>
 
             <RadioButton
                 android:id="@+id/addBlipBlueOption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Blue" />
+                android:text="Blue" android:textColor="@color/Blue"/>
 
  </RadioGroup>
         </LinearLayout>
@@ -86,7 +86,7 @@
                     android:background="@android:drawable/editbox_background"
                     android:ems="10"
                     android:gravity="top"
-                    android:text="@string/arblipContentValue" />
+                    android:text="@string/arblipContentValue" android:inputType="text"/>
 
                 <Button
                     android:id="@+id/VoiceInput_button"
@@ -150,10 +150,11 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical" >
-
+
                     <LinearLayout
+                        android:id="@+id/blipIDinfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" >
 
@@ -172,9 +173,9 @@
                             android:textColor="#333333" />
 
                     </LinearLayout>
-
+
                     <LinearLayout
-                        android:id="@+id/linearLayout2"
+                        android:id="@+id/waveIDinfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1" >
@@ -191,26 +192,26 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="TextView" />
+                            android:text="" />
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/linearLayout1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" >
+<!--                     <LinearLayout -->
+<!--                         android:id="@+id/linearLayout1" -->
+<!--                         android:layout_width="match_parent" -->
+<!--                         android:layout_height="wrap_content" -->
+<!--                         android:layout_weight="1" > -->
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+<!--                         <TextView -->
+<!--                             android:layout_width="wrap_content" -->
+<!--                             android:layout_height="wrap_content" /> -->
 
-                        <TextView
-                            android:id="@+id/BlipIDLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/NoARBlipID"
-                            android:textColor="#333333" />
-                    </LinearLayout>
+<!--                         <TextView -->
+<!--                             android:id="@+id/BlipIDLabel" -->
+<!--                             android:layout_width="wrap_content" -->
+<!--                             android:layout_height="wrap_content" -->
+<!--                             android:text="@string/NoARBlipID" -->
+<!--                             android:textColor="#333333" /> -->
+<!--                     </LinearLayout> -->
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -231,7 +232,7 @@
                         android:layout_weight="1"
                         android:background="@android:drawable/editbox_background"
                         android:ems="10"
-                        android:text="@string/latitudeValue" >
+                        android:text="@string/latitudeValue" android:inputType="number|numberSigned|numberDecimal">
 
                         <requestFocus />
                     </EditText>
@@ -256,7 +257,7 @@
                         android:layout_weight="1"
                         android:background="@android:drawable/editbox_background"
                         android:ems="10"
-                        android:text="@string/longitudeValue" />
+                        android:text="@string/longitudeValue" android:inputType="number|numberSigned|numberDecimal"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -378,14 +379,14 @@
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:text="@string/CreateArrowHere" />
-
+
            <Button
                android:id="@+id/createBlipHereButton"
                style="?android:attr/buttonStyleSmall"
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:layout_marginTop="20sp"
-               android:text="Create Blip Here" />
+               android:text="@string/CreateBlipHere" />
 
            <Button
                android:id="@+id/createBlipAnywhereButton"
