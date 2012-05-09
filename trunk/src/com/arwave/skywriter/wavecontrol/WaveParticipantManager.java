@@ -2,9 +2,6 @@ package com.arwave.skywriter.wavecontrol;
 
 import com.arwave.skywriter.R;
 import com.arwave.skywriter.start;
-import com.arwave.skywriter.R.id;
-import com.arwave.skywriter.R.layout;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,13 +10,13 @@ import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 
 public class WaveParticipantManager extends Activity {
 
 	String WaveIDbeigManaged ="(no wave specified)";
 	
 	
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 

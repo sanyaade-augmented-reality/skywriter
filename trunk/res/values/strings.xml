@@ -63,6 +63,10 @@
 <string name="CreateArrowHere">Create Arrow Here</string>
 <string name="createBlipAnywhere">Create Blip Anywhere</string>
 <string name="addBlipLocationMarkerSettings">Location Marker Settings</string>
+<color name="Red">#DD0000</color>
+<color name="Green">#00DD00</color>
+<color name="Blue">#0000DD</color>
+<string name="CreateBlipHere">Create Blip Here</string>
 
 
 </resources>

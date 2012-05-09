@@ -37,6 +37,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.speech.RecognizerIntent;
 import android.util.DisplayMetrics;
+import android.util.FloatMath;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -104,6 +105,9 @@ public class start extends Activity implements SensorEventListener,
 	// ----------------
 
 	// default wave prefs;
+	// this will be made redundant in future once we give
+	// the user the ability too set default waves, then
+	// these can be treated like any other wave.
 	static boolean backgroundScenaryOn = false;
 	static boolean CMScenaryOn = false;
 	//
@@ -149,42 +153,53 @@ public class start extends Activity implements SensorEventListener,
 
 	public Location currentLocation;
 
+	
+	//interface bits for adding a new blip to a wave
 	private static LinearLayout AddBlipOptions;
+	
 
 	private static Spinner AddBlipSelectTypeSpinner;
-	
 
 	private static LinearLayout AddBlipTextSpecificOptions;
 	
 	private static LinearLayout AddBlipLocationMarkerSpecificOptions;
 	
-	//location specific options
+	//location marker specific options
 	private static RadioButton AddBlipRed;
 	private static RadioButton AddBlipGreen;
 	private static RadioButton AddBlipBlue;
 	private static RadioGroup addBlipColourOptions;
 	
-	
+	//options for adding various types of blips
 	private static Button AddBlipCreateBlipHere;
 	private static Button AddBlipCreateArrowHere;
-	private static Button AddBlipCreateBlipAnywhere;
+	private static Button AddBlipCreateBlipAnywhere; //Not implemented yet - will need to use a 2D map screen and a way to select a point
 	private static ArrayAdapter blipTypeAdapter;
 
-	// static CheckBox AutoSetLocation;
+	//boxs to manualy set the location
 	static EditText AddBlipLat;
 	static EditText AddBlipLong;
-
+	static EditText AddBlipAlt;
+	
+	//boxs to manualy set the rotation
 	static EditText AddBlipBaring;
 	static EditText AddBlipElevation;
 	static EditText AddBlipRoll;
+	
+	//button to trigger androids speach dictation function
+	//dumps the result in the AddBlipText below
 	private static Button AddBlipSpeakButton;
 
+	//text the current blip sign should  display
 	static EditText AddBlipText;
-	static EditText AddBlipAlt;
+	//if it always faces the camera, this should be checked
 	static CheckBox AddBlipBillBoard;
+	
+	//the blips ID and the waveID for it
 	static TextView AddBlipBlipID;
 	static TextView AddBlipWaveID;
 
+	//wave control buttons
 	private static Button CreateWaveButton;
 	private static Button joinWaveButton;
 
@@ -192,7 +207,6 @@ public class start extends Activity implements SensorEventListener,
 	private static final String TAG = "VoiceRecognition";
 	private static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 	// private ListView mList;
-
 	// private Spinner mSupportedLanguageView;
 
 	boolean overheadmode = false;
@@ -255,7 +269,7 @@ public class start extends Activity implements SensorEventListener,
 	// admin mode (used for debuging)
 	private boolean adminmode = true; // false;
 
-	private static Spinner activewavelist;
+	//private static Spinner activewavelist;
 
 	// Need handler for callbacks to the UI thread
 	final public static Handler mHandler = new Handler();
@@ -383,38 +397,37 @@ public class start extends Activity implements SensorEventListener,
 				LayoutParams.WRAP_CONTENT));
 
 		// -----------------------------------------------------------
-		// for adding blips
-		Button cancelButton = (Button) findViewById(R.id.cancelButton);
+
 
 		Log.i("setup", "setting wave list view");
-		activewavelist = (Spinner) findViewById(R.id.activewaveselectlist);
+	//	activewavelist = (Spinner) findViewById(R.id.activewaveselectlist);
 
 		// add selection click listener
-		activewavelist.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long arg3) {
-
-				// select wave name
-				String name = (((TextView) arg1)).getText().toString();
-				Log.i("wave", "selected active wave name:" + name);
-
-				// get the id
-				String waveID = WaveList.getWaveIDFromNick(name);
-
-				Log.i("wave", "setting active wave too:" + waveID);
-
-				// set current wave to selected one
-				acm.setActiveWave(waveID);
-
-			}
-
-			public void onNothingSelected(AdapterView<?> arg0) {
-				// TODO Auto-generated method stub
-
-			}
-
-		});
+//		activewavelist.setOnItemSelectedListener(new OnItemSelectedListener() {
+//
+//			public void onItemSelected(AdapterView<?> arg0, View arg1,
+//					int arg2, long arg3) {
+//
+//				// select wave name
+//				String name = (((TextView) arg1)).getText().toString();
+//				Log.i("wave", "selected active wave name:" + name);
+//
+//				// get the id
+//				String waveID = WaveList.getWaveIDFromNick(name);
+//
+//				Log.i("wave", "setting active wave too:" + waveID);
+//
+//				// set current wave to selected one
+//				acm.setActiveWave(waveID);
+//
+//			}
+//
+//			public void onNothingSelected(AdapterView<?> arg0) {
+//				// TODO Auto-generated method stub
+//
+//			}
+//
+//		});
 
 		// assign interface
 
@@ -429,6 +442,248 @@ public class start extends Activity implements SensorEventListener,
 		Log.i("setup", "setting addblips");
 
 		// main add options
+		setupAddBlipPage();
+
+		// listen for gps
+
+		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		if (loc == null) {
+			// Fall back to coarse location.
+			loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		}
+
+		useLocation(loc);
+
+		locListener = new LocListener();
+
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_COARSE); // Faster, no GPS fix.
+		criteria.setAccuracy(Criteria.ACCURACY_FINE); // More accurate, GPS fix.
+
+		// lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L,
+		// 500.0f, locListener);
+		lm.requestLocationUpdates(lm.getBestProvider(criteria, true), 0, 0,
+				locListener);
+
+		Log.i("setup", "setting buttons");
+
+		// initialize the communication manager
+		// acm = new FedOneCommunicationManager(this);
+		final XMPPCommunicationManager xmppacm = new XMPPCommunicationManager(
+				this);
+		final FedOneCommunicationManager wfpacm = new FedOneCommunicationManager(
+				this);
+
+		acm = xmppacm;
+
+		final EditText password = (EditText) findViewById(R.id.PasswordBox);
+		final EditText username = (EditText) findViewById(R.id.EditText02);
+		final EditText serverAddress = (EditText) findViewById(R.id.LoginServerDomain);
+		final Spinner serverSelect = (Spinner) findViewById(R.id.ServerSelect);
+
+		serverSelect.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long rowid) {
+				if (rowid == 0) {
+
+					serverAddress.setText("talk.google.com"); // default, but
+																// any XMPP
+																// server should
+																// work
+
+					acm = xmppacm;
+
+				}
+				if (rowid == 1) {
+
+					password.setText("");
+					username.setText("demo");
+					serverAddress.setText("Atresica.nl");
+
+					acm = wfpacm;
+
+				}
+
+			}
+
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+		});
+
+		// prompt for a login
+		Button button = (Button) findViewById(R.id.LoginButton);
+		button.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				// try to log the user in
+
+				if (username.getText().toString().equalsIgnoreCase("demo")) {
+					adminmode = true;
+
+				}
+
+				// EditText serverPort =
+				// (EditText)findViewById(R.id.serverPortEdit);
+				acm.login(serverAddress.getText().toString(), 9876, username
+						.getText().toString(), password.getText().toString());
+
+				// enable wave list if login successfull
+				if (acm.isConnected()) {
+					tabHost.getTabWidget().getChildTabViewAt(1)
+							.setEnabled(true);
+					tabHost.getTabWidget().getChildTabViewAt(1)
+							.setVisibility(View.VISIBLE);
+					tabHost.getTabWidget().getChildTabViewAt(3)
+							.setEnabled(true);
+					tabHost.getTabWidget().getChildTabViewAt(3)
+							.setVisibility(View.VISIBLE);
+
+					tabHost.setCurrentTab(1);
+
+					CreateWaveButton.setEnabled(true);
+					joinWaveButton.setEnabled(true);
+
+				}
+			}
+
+		});
+
+		// Get the user preferences
+		setUpPreferances(username, password, serverAddress, serverSelect);
+
+		// if the user doesn't login we only display the already cached data?
+
+		// setup the page with the wave list
+		FrameLayout wavesListPage = (FrameLayout) findViewById(R.id.wavelistframe);
+
+		waveListViewBox = new WaveListView(this);
+
+		waveListViewBox.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+
+		waveListViewBox.setLayoutParams(new LayoutParams(
+				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+		// waveListViewBox.setVerticalScrollBarEnabled(true);
+
+		// wavesListPage.removeAllViews();
+		wavesListPage.addView(waveListViewBox);
+
+		// add default contents and set adapter
+		// usersWavesList = new ArrayList<String>();
+
+		usersWavesList = new ArrayList<WaveDetails>();
+
+		// usersWavesList.add("wave list not updated");
+		// usersWaveListAdapter = new ArrayAdapter<String>(this,
+		// R.layout.wave_list_view_item,
+		// usersWavesList);
+
+		usersWaveListAdapter = new WaveListAdapter(this,
+				R.layout.wave_list_view_item, usersWavesList);
+
+		waveListViewBox.setAdapter(usersWaveListAdapter);
+
+		// This should probably be added in a better way
+		// The waves themselves are created in the ARWaveView object itself
+		WaveDetails backgroundDetails = new WaveDetails("Background", false);
+		backgroundDetails.setUnpostable(true);
+		usersWavesList.add(backgroundDetails); // default background wave
+
+		WaveDetails backgroundCMDetails = new WaveDetails("Background_CM",
+				false);
+		backgroundCMDetails.setUnpostable(true);
+		usersWavesList.add(backgroundCMDetails); // Christmas layer
+
+		// SharedPreferences prefs = PreferenceManager
+		// .getDefaultSharedPreferences(getBaseContext());
+
+		// get pref for background wave
+		SharedPreferences BackgroundPrefs = getBaseContext()
+				.getSharedPreferences("waveID_Background", Context.MODE_PRIVATE);
+		backgroundScenaryOn = BackgroundPrefs.getBoolean("ShowByDefault", true);
+
+		// waveListViewBox.setItemChecked(0, backgroundScenaryOn);
+		waveListViewBox.setWaveVisible(0, backgroundScenaryOn);
+
+		// get and Christmas wave
+		SharedPreferences CMLayerPrefs = getBaseContext().getSharedPreferences(
+				"waveID_CMLayer", Context.MODE_PRIVATE);
+		CMScenaryOn = CMLayerPrefs.getBoolean("ShowByDefault", true);
+		waveListViewBox.setWaveVisible(1, CMScenaryOn);
+
+		waveListViewBox.invalidate();
+
+		// create wave button
+		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
+		CreateWaveButton.setEnabled(false);
+
+		CreateWaveButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+
+				if (acm.isConnected()) {
+
+					Intent i = new Intent(maincontext, CreateWaveActivity.class);
+
+					startActivity(i);
+
+				} else {
+					// popup an error toast
+					Toast.makeText(
+							getApplicationContext(),
+							" You need to be connected in order to create a new wave. Log in first and then retry ",
+							Toast.LENGTH_LONG).show();
+				}
+
+			}
+
+		});
+
+		// join wave button
+		joinWaveButton = (Button) findViewById(R.id.OpenJoinWaveButton);
+		joinWaveButton.setEnabled(false);
+
+		joinWaveButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+
+				if (acm.isConnected()) {
+
+					Intent i = new Intent(maincontext, JoinWaveActivity.class);
+
+					startActivity(i);
+
+				} else {
+					// popup an error toast
+					Toast.makeText(
+							getApplicationContext(),
+							" You need to be connected in order to join a new wave. Log in first and then retry ",
+							Toast.LENGTH_LONG).show();
+				}
+
+			}
+
+		});
+
+		/*
+		 * Location tempLocation = new Location("");
+		 * tempLocation.setLatitude(50.0000); tempLocation.setLatitude(5.000);
+		 * useLocation(tempLocation);
+		 */
+
+		// add a context menu to the list of waves
+		registerForContextMenu(waveListViewBox);
+		registerForContextMenu(arView);
+
+	}
+
+	private void setupAddBlipPage() {
+		
+		// for adding blips
+		Button cancelButton = (Button) findViewById(R.id.cancelButton);
+		
 		AddBlipSelectTypeSpinner = (Spinner) findViewById(R.id.AddBlipTypeSelect);
 		AddBlipTextSpecificOptions  = (LinearLayout) findViewById(R.id.addBlipTextSpecificSettings);
 		AddBlipLocationMarkerSpecificOptions  = (LinearLayout) findViewById(R.id.addBlipLocationMarkerSettings);
@@ -697,240 +952,6 @@ public class start extends Activity implements SensorEventListener,
 
 			}
 		});
-
-		// listen for gps
-
-		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		if (loc == null) {
-			// Fall back to coarse location.
-			loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		}
-
-		useLocation(loc);
-
-		locListener = new LocListener();
-
-		Criteria criteria = new Criteria();
-		criteria.setAccuracy(Criteria.ACCURACY_COARSE); // Faster, no GPS fix.
-		criteria.setAccuracy(Criteria.ACCURACY_FINE); // More accurate, GPS fix.
-
-		// lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L,
-		// 500.0f, locListener);
-		lm.requestLocationUpdates(lm.getBestProvider(criteria, true), 0, 0,
-				locListener);
-
-		Log.i("setup", "setting buttons");
-
-		// initialize the communication manager
-		// acm = new FedOneCommunicationManager(this);
-		final XMPPCommunicationManager xmppacm = new XMPPCommunicationManager(
-				this);
-		final FedOneCommunicationManager wfpacm = new FedOneCommunicationManager(
-				this);
-
-		acm = xmppacm;
-
-		final EditText password = (EditText) findViewById(R.id.PasswordBox);
-		final EditText username = (EditText) findViewById(R.id.EditText02);
-		final EditText serverAddress = (EditText) findViewById(R.id.EditText03);
-		final Spinner serverSelect = (Spinner) findViewById(R.id.ServerSelect);
-
-		serverSelect.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long rowid) {
-				if (rowid == 0) {
-
-					serverAddress.setText("talk.google.com"); // default, but
-																// any XMPP
-																// server should
-																// work
-
-					acm = xmppacm;
-
-				}
-				if (rowid == 1) {
-
-					password.setText("");
-					username.setText("demo");
-					serverAddress.setText("Atresica.nl");
-
-					acm = wfpacm;
-
-				}
-
-			}
-
-			public void onNothingSelected(AdapterView<?> arg0) {
-				// TODO Auto-generated method stub
-
-			}
-
-		});
-
-		// prompt for a login
-		Button button = (Button) findViewById(R.id.LoginButton);
-		button.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				// try to log the user in
-
-				if (username.getText().toString().equalsIgnoreCase("demo")) {
-					adminmode = true;
-
-				}
-
-				// EditText serverPort =
-				// (EditText)findViewById(R.id.serverPortEdit);
-				acm.login(serverAddress.getText().toString(), 9876, username
-						.getText().toString(), password.getText().toString());
-
-				// enable wave list if login successfull
-				if (acm.isConnected()) {
-					tabHost.getTabWidget().getChildTabViewAt(1)
-							.setEnabled(true);
-					tabHost.getTabWidget().getChildTabViewAt(1)
-							.setVisibility(View.VISIBLE);
-					tabHost.getTabWidget().getChildTabViewAt(3)
-							.setEnabled(true);
-					tabHost.getTabWidget().getChildTabViewAt(3)
-							.setVisibility(View.VISIBLE);
-
-					tabHost.setCurrentTab(1);
-
-					CreateWaveButton.setEnabled(true);
-					joinWaveButton.setEnabled(true);
-
-				}
-			}
-
-		});
-
-		// Get the user preferences
-		setUpPreferances(username, password, serverAddress, serverSelect);
-
-		// if the user doesn't login we only display the already cached data?
-
-		// setup the page with the wave list
-		FrameLayout wavesListPage = (FrameLayout) findViewById(R.id.wavelistframe);
-
-		waveListViewBox = new WaveListView(this);
-
-		waveListViewBox.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-
-		waveListViewBox.setLayoutParams(new LayoutParams(
-				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-
-		// waveListViewBox.setVerticalScrollBarEnabled(true);
-
-		// wavesListPage.removeAllViews();
-		wavesListPage.addView(waveListViewBox);
-
-		// add default contents and set adapter
-		// usersWavesList = new ArrayList<String>();
-
-		usersWavesList = new ArrayList<WaveDetails>();
-
-		// usersWavesList.add("wave list not updated");
-		// usersWaveListAdapter = new ArrayAdapter<String>(this,
-		// R.layout.wave_list_view_item,
-		// usersWavesList);
-
-		usersWaveListAdapter = new WaveListAdapter(this,
-				R.layout.wave_list_view_item, usersWavesList);
-
-		waveListViewBox.setAdapter(usersWaveListAdapter);
-
-		// This should probably be added in a better way
-		// The waves themselves are created in the ARWaveView object itself
-		WaveDetails backgroundDetails = new WaveDetails("Background", false);
-		backgroundDetails.setUnpostable(true);
-		usersWavesList.add(backgroundDetails); // default background wave
-
-		WaveDetails backgroundCMDetails = new WaveDetails("Background_CM",
-				false);
-		backgroundCMDetails.setUnpostable(true);
-		usersWavesList.add(backgroundCMDetails); // Christmas layer
-
-		// SharedPreferences prefs = PreferenceManager
-		// .getDefaultSharedPreferences(getBaseContext());
-
-		// get pref for background wave
-		SharedPreferences BackgroundPrefs = getBaseContext()
-				.getSharedPreferences("waveID_Background", Context.MODE_PRIVATE);
-		backgroundScenaryOn = BackgroundPrefs.getBoolean("ShowByDefault", true);
-
-		// waveListViewBox.setItemChecked(0, backgroundScenaryOn);
-		waveListViewBox.setWaveVisible(0, backgroundScenaryOn);
-
-		// get and Christmas wave
-		SharedPreferences CMLayerPrefs = getBaseContext().getSharedPreferences(
-				"waveID_CMLayer", Context.MODE_PRIVATE);
-		CMScenaryOn = CMLayerPrefs.getBoolean("ShowByDefault", true);
-		waveListViewBox.setWaveVisible(1, CMScenaryOn);
-
-		waveListViewBox.invalidate();
-
-		// create wave button
-		CreateWaveButton = (Button) findViewById(R.id.CreateWaveButton2);
-		CreateWaveButton.setEnabled(false);
-
-		CreateWaveButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-
-				if (acm.isConnected()) {
-
-					Intent i = new Intent(maincontext, CreateWaveActivity.class);
-
-					startActivity(i);
-
-				} else {
-					// popup an error toast
-					Toast.makeText(
-							getApplicationContext(),
-							" You need to be connected in order to create a new wave. Log in first and then retry ",
-							Toast.LENGTH_LONG).show();
-				}
-
-			}
-
-		});
-
-		// join wave button
-		joinWaveButton = (Button) findViewById(R.id.OpenJoinWaveButton);
-		joinWaveButton.setEnabled(false);
-
-		joinWaveButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-
-				if (acm.isConnected()) {
-
-					Intent i = new Intent(maincontext, JoinWaveActivity.class);
-
-					startActivity(i);
-
-				} else {
-					// popup an error toast
-					Toast.makeText(
-							getApplicationContext(),
-							" You need to be connected in order to join a new wave. Log in first and then retry ",
-							Toast.LENGTH_LONG).show();
-				}
-
-			}
-
-		});
-
-		/*
-		 * Location tempLocation = new Location("");
-		 * tempLocation.setLatitude(50.0000); tempLocation.setLatitude(5.000);
-		 * useLocation(tempLocation);
-		 */
-
-		// add a context menu to the list of waves
-		registerForContextMenu(waveListViewBox);
-		registerForContextMenu(arView);
-
 	}
 
 	private void copy(Object src, Object src2) {
@@ -1637,8 +1658,8 @@ public class start extends Activity implements SensorEventListener,
 
 		float zAvg;
 		for (int i = 0; i < zArray.length; i++) {
-			x += Math.cos(zArray[i]);
-			y += Math.sin(zArray[i]);
+			x += FloatMath.cos(zArray[i]);
+			y += FloatMath.sin(zArray[i]);
 		}
 		zAvg = (float) Math.atan2(x, y);
 
@@ -1657,8 +1678,8 @@ public class start extends Activity implements SensorEventListener,
 
 		float yAvg;
 		for (int i = 0; i < yArray.length; i++) {
-			x += Math.cos(yArray[i]);
-			y += Math.sin(yArray[i]);
+			x += FloatMath.cos(yArray[i]);
+			y += FloatMath.sin(yArray[i]);
 		}
 		yAvg = (float) Math.atan2(x, y);
 
@@ -1680,8 +1701,8 @@ public class start extends Activity implements SensorEventListener,
 
 		float xAvg;
 		for (int i = 0; i < xArray.length; i++) {
-			x += Math.cos(xArray[i]);
-			y += Math.sin(xArray[i]);
+			x += FloatMath.cos(xArray[i]);
+			y += FloatMath.sin(xArray[i]);
 		}
 		xAvg = (float) Math.atan2(x, y);
 

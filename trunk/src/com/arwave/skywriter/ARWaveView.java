@@ -151,6 +151,7 @@ public class ARWaveView extends GLSurfaceView {
 
 	int CurrentMode;
 	public boolean isOnContextMenu = false;
+	private RGBColor oldColour;
 
 	public ARWaveView(Context context) {
 		super(context);
@@ -327,14 +328,20 @@ public class ARWaveView extends GLSurfaceView {
 					// if theres an old object,reset its color
 					if (CurrentObject != null) {
 						CurrentObject.clearAdditionalColor();
+						CurrentObject.setAdditionalColor(oldColour);
 						CurrentObject.setSpecularLighting(true);
 					}
 
 					// set as current object
 					CurrentObject = pickedObject;
+					
+					oldColour = CurrentObject.getAdditionalColor();
+							
+					Log.i("add", "old colour:"+oldColour.getARGB());
+					
 					CurrentObject.setAdditionalColor(RGBColor.RED);
 					CurrentObject.setSpecularLighting(false);
-
+					
 					// set current distance
 					newobject_distance = (int) dis;
 
