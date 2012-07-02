@@ -1,7 +1,5 @@
 package com.arwave.skywriter;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 import net.e175.klaus.solarpositioning.AzimuthZenithAngle;

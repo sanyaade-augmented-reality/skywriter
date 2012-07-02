@@ -1,7 +1,5 @@
 package com.arwave.skywriter.wavecontrol;
 
-import java.util.Iterator;
-
 import com.arwave.skywriter.start;
 
 import android.content.Context;
@@ -10,12 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class WaveListView extends ListView {
 	
