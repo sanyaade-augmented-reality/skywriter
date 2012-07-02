@@ -16,6 +16,7 @@ import java.util.TimerTask;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -29,8 +30,8 @@ import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
-import com.arwave.skywriter.objects.ArrowMarker;
 import com.arwave.skywriter.objects.Rectangle;
 import com.arwave.skywriter.utilities.ARBlipIDCreator;
 import com.arwave.skywriter.utilities.NoConnection;
@@ -411,21 +412,11 @@ public class ARWaveView extends GLSurfaceView {
 		// set edit mode on
 		CurrentMode = EDIT_MODE;
 
-		// start edit mode timer
-
-		// then we add the blip
-		/*
-		 * ARBlip newblip = new ARBlip();
-		 * 
-		 * 
-		 * newblip.x = x; newblip.y = y; newblip.z = 0; newblip.BlipID =
-		 * "_NEWBLIP_"; newblip.ObjectData = "(newly created blip)"; 1 try {
-		 * this.addBlip(newblip); } catch (IOException e) { // TODO
-		 * Auto-generated catch block Log.i("add", "io exception");
-		 * 
-		 * }
-		 */
-
+		
+		//display message
+		Toast t=Toast.makeText(this.getContext(), this.getResources().getText(R.string.NewBillBoardInstructions), 9000);
+	t.show();
+	
 	}
 
 	/**
@@ -1493,7 +1484,7 @@ public class ARWaveView extends GLSurfaceView {
 			atmos.setAdditionalColor(RGBColor.WHITE);
 			atmos2.setAdditionalColor(RGBColor.WHITE);
 
-			groundPlane.setSortOffset(-500000); // ensures its behind
+		//	groundPlane.setSortOffset(-500000); // ensures its behind
 												// everything?
 
 			// set up atmos animation

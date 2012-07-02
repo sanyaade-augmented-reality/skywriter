@@ -67,6 +67,7 @@
 <color name="Green">#00DD00</color>
 <color name="Blue">#0000DD</color>
 <string name="CreateBlipHere">Create Blip Here</string>
+<string name="NewBillBoardInstructions">Use the vol control to set distance, hold over the box to finnish placing the billboard.</string>
 
 
 </resources>
